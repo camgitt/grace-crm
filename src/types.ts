@@ -98,4 +98,24 @@ export interface CalendarEvent {
   attendees?: string[];
 }
 
-export type View = 'dashboard' | 'people' | 'person' | 'tasks' | 'calendar' | 'groups' | 'prayer' | 'giving' | 'settings';
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+  category: 'welcome' | 'follow-up' | 'care' | 'event' | 'general';
+}
+
+export interface Communication {
+  id: string;
+  personId: string;
+  type: 'email' | 'sms';
+  subject?: string;
+  content: string;
+  templateUsed?: string;
+  sentAt: string;
+  sentBy: string;
+  status: 'sent' | 'failed' | 'pending';
+}
+
+export type View = 'dashboard' | 'people' | 'person' | 'tasks' | 'calendar' | 'groups' | 'prayer' | 'giving' | 'settings' | 'communications';

@@ -11,6 +11,7 @@ import { Prayer } from './components/Prayer';
 import { Giving } from './components/Giving';
 import { Settings } from './components/Settings';
 import { GlobalSearch } from './components/GlobalSearch';
+import { ComposeMessage } from './components/ComposeMessage';
 import {
   View,
   Person,
@@ -19,7 +20,8 @@ import {
   SmallGroup,
   PrayerRequest,
   CalendarEvent,
-  Giving as GivingType
+  Giving as GivingType,
+  Communication
 } from './types';
 import {
   SAMPLE_PEOPLE,
@@ -44,10 +46,15 @@ function App() {
   const [events] = useState<CalendarEvent[]>(SAMPLE_EVENTS);
   const [giving] = useState<GivingType[]>(SAMPLE_GIVING);
 
+  // Communications state
+  const [communications, setCommunications] = useState<Communication[]>([]);
+
   // Modal states
   const [showPersonForm, setShowPersonForm] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | undefined>(undefined);
   const [showSearch, setShowSearch] = useState(false);
+  const [showCompose, setShowCompose] = useState(false);
+  const [composeRecipients, setComposeRecipients] = useState<Person[]>([]);
 
   const handleViewPerson = (id: string) => {
     setSelectedPersonId(id);
@@ -123,6 +130,34 @@ function App() {
     handleViewPerson(id);
   };
 
+  // Communication handlers
+  const handleOpenCompose = (recipients: Person[]) => {
+    setComposeRecipients(recipients);
+    setShowCompose(true);
+  };
+
+  const handleSendCommunications = (comms: Omit<Communication, 'id' | 'sentAt'>[]) => {
+    const newCommunications: Communication[] = comms.map(comm => ({
+      ...comm,
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      sentAt: new Date().toISOString()
+    }));
+    setCommunications([...communications, ...newCommunications]);
+
+    // Also add as interactions for history
+    const newInteractions: Interaction[] = newCommunications.map(comm => ({
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      personId: comm.personId,
+      type: comm.type === 'email' ? 'email' as const : 'text' as const,
+      content: comm.type === 'email'
+        ? `Email sent: "${comm.subject}" - ${comm.content.substring(0, 100)}...`
+        : `Text sent: ${comm.content}`,
+      createdAt: new Date().toISOString().split('T')[0],
+      createdBy: comm.sentBy
+    }));
+    setInteractions([...interactions, ...newInteractions]);
+  };
+
   const selectedPerson = people.find(p => p.id === selectedPersonId);
 
   const renderView = () => {
@@ -143,6 +178,7 @@ function App() {
             people={people}
             onViewPerson={handleViewPerson}
             onAddPerson={handleAddPerson}
+            onSendMessage={handleOpenCompose}
           />
         );
 
@@ -161,6 +197,7 @@ function App() {
             onAddTask={handleAddTask}
             onToggleTask={handleToggleTask}
             onEditPerson={handleEditPerson}
+            onSendMessage={() => handleOpenCompose([selectedPerson])}
           />
         );
 
@@ -232,6 +269,18 @@ function App() {
           onSelectTask={() => setView('tasks')}
           onSelectPrayer={() => setView('prayer')}
           onClose={() => setShowSearch(false)}
+        />
+      )}
+
+      {/* Compose Message Modal */}
+      {showCompose && composeRecipients.length > 0 && (
+        <ComposeMessage
+          recipients={composeRecipients}
+          onClose={() => {
+            setShowCompose(false);
+            setComposeRecipients([]);
+          }}
+          onSend={handleSendCommunications}
         />
       )}
     </>

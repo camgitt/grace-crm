@@ -12,7 +12,8 @@ import {
   Heart,
   Plus,
   Clock,
-  Pencil
+  Pencil,
+  MessageCircle
 } from 'lucide-react';
 import { Person, Interaction, Task } from '../types';
 import { STATUS_COLORS, PRIORITY_COLORS } from '../constants';
@@ -26,6 +27,7 @@ interface PersonProfileProps {
   onAddTask: (task: Omit<Task, 'id' | 'createdAt'>) => void;
   onToggleTask: (taskId: string) => void;
   onEditPerson?: (person: Person) => void;
+  onSendMessage?: () => void;
 }
 
 const interactionTypes = [
@@ -52,7 +54,8 @@ export function PersonProfile({
   onAddInteraction,
   onAddTask,
   onToggleTask,
-  onEditPerson
+  onEditPerson,
+  onSendMessage
 }: PersonProfileProps) {
   const [newNote, setNewNote] = useState('');
   const [noteType, setNoteType] = useState<Interaction['type']>('note');
@@ -121,15 +124,26 @@ export function PersonProfile({
                       {statusLabels[person.status]}
                     </span>
                   </div>
-                  {onEditPerson && (
-                    <button
-                      onClick={() => onEditPerson(person)}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                    >
-                      <Pencil size={16} />
-                      Edit
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {onSendMessage && (
+                      <button
+                        onClick={onSendMessage}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+                      >
+                        <MessageCircle size={16} />
+                        Message
+                      </button>
+                    )}
+                    {onEditPerson && (
+                      <button
+                        onClick={() => onEditPerson(person)}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                      >
+                        <Pencil size={16} />
+                        Edit
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-2 text-gray-600">
