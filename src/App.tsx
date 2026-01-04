@@ -12,42 +12,45 @@ import { Giving } from './components/Giving';
 import { Settings } from './components/Settings';
 import { GlobalSearch } from './components/GlobalSearch';
 import { ComposeMessage } from './components/ComposeMessage';
+import { Login } from './components/Login';
+import { useAuth } from './lib/AuthContext';
+import { useDatabase } from './lib/useDatabase';
+import { sendEmail, sendSms } from './lib/emailService';
 import {
   View,
   Person,
   Task,
   Interaction,
-  SmallGroup,
-  PrayerRequest,
   CalendarEvent,
   Giving as GivingType,
   Communication
 } from './types';
-import {
-  SAMPLE_PEOPLE,
-  SAMPLE_TASKS,
-  SAMPLE_GROUPS,
-  SAMPLE_PRAYERS,
-  SAMPLE_INTERACTIONS,
-  SAMPLE_EVENTS,
-  SAMPLE_GIVING
-} from './constants';
+import { SAMPLE_EVENTS, SAMPLE_GIVING } from './constants';
 
 function App() {
+  const { user, loading: authLoading, isConfigured: authConfigured } = useAuth();
+  const {
+    people,
+    tasks,
+    interactions,
+    groups,
+    prayers,
+    loading: dbLoading,
+    addPerson,
+    updatePerson,
+    addTask,
+    toggleTask,
+    addInteraction,
+    markPrayerAnswered,
+    addCommunication
+  } = useDatabase();
+
   const [view, setView] = useState<View>('dashboard');
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
 
-  // State with sample data
-  const [people, setPeople] = useState<Person[]>(SAMPLE_PEOPLE);
-  const [tasks, setTasks] = useState<Task[]>(SAMPLE_TASKS);
-  const [interactions, setInteractions] = useState<Interaction[]>(SAMPLE_INTERACTIONS);
-  const [groups] = useState<SmallGroup[]>(SAMPLE_GROUPS);
-  const [prayers, setPrayers] = useState<PrayerRequest[]>(SAMPLE_PRAYERS);
+  // Static data (would also come from database in full production)
   const [events] = useState<CalendarEvent[]>(SAMPLE_EVENTS);
   const [giving] = useState<GivingType[]>(SAMPLE_GIVING);
-
-  // Communications state
-  const [communications, setCommunications] = useState<Communication[]>([]);
 
   // Modal states
   const [showPersonForm, setShowPersonForm] = useState(false);
@@ -55,6 +58,23 @@ function App() {
   const [showSearch, setShowSearch] = useState(false);
   const [showCompose, setShowCompose] = useState(false);
   const [composeRecipients, setComposeRecipients] = useState<Person[]>([]);
+
+  // Show loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-500 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login if auth is configured but user not logged in
+  if (authConfigured && !user) {
+    return <Login />;
+  }
 
   const handleViewPerson = (id: string) => {
     setSelectedPersonId(id);
@@ -66,36 +86,20 @@ function App() {
     setView('people');
   };
 
-  const handleAddInteraction = (interaction: Omit<Interaction, 'id' | 'createdAt'>) => {
-    const newInteraction: Interaction = {
-      ...interaction,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString().split('T')[0]
-    };
-    setInteractions([...interactions, newInteraction]);
+  const handleAddInteraction = async (interaction: Omit<Interaction, 'id' | 'createdAt'>) => {
+    await addInteraction(interaction);
   };
 
-  const handleAddTask = (task: Omit<Task, 'id' | 'createdAt'>) => {
-    const newTask: Task = {
-      ...task,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString().split('T')[0]
-    };
-    setTasks([...tasks, newTask]);
+  const handleAddTask = async (task: Omit<Task, 'id' | 'createdAt'>) => {
+    await addTask(task);
   };
 
-  const handleToggleTask = (taskId: string) => {
-    setTasks(tasks.map(t =>
-      t.id === taskId ? { ...t, completed: !t.completed } : t
-    ));
+  const handleToggleTask = async (taskId: string) => {
+    await toggleTask(taskId);
   };
 
-  const handleMarkPrayerAnswered = (id: string, testimony?: string) => {
-    setPrayers(prayers.map(p =>
-      p.id === id
-        ? { ...p, isAnswered: true, testimony, updatedAt: new Date().toISOString().split('T')[0] }
-        : p
-    ));
+  const handleMarkPrayerAnswered = async (id: string, testimony?: string) => {
+    await markPrayerAnswered(id, testimony);
   };
 
   // Person CRUD handlers
@@ -109,20 +113,18 @@ function App() {
     setShowPersonForm(true);
   };
 
-  const handleSavePerson = (personData: Omit<Person, 'id'> | Person) => {
-    if ('id' in personData) {
-      // Editing existing person
-      setPeople(people.map(p => p.id === personData.id ? personData : p));
-    } else {
-      // Adding new person
-      const newPerson: Person = {
-        ...personData,
-        id: Date.now().toString()
-      };
-      setPeople([...people, newPerson]);
+  const handleSavePerson = async (personData: Omit<Person, 'id'> | Person) => {
+    try {
+      if ('id' in personData) {
+        await updatePerson(personData);
+      } else {
+        await addPerson(personData);
+      }
+      setShowPersonForm(false);
+      setEditingPerson(undefined);
+    } catch (error) {
+      console.error('Failed to save person:', error);
     }
-    setShowPersonForm(false);
-    setEditingPerson(undefined);
   };
 
   // Search handlers
@@ -136,31 +138,44 @@ function App() {
     setShowCompose(true);
   };
 
-  const handleSendCommunications = (comms: Omit<Communication, 'id' | 'sentAt'>[]) => {
-    const newCommunications: Communication[] = comms.map(comm => ({
-      ...comm,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      sentAt: new Date().toISOString()
-    }));
-    setCommunications([...communications, ...newCommunications]);
+  const handleSendCommunications = async (comms: Omit<Communication, 'id' | 'sentAt'>[]) => {
+    for (const comm of comms) {
+      const person = people.find(p => p.id === comm.personId);
+      if (!person) continue;
 
-    // Also add as interactions for history
-    const newInteractions: Interaction[] = newCommunications.map(comm => ({
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      personId: comm.personId,
-      type: comm.type === 'email' ? 'email' as const : 'text' as const,
-      content: comm.type === 'email'
-        ? `Email sent: "${comm.subject}" - ${comm.content.substring(0, 100)}...`
-        : `Text sent: ${comm.content}`,
-      createdAt: new Date().toISOString().split('T')[0],
-      createdBy: comm.sentBy
-    }));
-    setInteractions([...interactions, ...newInteractions]);
+      // Actually send the email/SMS
+      if (comm.type === 'email') {
+        await sendEmail({
+          to: person.email,
+          subject: comm.subject || 'Message from Grace Community',
+          html: comm.content.replace(/\n/g, '<br>')
+        });
+      } else {
+        await sendSms({
+          to: person.phone,
+          message: comm.content
+        });
+      }
+
+      // Log the communication
+      await addCommunication(comm);
+    }
   };
 
   const selectedPerson = people.find(p => p.id === selectedPersonId);
 
   const renderView = () => {
+    if (dbLoading) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-gray-500 dark:text-gray-400">Loading data...</p>
+          </div>
+        </div>
+      );
+    }
+
     switch (view) {
       case 'dashboard':
         return (
