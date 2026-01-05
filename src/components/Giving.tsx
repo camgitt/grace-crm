@@ -1,6 +1,8 @@
-import { DollarSign, TrendingUp, Repeat, CreditCard, Banknote, Building } from 'lucide-react';
+import { useState } from 'react';
+import { DollarSign, TrendingUp, Repeat, CreditCard, Banknote, Building, Heart } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Giving as GivingType, Person } from '../types';
+import { DonationForm } from './DonationForm';
 
 interface GivingProps {
   giving: GivingType[];
@@ -23,6 +25,8 @@ const methodIcons: Record<string, ReactNode> = {
 };
 
 export function Giving({ giving, people }: GivingProps) {
+  const [showDonationForm, setShowDonationForm] = useState(false);
+
   const totalThisMonth = giving.reduce((sum, g) => sum + g.amount, 0);
   const byFund = giving.reduce((acc, g) => {
     acc[g.fund] = (acc[g.fund] || 0) + g.amount;
@@ -34,10 +38,28 @@ export function Giving({ giving, people }: GivingProps) {
 
   return (
     <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-dark-100">Giving</h1>
-        <p className="text-gray-500 dark:text-dark-400 mt-1">Track generosity and stewardship</p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-dark-100">Giving</h1>
+          <p className="text-gray-500 dark:text-dark-400 mt-1">Track generosity and stewardship</p>
+        </div>
+        <button
+          onClick={() => setShowDonationForm(true)}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors"
+        >
+          <Heart size={18} />
+          Give Now
+        </button>
       </div>
+
+      {showDonationForm && (
+        <DonationForm
+          onClose={() => setShowDonationForm(false)}
+          onSuccess={(amount, fund) => {
+            console.log(`Donation received: $${amount} to ${fund}`);
+          }}
+        />
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
