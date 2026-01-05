@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { View } from '../types';
 import { useTheme } from '../ThemeContext';
+import { UserButton } from './UserButton';
 
 interface LayoutProps {
   currentView: View;
@@ -142,6 +143,11 @@ export function Layout({ currentView, setView, children, onOpenSearch }: LayoutP
             <Settings size={20} />
             Settings
           </button>
+        </div>
+
+        {/* User Profile */}
+        <div className="p-4 border-t border-gray-100 dark:border-dark-700">
+          <UserButton />
         </div>
       </aside>
 
