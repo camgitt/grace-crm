@@ -1109,6 +1109,7 @@ function App() {
             onViewTasks={() => setView('tasks')}
             onViewGiving={() => setView('giving')}
             onViewAgents={() => setView('agents')}
+            onConfigureAI={() => setView('settings')}
           />
         );
 

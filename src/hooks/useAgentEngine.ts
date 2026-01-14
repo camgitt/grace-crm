@@ -8,6 +8,7 @@ import type {
   Task,
   Interaction,
 } from '../types';
+import { isAIEnabled, generateAIContent } from '../services/aiService';
 
 interface AgentEngineProps {
   agents: AIAgent[];
@@ -30,6 +31,8 @@ export interface AgentNotification {
   timestamp: string;
   personId?: string;
   personName?: string;
+  aiGenerated?: boolean;
+  aiContent?: string;
 }
 
 interface DataSnapshot {
@@ -81,24 +84,85 @@ export function useAgentEngine({
     });
   }, []);
 
+  // Generate AI content for an action (async)
+  const generateAIMessage = useCallback(
+    async (
+      type: 'birthday_message' | 'donation_thank_you' | 'follow_up' | 'pastoral_care',
+      person: Person,
+      context?: Record<string, unknown>
+    ): Promise<string | null> => {
+      if (!isAIEnabled()) return null;
+
+      try {
+        const result = await generateAIContent({
+          type,
+          person,
+          context,
+        });
+
+        if (result.success && result.content) {
+          return result.content;
+        }
+      } catch (error) {
+        console.error('AI generation failed:', error);
+      }
+      return null;
+    },
+    []
+  );
+
   // Execute agent action
   const executeAction = useCallback(
-    (
+    async (
       agent: AIAgent,
       actionType: string,
       actionConfig: Record<string, unknown>,
-      targetPerson?: Person
-    ): string => {
+      targetPerson?: Person,
+      triggerContext?: Record<string, unknown>
+    ): Promise<{ result: string; aiContent?: string }> => {
       switch (actionType) {
-        case 'send_email':
-          // Simulate email sending (would integrate with email service)
-          console.log(`[Agent: ${agent.name}] Sending email to ${targetPerson?.email || 'N/A'}`);
-          return `Email sent to ${targetPerson?.firstName || 'recipient'}`;
+        case 'send_email': {
+          // Try to generate AI content if enabled
+          let aiContent: string | undefined;
+          const triggerType = triggerContext?.triggerType as string;
 
-        case 'send_sms':
-          // Simulate SMS sending (would integrate with SMS service)
+          if (targetPerson && isAIEnabled()) {
+            if (triggerType === 'birthday') {
+              aiContent = (await generateAIMessage('birthday_message', targetPerson)) || undefined;
+            } else if (triggerType === 'new_donation') {
+              aiContent = (await generateAIMessage('donation_thank_you', targetPerson, {
+                amount: triggerContext?.amount,
+                fund: triggerContext?.fund,
+              })) || undefined;
+            }
+          }
+
+          console.log(`[Agent: ${agent.name}] Sending email to ${targetPerson?.email || 'N/A'}`);
+          if (aiContent) {
+            console.log(`[Agent: ${agent.name}] AI-generated content:`, aiContent);
+          }
+          return {
+            result: `Email sent to ${targetPerson?.firstName || 'recipient'}`,
+            aiContent,
+          };
+        }
+
+        case 'send_sms': {
+          let aiContent: string | undefined;
+          const triggerType = triggerContext?.triggerType as string;
+
+          if (targetPerson && isAIEnabled() && triggerType === 'birthday') {
+            const fullMessage = await generateAIMessage('birthday_message', targetPerson);
+            // Keep SMS short
+            aiContent = fullMessage?.split('.')[0] || undefined;
+          }
+
           console.log(`[Agent: ${agent.name}] Sending SMS to ${targetPerson?.phone || 'N/A'}`);
-          return `SMS sent to ${targetPerson?.firstName || 'recipient'}`;
+          return {
+            result: `SMS sent to ${targetPerson?.firstName || 'recipient'}`,
+            aiContent,
+          };
+        }
 
         case 'create_task':
           if (onCreateTask && targetPerson) {
@@ -112,19 +176,19 @@ export function useAgentEngine({
               priority: (actionConfig.priority as 'high' | 'medium' | 'low') || 'medium',
               category: 'follow-up',
             });
-            return `Task created: ${taskTitle}`;
+            return { result: `Task created: ${taskTitle}` };
           }
-          return 'Task creation skipped';
+          return { result: 'Task creation skipped' };
 
         case 'add_tag':
           if (onAddTag && targetPerson) {
             const tag = (actionConfig.tag as string) || 'agent-processed';
             onAddTag(targetPerson.id, tag);
-            return `Tag "${tag}" added`;
+            return { result: `Tag "${tag}" added` };
           }
-          return 'Tag addition skipped';
+          return { result: 'Tag addition skipped' };
 
-        case 'notify_staff':
+        case 'notify_staff': {
           const notification: AgentNotification = {
             id: `notif-${Date.now()}`,
             agentId: agent.id,
@@ -138,7 +202,8 @@ export function useAgentEngine({
           };
           setNotifications((prev) => [notification, ...prev].slice(0, 50));
           onNotification?.(notification);
-          return 'Staff notified';
+          return { result: 'Staff notified' };
+        }
 
         case 'log_interaction':
           if (onAddInteraction && targetPerson) {
@@ -149,28 +214,28 @@ export function useAgentEngine({
               content: (actionConfig.content as string) || `Auto-logged by ${agent.name}`,
               createdBy: agent.name,
             });
-            return `Interaction logged`;
+            return { result: 'Interaction logged' };
           }
-          return 'Interaction logging skipped';
+          return { result: 'Interaction logging skipped' };
 
         case 'update_status':
-          // Would update person status
-          return `Status update queued`;
+          return { result: 'Status update queued' };
 
         default:
-          return `Unknown action: ${actionType}`;
+          return { result: `Unknown action: ${actionType}` };
       }
     },
-    [onCreateTask, onAddTag, onAddInteraction, onNotification]
+    [generateAIMessage, onCreateTask, onAddTag, onAddInteraction, onNotification]
   );
 
   // Run agent for a specific trigger
   const runAgent = useCallback(
-    (
+    async (
       agent: AIAgent,
       triggerType: AgentTriggerType,
       targetPerson?: Person,
-      details?: string
+      details?: string,
+      triggerContext?: Record<string, unknown>
     ) => {
       if (!agent.isEnabled || agent.status !== 'active') return;
 
@@ -181,14 +246,32 @@ export function useAgentEngine({
       // Execute all actions in order
       const actionsTaken: string[] = [];
       const sortedActions = [...(agent.actions || [])].sort((a, b) => a.order - b.order);
+      let aiGeneratedContent: string | undefined;
+
+      const context = { ...triggerContext, triggerType };
 
       for (const action of sortedActions) {
-        const result = executeAction(agent, action.type, action.config, targetPerson);
+        const { result, aiContent } = await executeAction(
+          agent,
+          action.type,
+          action.config,
+          targetPerson,
+          context
+        );
         actionsTaken.push(action.type);
         console.log(`[Agent: ${agent.name}] Action ${action.type}: ${result}`);
+
+        // Capture first AI content
+        if (aiContent && !aiGeneratedContent) {
+          aiGeneratedContent = aiContent;
+        }
       }
 
-      // Log activity
+      // Log activity with AI content if generated
+      const activityDetails = aiGeneratedContent
+        ? `${details || `Processed ${triggerType} trigger`}\n\nAI Generated: ${aiGeneratedContent.substring(0, 200)}...`
+        : details || `Processed ${triggerType} trigger`;
+
       const activity: AgentActivity = {
         id: `activity-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         agentId: agent.id,
@@ -198,7 +281,7 @@ export function useAgentEngine({
         targetPersonId: targetPerson?.id,
         targetPersonName: targetPerson ? `${targetPerson.firstName} ${targetPerson.lastName}` : undefined,
         status: 'success',
-        details: details || `Processed ${triggerType} trigger`,
+        details: activityDetails,
       };
 
       // Update agent with new activity and run counts
@@ -222,6 +305,8 @@ export function useAgentEngine({
           timestamp: new Date().toISOString(),
           personId: targetPerson?.id,
           personName: targetPerson ? `${targetPerson.firstName} ${targetPerson.lastName}` : undefined,
+          aiGenerated: !!aiGeneratedContent,
+          aiContent: aiGeneratedContent,
         };
         setNotifications((prev) => [notification, ...prev].slice(0, 50));
         onNotification?.(notification);
@@ -248,6 +333,11 @@ export function useAgentEngine({
 
     for (const donation of newDonations) {
       const donor = people.find((p) => p.id === donation.personId);
+      const donationContext = {
+        amount: donation.amount,
+        fund: donation.fund,
+        method: donation.method,
+      };
 
       // Find agents with new_donation trigger
       for (const agent of agents) {
@@ -255,7 +345,8 @@ export function useAgentEngine({
           agent,
           'new_donation',
           donor,
-          `New ${donation.fund} donation of $${donation.amount.toFixed(2)}`
+          `New ${donation.fund} donation of $${donation.amount.toFixed(2)}`,
+          donationContext
         );
 
         // Check for giving_change trigger (large donations)
@@ -265,7 +356,8 @@ export function useAgentEngine({
             agent,
             'giving_change',
             donor,
-            `Large donation alert: $${donation.amount.toFixed(2)} to ${donation.fund}`
+            `Large donation alert: $${donation.amount.toFixed(2)} to ${donation.fund}`,
+            donationContext
           );
         }
       }

@@ -13,6 +13,7 @@ import { DashboardCharts } from './DashboardCharts';
 import { BirthdayWidget } from './BirthdayWidget';
 import { GivingWidget } from './GivingWidget';
 import { AgentWidget } from './AgentWidget';
+import { AIInsightsPanel } from './AIInsightsPanel';
 
 interface DashboardProps {
   people: Person[];
@@ -23,9 +24,10 @@ interface DashboardProps {
   onViewTasks: () => void;
   onViewGiving?: () => void;
   onViewAgents?: () => void;
+  onConfigureAI?: () => void;
 }
 
-export function Dashboard({ people, tasks, giving = [], agents = [], onViewPerson, onViewTasks, onViewGiving, onViewAgents }: DashboardProps) {
+export function Dashboard({ people, tasks, giving = [], agents = [], onViewPerson, onViewTasks, onViewGiving, onViewAgents, onConfigureAI }: DashboardProps) {
   const visitors = people.filter(p => p.status === 'visitor');
   const inactive = people.filter(p => p.status === 'inactive');
   const pendingTasks = tasks.filter(t => !t.completed);
@@ -229,9 +231,15 @@ export function Dashboard({ people, tasks, giving = [], agents = [], onViewPerso
         <DashboardCharts people={people} />
       </div>
 
-      {/* Birthday Widget */}
-      <div className="mt-6">
+      {/* Birthday & AI Insights */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
         <BirthdayWidget people={people} onViewPerson={onViewPerson} />
+        <AIInsightsPanel
+          people={people}
+          giving={giving}
+          onViewPerson={onViewPerson}
+          onConfigureAI={onConfigureAI}
+        />
       </div>
     </div>
   );

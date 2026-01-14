@@ -8,6 +8,7 @@ import {
   Info,
   ChevronRight,
   Trash2,
+  Sparkles,
 } from 'lucide-react';
 import type { AgentNotification } from '../hooks/useAgentEngine';
 
@@ -141,12 +142,31 @@ export function AgentNotifications({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
                             <div>
-                              <p className="text-sm font-medium text-gray-900 dark:text-dark-100">
+                              <p className="text-sm font-medium text-gray-900 dark:text-dark-100 flex items-center gap-1.5">
                                 {notification.title}
+                                {notification.aiGenerated && (
+                                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded text-[9px] font-medium">
+                                    <Sparkles size={8} />
+                                    AI
+                                  </span>
+                                )}
                               </p>
                               <p className="text-xs text-gray-500 dark:text-dark-400 mt-0.5">
                                 {notification.message}
                               </p>
+                              {notification.aiContent && (
+                                <div className="mt-2 p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg border border-indigo-100 dark:border-indigo-500/20">
+                                  <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium mb-1 flex items-center gap-1">
+                                    <Sparkles size={8} />
+                                    AI-Generated Message
+                                  </p>
+                                  <p className="text-xs text-gray-700 dark:text-dark-300 italic leading-relaxed">
+                                    "{notification.aiContent.length > 150
+                                      ? notification.aiContent.substring(0, 150) + '...'
+                                      : notification.aiContent}"
+                                  </p>
+                                </div>
+                              )}
                             </div>
                             <button
                               onClick={() => onClear(notification.id)}

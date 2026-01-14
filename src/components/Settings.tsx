@@ -15,6 +15,7 @@ import {
   EyeOff,
 } from 'lucide-react';
 import { useIntegrations } from '../contexts/IntegrationsContext';
+import { AISettings } from './AISettings';
 
 interface IntegrationCardProps {
   title: string;
@@ -263,6 +264,14 @@ export function Settings() {
             onConfigure={() => setShowAuthConfig(true)}
           />
         </div>
+      </div>
+
+      {/* AI Settings Section */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-100 mb-4">
+          AI Configuration
+        </h2>
+        <AISettings />
       </div>
 
       {/* Church Settings */}
