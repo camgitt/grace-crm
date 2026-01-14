@@ -105,7 +105,7 @@ export interface CalendarEvent {
   attendees?: string[];
 }
 
-export type View = 'dashboard' | 'people' | 'person' | 'tasks' | 'calendar' | 'groups' | 'prayer' | 'giving' | 'settings' | 'pipeline' | 'attendance' | 'volunteers' | 'tags' | 'reports' | 'birthdays' | 'online-giving' | 'batch-entry' | 'pledges' | 'campaigns' | 'statements' | 'charity-baskets' | 'donation-tracker' | 'member-stats';
+export type View = 'dashboard' | 'people' | 'person' | 'tasks' | 'calendar' | 'groups' | 'prayer' | 'giving' | 'settings' | 'pipeline' | 'attendance' | 'volunteers' | 'tags' | 'reports' | 'birthdays' | 'online-giving' | 'batch-entry' | 'pledges' | 'campaigns' | 'statements' | 'charity-baskets' | 'donation-tracker' | 'member-stats' | 'agents';
 
 // ============================================
 // COLLECTION & DONATION MANAGEMENT TYPES
@@ -301,4 +301,36 @@ export interface DonationTrackerFilters {
   minAmount?: number;
   maxAmount?: number;
   isRecurring?: boolean;
+}
+
+// ============================================
+// AI AGENTS TYPES
+// ============================================
+
+export type AgentCategory =
+  | 'finance'
+  | 'pastoral-care'
+  | 'education'
+  | 'engagement'
+  | 'outreach'
+  | 'worship'
+  | 'administration'
+  | 'technical';
+
+export type AgentStatus = 'active' | 'inactive' | 'coming-soon' | 'beta';
+
+export interface AIAgent {
+  id: string;
+  name: string;
+  category: AgentCategory;
+  description: string;
+  benefits: string;
+  integrations: string;
+  difficulty: number; // 1-10 scale
+  status: AgentStatus;
+  isEnabled: boolean;
+  lastRun?: string;
+  runsToday?: number;
+  runsThisWeek?: number;
+  config?: Record<string, unknown>;
 }

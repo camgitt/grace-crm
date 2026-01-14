@@ -31,8 +31,9 @@ import { QuickDonationForm } from './components/QuickDonationForm';
 import { CharityBaskets } from './components/CharityBaskets';
 import { MemberDonationStats } from './components/MemberDonationStats';
 import { DonationTracker } from './components/DonationTracker';
+import { AgentsDashboard } from './components/AgentsDashboard';
 import { useSupabaseData } from './hooks/useSupabaseData';
-import type { View, Person as LegacyPerson, Task as LegacyTask, Interaction as LegacyInteraction, Attendance, Campaign, Pledge, DonationBatch, BatchItem, GivingStatement, CharityBasket, BasketItem } from './types';
+import type { View, Person as LegacyPerson, Task as LegacyTask, Interaction as LegacyInteraction, Attendance, Campaign, Pledge, DonationBatch, BatchItem, GivingStatement, CharityBasket, BasketItem, AIAgent } from './types';
 
 // Adapter functions to convert between database types and legacy component types
 function toPersonLegacy(p: {
@@ -276,6 +277,209 @@ function App() {
       totalValue: 12,
     },
   ]);
+
+  // AI Agents state (demo data based on user's agent list)
+  const [aiAgents, setAIAgents] = useState<AIAgent[]>([
+    {
+      id: 'agent-1',
+      name: 'Donation Processing Agent',
+      category: 'finance',
+      description: 'Automate giving confirmations, tax receipts, and reports',
+      benefits: 'Reduced admin workload; improved donor satisfaction',
+      integrations: 'Finance dashboard integration, email automation',
+      difficulty: 2,
+      status: 'active',
+      isEnabled: true,
+      runsToday: 12,
+      runsThisWeek: 45,
+      lastRun: new Date().toISOString(),
+    },
+    {
+      id: 'agent-2',
+      name: 'Youth Ministry Parent Updates',
+      category: 'education',
+      description: 'Send lesson recaps and event reminders to parents',
+      benefits: 'Better parent engagement',
+      integrations: 'Automated messaging, calendar sync',
+      difficulty: 2,
+      status: 'active',
+      isEnabled: false,
+    },
+    {
+      id: 'agent-3',
+      name: 'Life Event Recognition Agent',
+      category: 'engagement',
+      description: 'Send greetings and alerts for life milestones',
+      benefits: 'Enhanced personal connection with members',
+      integrations: 'CRM alerts, automated messaging',
+      difficulty: 2,
+      status: 'active',
+      isEnabled: true,
+      runsToday: 3,
+      runsThisWeek: 21,
+      lastRun: new Date().toISOString(),
+    },
+    {
+      id: 'agent-4',
+      name: 'Facility & Event Scheduling',
+      category: 'administration',
+      description: 'Manage in-person and virtual room bookings',
+      benefits: 'Reduced scheduling conflicts',
+      integrations: 'Booking system integration, automated reminders',
+      difficulty: 3,
+      status: 'active',
+      isEnabled: false,
+    },
+    {
+      id: 'agent-5',
+      name: 'New Member Integration Agent',
+      category: 'pastoral-care',
+      description: 'Onboard new members and guide them through initial discipleship',
+      benefits: 'Increased retention and engagement',
+      integrations: 'Onboarding automation, drip messaging, CRM sync',
+      difficulty: 4,
+      status: 'beta',
+      isEnabled: false,
+    },
+    {
+      id: 'agent-6',
+      name: 'Community Event Promotion',
+      category: 'outreach',
+      description: 'Promote events across all platforms and manage RSVPs',
+      benefits: 'Increased attendance and engagement',
+      integrations: 'Multi-channel posting, RSVP tracking',
+      difficulty: 4,
+      status: 'active',
+      isEnabled: false,
+    },
+    {
+      id: 'agent-7',
+      name: 'Small Group Leader Support',
+      category: 'education',
+      description: 'Provide resources and track group engagement',
+      benefits: 'Higher leader productivity and group growth',
+      integrations: 'Resource library, attendance tracking',
+      difficulty: 4,
+      status: 'active',
+      isEnabled: false,
+    },
+    {
+      id: 'agent-8',
+      name: 'Finance Dashboard Monitor',
+      category: 'finance',
+      description: 'Track giving trends and alert leadership to changes',
+      benefits: 'Better financial oversight and quick response to trends',
+      integrations: 'Data monitoring, dashboard alerts',
+      difficulty: 5,
+      status: 'active',
+      isEnabled: true,
+      runsToday: 24,
+      runsThisWeek: 168,
+      lastRun: new Date().toISOString(),
+    },
+    {
+      id: 'agent-9',
+      name: 'Volunteer Coordination Agent',
+      category: 'outreach',
+      description: 'Match volunteers with needs and manage schedules',
+      benefits: 'Improved volunteer participation',
+      integrations: 'Scheduling automation, skills matching',
+      difficulty: 5,
+      status: 'active',
+      isEnabled: false,
+    },
+    {
+      id: 'agent-10',
+      name: 'Service Planning Assistant',
+      category: 'worship',
+      description: 'Plan songs, volunteers, and tech crew for services',
+      benefits: 'Streamlined worship planning',
+      integrations: 'Calendar integration, resource allocation',
+      difficulty: 5,
+      status: 'beta',
+      isEnabled: false,
+    },
+    {
+      id: 'agent-11',
+      name: 'HR & Volunteer Onboarding',
+      category: 'administration',
+      description: 'Guide onboarding for staff and volunteers',
+      benefits: 'Faster and more consistent onboarding',
+      integrations: 'Workflow automation, e-signature integration',
+      difficulty: 5,
+      status: 'active',
+      isEnabled: false,
+    },
+    {
+      id: 'agent-12',
+      name: 'Analytics & Engagement Tracker',
+      category: 'technical',
+      description: 'Track attendance, giving, and engagement patterns',
+      benefits: 'Data-driven leadership decisions',
+      integrations: 'Analytics dashboard, trend analysis',
+      difficulty: 5,
+      status: 'active',
+      isEnabled: false,
+    },
+    {
+      id: 'agent-13',
+      name: '24/7 AI Pastoral Support',
+      category: 'pastoral-care',
+      description: 'Provide continuous prayer, scripture, and emotional support',
+      benefits: 'High member satisfaction; improved pastoral reach',
+      integrations: 'Autopilot chat, CRM integration, sentiment analysis',
+      difficulty: 6,
+      status: 'coming-soon',
+      isEnabled: false,
+    },
+    {
+      id: 'agent-14',
+      name: 'Media Asset Management',
+      category: 'worship',
+      description: 'Archive and distribute sermon and worship content',
+      benefits: 'Faster content turnaround and reuse',
+      integrations: 'Cloud storage, tagging, and automated clipping',
+      difficulty: 7,
+      status: 'coming-soon',
+      isEnabled: false,
+    },
+    {
+      id: 'agent-15',
+      name: 'Personalized Growth Plan Agent',
+      category: 'engagement',
+      description: 'Suggest next steps in faith journey based on data',
+      benefits: 'Increased discipleship participation',
+      integrations: 'Recommendation engine, behavioral tracking',
+      difficulty: 7,
+      status: 'coming-soon',
+      isEnabled: false,
+    },
+    {
+      id: 'agent-16',
+      name: 'Virtual Worship Moderator',
+      category: 'technical',
+      description: 'Monitor and facilitate respectful online interaction',
+      benefits: 'Safe and welcoming virtual environment',
+      integrations: 'Content moderation AI, multilingual support',
+      difficulty: 8,
+      status: 'coming-soon',
+      isEnabled: false,
+    },
+  ]);
+
+  // Agent handlers
+  const handleToggleAgent = (agentId: string, enabled: boolean) => {
+    setAIAgents((prev) =>
+      prev.map((a) =>
+        a.id === agentId ? { ...a, isEnabled: enabled, status: enabled ? 'active' : 'inactive' } : a
+      )
+    );
+  };
+
+  const handleConfigureAgent = (agentId: string) => {
+    // For now, just log - could open a modal in the future
+    console.log('Configure agent:', agentId);
+  };
 
   // Campaign handlers
   const handleCreateCampaign = (campaign: Omit<Campaign, 'id'>) => {
@@ -1029,6 +1233,15 @@ function App() {
           <BirthdayCalendar
             people={people}
             onViewPerson={handleViewPerson}
+          />
+        );
+
+      case 'agents':
+        return (
+          <AgentsDashboard
+            agents={aiAgents}
+            onToggleAgent={handleToggleAgent}
+            onConfigureAgent={handleConfigureAgent}
           />
         );
 
