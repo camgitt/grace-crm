@@ -33,6 +33,7 @@ interface LayoutProps {
   setView: (view: View) => void;
   children: ReactNode;
   onOpenSearch?: () => void;
+  headerActions?: ReactNode;
 }
 
 const navItems: { view: View; label: string; icon: ReactNode }[] = [
@@ -80,7 +81,7 @@ const viewLabels: Record<View, string> = {
   settings: 'Settings',
 };
 
-export function Layout({ currentView, setView, children, onOpenSearch }: LayoutProps) {
+export function Layout({ currentView, setView, children, onOpenSearch, headerActions }: LayoutProps) {
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -312,6 +313,13 @@ export function Layout({ currentView, setView, children, onOpenSearch }: LayoutP
               </div>
             ))}
           </nav>
+
+          {/* Header Actions (notifications, etc.) */}
+          {headerActions && (
+            <div className="flex items-center gap-1 mr-2">
+              {headerActions}
+            </div>
+          )}
 
           {/* Mobile search */}
           {onOpenSearch && (

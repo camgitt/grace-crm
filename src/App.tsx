@@ -32,7 +32,9 @@ import { CharityBaskets } from './components/CharityBaskets';
 import { MemberDonationStats } from './components/MemberDonationStats';
 import { DonationTracker } from './components/DonationTracker';
 import { AgentsDashboard } from './components/AgentsDashboard';
+import { AgentNotifications } from './components/AgentNotifications';
 import { useSupabaseData } from './hooks/useSupabaseData';
+import { useAgentEngine } from './hooks/useAgentEngine';
 import type { View, Person as LegacyPerson, Task as LegacyTask, Interaction as LegacyInteraction, Attendance, Campaign, Pledge, DonationBatch, BatchItem, GivingStatement, CharityBasket, BasketItem, AIAgent, AgentConfig, AgentTrigger, AgentAction } from './types';
 
 // Adapter functions to convert between database types and legacy component types
@@ -545,6 +547,14 @@ function App() {
     );
   };
 
+  const handleUpdateAgent = (agentId: string, updates: Partial<AIAgent>) => {
+    setAIAgents((prev) =>
+      prev.map((a) =>
+        a.id === agentId ? { ...a, ...updates } : a
+      )
+    );
+  };
+
   // Campaign handlers
   const handleCreateCampaign = (campaign: Omit<Campaign, 'id'>) => {
     const newCampaign: Campaign = {
@@ -941,6 +951,27 @@ function App() {
     });
   };
 
+  // Agent Engine - monitors data and executes agents
+  const {
+    notifications: agentNotifications,
+    triggerAgent,
+    clearNotification,
+    clearAllNotifications,
+  } = useAgentEngine({
+    agents: aiAgents,
+    people,
+    giving,
+    onUpdateAgent: handleUpdateAgent,
+    onCreateTask: handleAddTask,
+    onAddTag: async (personId: string, tag: string) => {
+      const person = dbPeople.find(p => p.id === personId);
+      if (person && !person.tags.includes(tag)) {
+        await updatePerson(personId, { tags: [...person.tags, tag] });
+      }
+    },
+    onAddInteraction: handleAddInteraction,
+  });
+
   const handleOpenQuickDonation = (personId?: string) => {
     setQuickDonationPersonId(personId);
     setShowQuickDonation(true);
@@ -1309,6 +1340,7 @@ function App() {
             onToggleAgent={handleToggleAgent}
             onConfigureAgent={handleConfigureAgent}
             onViewPerson={handleViewPerson}
+            onTriggerAgent={triggerAgent}
           />
         );
 
@@ -1326,6 +1358,15 @@ function App() {
         currentView={view}
         setView={setView}
         onOpenSearch={() => setShowSearch(true)}
+        headerActions={
+          <AgentNotifications
+            notifications={agentNotifications}
+            onClear={clearNotification}
+            onClearAll={clearAllNotifications}
+            onViewPerson={handleViewPerson}
+            onViewAgents={() => setView('agents')}
+          />
+        }
       >
         {/* Demo Mode Banner */}
         {isDemo && (

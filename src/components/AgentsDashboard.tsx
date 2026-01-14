@@ -22,7 +22,7 @@ import {
   Activity,
   ChevronRight,
 } from 'lucide-react';
-import type { AIAgent, AgentCategory, AgentStatus, AgentConfig, AgentTrigger, AgentAction } from '../types';
+import type { AIAgent, AgentCategory, AgentStatus, AgentConfig, AgentTrigger, AgentAction, AgentTriggerType } from '../types';
 import { AgentConfigModal } from './AgentConfigModal';
 import { AgentActivityLog } from './AgentActivityLog';
 
@@ -31,6 +31,7 @@ interface AgentsDashboardProps {
   onToggleAgent: (agentId: string, enabled: boolean) => void;
   onConfigureAgent: (agentId: string, config: AgentConfig, triggers: AgentTrigger[], actions: AgentAction[]) => void;
   onViewPerson?: (personId: string) => void;
+  onTriggerAgent?: (agentId: string, triggerType: AgentTriggerType) => void;
 }
 
 const categoryConfig: Record<AgentCategory, { label: string; icon: React.ReactNode; color: string }> = {
@@ -64,7 +65,7 @@ function DifficultyBadge({ level }: { level: number }) {
   );
 }
 
-export function AgentsDashboard({ agents, onToggleAgent, onConfigureAgent, onViewPerson }: AgentsDashboardProps) {
+export function AgentsDashboard({ agents, onToggleAgent, onConfigureAgent, onViewPerson, onTriggerAgent }: AgentsDashboardProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<AgentCategory | 'all'>('all');
   const [selectedStatus, setSelectedStatus] = useState<AgentStatus | 'all'>('all');
@@ -419,16 +420,32 @@ export function AgentsDashboard({ agents, onToggleAgent, onConfigureAgent, onVie
                                     </div>
                                   )}
 
-                                  {/* Activity info */}
-                                  <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-dark-400 mt-3">
-                                    {agent.lastRun && (
-                                      <span className="flex items-center gap-1">
-                                        <Clock size={10} />
-                                        Last run: {new Date(agent.lastRun).toLocaleDateString()}
-                                      </span>
-                                    )}
-                                    {agent.runsThisWeek !== undefined && (
-                                      <span>{agent.runsThisWeek} runs this week</span>
+                                  {/* Activity info & Test Button */}
+                                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-dark-700">
+                                    <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-dark-400">
+                                      {agent.lastRun && (
+                                        <span className="flex items-center gap-1">
+                                          <Clock size={10} />
+                                          Last run: {new Date(agent.lastRun).toLocaleDateString()}
+                                        </span>
+                                      )}
+                                      {agent.runsThisWeek !== undefined && (
+                                        <span>{agent.runsThisWeek} runs this week</span>
+                                      )}
+                                    </div>
+                                    {onTriggerAgent && agent.isEnabled && agent.triggers && agent.triggers.length > 0 && (
+                                      <button
+                                        onClick={() => {
+                                          const firstTrigger = agent.triggers?.[0];
+                                          if (firstTrigger) {
+                                            onTriggerAgent(agent.id, firstTrigger.type);
+                                          }
+                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 rounded-lg transition-colors"
+                                      >
+                                        <Zap size={12} />
+                                        Test Run
+                                      </button>
                                     )}
                                   </div>
                                 </div>
