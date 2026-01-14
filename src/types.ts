@@ -332,5 +332,75 @@ export interface AIAgent {
   lastRun?: string;
   runsToday?: number;
   runsThisWeek?: number;
-  config?: Record<string, unknown>;
+  config?: AgentConfig;
+  triggers?: AgentTrigger[];
+  actions?: AgentAction[];
+  activityLog?: AgentActivity[];
+}
+
+export interface AgentConfig {
+  // Email settings
+  sendEmails?: boolean;
+  emailTemplate?: string;
+  // SMS settings
+  sendSMS?: boolean;
+  smsTemplate?: string;
+  // Timing
+  runSchedule?: 'realtime' | 'hourly' | 'daily' | 'weekly';
+  runTime?: string; // For scheduled runs
+  // Filters
+  targetTags?: string[];
+  targetStatuses?: MemberStatus[];
+  // Thresholds
+  amountThreshold?: number;
+  daysThreshold?: number;
+  // Notifications
+  notifyOnRun?: boolean;
+  notifyEmail?: string;
+}
+
+export type AgentTriggerType =
+  | 'new_donation'
+  | 'new_member'
+  | 'birthday'
+  | 'anniversary'
+  | 'attendance_drop'
+  | 'giving_change'
+  | 'prayer_request'
+  | 'task_due'
+  | 'schedule';
+
+export interface AgentTrigger {
+  id: string;
+  type: AgentTriggerType;
+  conditions?: Record<string, unknown>;
+  isActive: boolean;
+}
+
+export type AgentActionType =
+  | 'send_email'
+  | 'send_sms'
+  | 'create_task'
+  | 'add_tag'
+  | 'update_status'
+  | 'notify_staff'
+  | 'log_interaction';
+
+export interface AgentAction {
+  id: string;
+  type: AgentActionType;
+  config: Record<string, unknown>;
+  order: number;
+}
+
+export interface AgentActivity {
+  id: string;
+  agentId: string;
+  timestamp: string;
+  triggerType: AgentTriggerType;
+  actionsTaken: string[];
+  targetPersonId?: string;
+  targetPersonName?: string;
+  status: 'success' | 'failed' | 'skipped';
+  details?: string;
 }

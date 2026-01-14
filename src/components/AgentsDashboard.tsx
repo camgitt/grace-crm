@@ -19,13 +19,18 @@ import {
   ChevronDown,
   Info,
   TrendingUp,
+  Activity,
+  ChevronRight,
 } from 'lucide-react';
-import type { AIAgent, AgentCategory, AgentStatus } from '../types';
+import type { AIAgent, AgentCategory, AgentStatus, AgentConfig, AgentTrigger, AgentAction } from '../types';
+import { AgentConfigModal } from './AgentConfigModal';
+import { AgentActivityLog } from './AgentActivityLog';
 
 interface AgentsDashboardProps {
   agents: AIAgent[];
   onToggleAgent: (agentId: string, enabled: boolean) => void;
-  onConfigureAgent: (agentId: string) => void;
+  onConfigureAgent: (agentId: string, config: AgentConfig, triggers: AgentTrigger[], actions: AgentAction[]) => void;
+  onViewPerson?: (personId: string) => void;
 }
 
 const categoryConfig: Record<AgentCategory, { label: string; icon: React.ReactNode; color: string }> = {
@@ -59,11 +64,13 @@ function DifficultyBadge({ level }: { level: number }) {
   );
 }
 
-export function AgentsDashboard({ agents, onToggleAgent, onConfigureAgent }: AgentsDashboardProps) {
+export function AgentsDashboard({ agents, onToggleAgent, onConfigureAgent, onViewPerson }: AgentsDashboardProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<AgentCategory | 'all'>('all');
   const [selectedStatus, setSelectedStatus] = useState<AgentStatus | 'all'>('all');
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
+  const [configuringAgent, setConfiguringAgent] = useState<AIAgent | null>(null);
+  const [activeView, setActiveView] = useState<'agents' | 'activity'>('agents');
 
   // Stats
   const stats = useMemo(() => {
@@ -72,6 +79,14 @@ export function AgentsDashboard({ agents, onToggleAgent, onConfigureAgent }: Age
     const runsToday = agents.reduce((sum, a) => sum + (a.runsToday || 0), 0);
     const categories = new Set(agents.map(a => a.category)).size;
     return { active, total, runsToday, categories };
+  }, [agents]);
+
+  // All activities across all agents
+  const allActivities = useMemo(() => {
+    return agents
+      .flatMap(a => (a.activityLog || []).map(log => ({ ...log, agentName: a.name })))
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 50);
   }, [agents]);
 
   // Filtered agents
@@ -98,6 +113,11 @@ export function AgentsDashboard({ agents, onToggleAgent, onConfigureAgent }: Age
     return groups;
   }, [filteredAgents]);
 
+  const handleConfigureSave = (agentId: string, config: AgentConfig, triggers: AgentTrigger[], actions: AgentAction[]) => {
+    onConfigureAgent(agentId, config, triggers, actions);
+    setConfiguringAgent(null);
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
@@ -110,6 +130,31 @@ export function AgentsDashboard({ agents, onToggleAgent, onConfigureAgent }: Age
           <p className="text-sm text-gray-500 dark:text-dark-400 mt-0.5">
             Automate church operations with intelligent agents
           </p>
+        </div>
+
+        {/* View Toggle */}
+        <div className="flex items-center bg-gray-100 dark:bg-dark-800 rounded-lg p-1">
+          <button
+            onClick={() => setActiveView('agents')}
+            className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+              activeView === 'agents'
+                ? 'bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 shadow-sm'
+                : 'text-gray-500 dark:text-dark-400'
+            }`}
+          >
+            Agents
+          </button>
+          <button
+            onClick={() => setActiveView('activity')}
+            className={`px-3 py-1.5 text-sm rounded-md transition-colors flex items-center gap-1.5 ${
+              activeView === 'activity'
+                ? 'bg-white dark:bg-dark-700 text-gray-900 dark:text-dark-100 shadow-sm'
+                : 'text-gray-500 dark:text-dark-400'
+            }`}
+          >
+            <Activity size={14} />
+            Activity
+          </button>
         </div>
       </div>
 
@@ -147,157 +192,239 @@ export function AgentsDashboard({ agents, onToggleAgent, onConfigureAgent }: Age
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 mb-6">
-        <div className="relative flex-1 min-w-[200px] max-w-md">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search agents..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-100 placeholder-gray-400"
+      {/* Activity View */}
+      {activeView === 'activity' && (
+        <div className="bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-dark-700 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-medium text-gray-900 dark:text-dark-100">Recent Agent Activity</h2>
+            <span className="text-xs text-gray-400 dark:text-dark-500">{allActivities.length} events</span>
+          </div>
+          <AgentActivityLog
+            activities={allActivities}
+            onViewPerson={onViewPerson}
+            maxItems={30}
           />
         </div>
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value as AgentCategory | 'all')}
-          className="px-3 py-2 text-sm border border-gray-200 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-800 text-gray-700 dark:text-dark-300"
-        >
-          <option value="all">All Categories</option>
-          {Object.entries(categoryConfig).map(([key, { label }]) => (
-            <option key={key} value={key}>{label}</option>
-          ))}
-        </select>
-        <select
-          value={selectedStatus}
-          onChange={(e) => setSelectedStatus(e.target.value as AgentStatus | 'all')}
-          className="px-3 py-2 text-sm border border-gray-200 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-800 text-gray-700 dark:text-dark-300"
-        >
-          <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-          <option value="beta">Beta</option>
-          <option value="coming-soon">Coming Soon</option>
-        </select>
-      </div>
+      )}
 
-      {/* Agent List by Category */}
-      {Object.entries(groupedAgents).length === 0 ? (
-        <div className="text-center py-12">
-          <Bot className="mx-auto text-gray-300 dark:text-dark-600 mb-3" size={40} />
-          <p className="text-gray-500 dark:text-dark-400">No agents match your filters</p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {Object.entries(groupedAgents).map(([category, categoryAgents]) => {
-            const config = categoryConfig[category as AgentCategory];
-            return (
-              <div key={category}>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className={`p-1.5 rounded-lg ${config.color}`}>
-                    {config.icon}
-                  </span>
-                  <h2 className="text-sm font-medium text-gray-900 dark:text-dark-100">
-                    {config.label}
-                  </h2>
-                  <span className="text-xs text-gray-400 dark:text-dark-500">
-                    ({categoryAgents.length})
-                  </span>
-                </div>
-                <div className="grid gap-3">
-                  {categoryAgents.map((agent) => {
-                    const isExpanded = expandedAgent === agent.id;
-                    const statusConf = statusConfig[agent.status];
-                    const isComingSoon = agent.status === 'coming-soon';
+      {/* Agents View */}
+      {activeView === 'agents' && (
+        <>
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-3 mb-6">
+            <div className="relative flex-1 min-w-[200px] max-w-md">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search agents..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-100 placeholder-gray-400"
+              />
+            </div>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value as AgentCategory | 'all')}
+              className="px-3 py-2 text-sm border border-gray-200 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-800 text-gray-700 dark:text-dark-300"
+            >
+              <option value="all">All Categories</option>
+              {Object.entries(categoryConfig).map(([key, { label }]) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value as AgentStatus | 'all')}
+              className="px-3 py-2 text-sm border border-gray-200 dark:border-dark-600 rounded-lg bg-white dark:bg-dark-800 text-gray-700 dark:text-dark-300"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="beta">Beta</option>
+              <option value="coming-soon">Coming Soon</option>
+            </select>
+          </div>
 
-                    return (
-                      <div
-                        key={agent.id}
-                        className={`bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden ${
-                          isComingSoon ? 'opacity-75' : ''
-                        }`}
-                      >
-                        <div className="p-4">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="text-sm font-medium text-gray-900 dark:text-dark-100 truncate">
-                                  {agent.name}
-                                </h3>
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${statusConf.color}`}>
-                                  {statusConf.label}
-                                </span>
-                                <DifficultyBadge level={agent.difficulty} />
-                              </div>
-                              <p className="text-xs text-gray-500 dark:text-dark-400 line-clamp-2">
-                                {agent.description}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {!isComingSoon && (
-                                <>
+          {/* Agent List by Category */}
+          {Object.entries(groupedAgents).length === 0 ? (
+            <div className="text-center py-12">
+              <Bot className="mx-auto text-gray-300 dark:text-dark-600 mb-3" size={40} />
+              <p className="text-gray-500 dark:text-dark-400">No agents match your filters</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {Object.entries(groupedAgents).map(([category, categoryAgents]) => {
+                const config = categoryConfig[category as AgentCategory];
+                return (
+                  <div key={category}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className={`p-1.5 rounded-lg ${config.color}`}>
+                        {config.icon}
+                      </span>
+                      <h2 className="text-sm font-medium text-gray-900 dark:text-dark-100">
+                        {config.label}
+                      </h2>
+                      <span className="text-xs text-gray-400 dark:text-dark-500">
+                        ({categoryAgents.length})
+                      </span>
+                    </div>
+                    <div className="grid gap-3">
+                      {categoryAgents.map((agent) => {
+                        const isExpanded = expandedAgent === agent.id;
+                        const statusConf = statusConfig[agent.status];
+                        const isComingSoon = agent.status === 'coming-soon';
+                        const hasConfig = agent.triggers && agent.triggers.length > 0;
+
+                        return (
+                          <div
+                            key={agent.id}
+                            className={`bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden ${
+                              isComingSoon ? 'opacity-75' : ''
+                            }`}
+                          >
+                            <div className="p-4">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h3 className="text-sm font-medium text-gray-900 dark:text-dark-100 truncate">
+                                      {agent.name}
+                                    </h3>
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${statusConf.color}`}>
+                                      {statusConf.label}
+                                    </span>
+                                    <DifficultyBadge level={agent.difficulty} />
+                                    {hasConfig && (
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10">
+                                        Configured
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-gray-500 dark:text-dark-400 line-clamp-2">
+                                    {agent.description}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {!isComingSoon && (
+                                    <>
+                                      <button
+                                        onClick={() => onToggleAgent(agent.id, !agent.isEnabled)}
+                                        className={`p-2 rounded-lg transition-colors ${
+                                          agent.isEnabled
+                                            ? 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-500/20'
+                                            : 'bg-gray-100 dark:bg-dark-700 text-gray-400 dark:text-dark-500 hover:bg-gray-200 dark:hover:bg-dark-600'
+                                        }`}
+                                        title={agent.isEnabled ? 'Pause agent' : 'Enable agent'}
+                                      >
+                                        {agent.isEnabled ? <Pause size={16} /> : <Play size={16} />}
+                                      </button>
+                                      <button
+                                        onClick={() => setConfiguringAgent(agent)}
+                                        className="p-2 rounded-lg bg-gray-100 dark:bg-dark-700 text-gray-500 dark:text-dark-400 hover:bg-gray-200 dark:hover:bg-dark-600 transition-colors"
+                                        title="Configure"
+                                      >
+                                        <Settings size={16} />
+                                      </button>
+                                    </>
+                                  )}
                                   <button
-                                    onClick={() => onToggleAgent(agent.id, !agent.isEnabled)}
-                                    className={`p-2 rounded-lg transition-colors ${
-                                      agent.isEnabled
-                                        ? 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-500/20'
-                                        : 'bg-gray-100 dark:bg-dark-700 text-gray-400 dark:text-dark-500 hover:bg-gray-200 dark:hover:bg-dark-600'
-                                    }`}
-                                    title={agent.isEnabled ? 'Pause agent' : 'Enable agent'}
-                                  >
-                                    {agent.isEnabled ? <Pause size={16} /> : <Play size={16} />}
-                                  </button>
-                                  <button
-                                    onClick={() => onConfigureAgent(agent.id)}
+                                    onClick={() => setExpandedAgent(isExpanded ? null : agent.id)}
                                     className="p-2 rounded-lg bg-gray-100 dark:bg-dark-700 text-gray-500 dark:text-dark-400 hover:bg-gray-200 dark:hover:bg-dark-600 transition-colors"
-                                    title="Configure"
                                   >
-                                    <Settings size={16} />
+                                    <ChevronDown
+                                      size={16}
+                                      className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                                    />
                                   </button>
-                                </>
-                              )}
-                              <button
-                                onClick={() => setExpandedAgent(isExpanded ? null : agent.id)}
-                                className="p-2 rounded-lg bg-gray-100 dark:bg-dark-700 text-gray-500 dark:text-dark-400 hover:bg-gray-200 dark:hover:bg-dark-600 transition-colors"
-                              >
-                                <ChevronDown
-                                  size={16}
-                                  className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                                />
-                              </button>
-                            </div>
-                          </div>
+                                </div>
+                              </div>
 
-                          {/* Expanded Details */}
-                          {isExpanded && (
-                            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-dark-700">
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                  <p className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-dark-500 mb-1">
-                                    Benefits
-                                  </p>
-                                  <p className="text-xs text-gray-700 dark:text-dark-300">
-                                    {agent.benefits}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-dark-500 mb-1">
-                                    Integrations
-                                  </p>
-                                  <p className="text-xs text-gray-700 dark:text-dark-300">
-                                    {agent.integrations}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-dark-500 mb-1">
-                                    Activity
-                                  </p>
-                                  <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-dark-400">
+                              {/* Expanded Details */}
+                              {isExpanded && (
+                                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-dark-700">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                      <p className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-dark-500 mb-1">
+                                        Benefits
+                                      </p>
+                                      <p className="text-xs text-gray-700 dark:text-dark-300">
+                                        {agent.benefits}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-dark-500 mb-1">
+                                        Integrations
+                                      </p>
+                                      <p className="text-xs text-gray-700 dark:text-dark-300">
+                                        {agent.integrations}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Configuration Summary */}
+                                  {agent.config && (
+                                    <div className="mb-4">
+                                      <p className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-dark-500 mb-2">
+                                        Configuration
+                                      </p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {agent.config.sendEmails && (
+                                          <span className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded">
+                                            Email enabled
+                                          </span>
+                                        )}
+                                        {agent.config.sendSMS && (
+                                          <span className="text-xs px-2 py-1 bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 rounded">
+                                            SMS enabled
+                                          </span>
+                                        )}
+                                        {agent.config.runSchedule && (
+                                          <span className="text-xs px-2 py-1 bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded">
+                                            {agent.config.runSchedule}
+                                          </span>
+                                        )}
+                                        {agent.triggers && agent.triggers.length > 0 && (
+                                          <span className="text-xs px-2 py-1 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded">
+                                            {agent.triggers.length} trigger(s)
+                                          </span>
+                                        )}
+                                        {agent.actions && agent.actions.length > 0 && (
+                                          <span className="text-xs px-2 py-1 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded">
+                                            {agent.actions.length} action(s)
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Activity Log */}
+                                  {agent.activityLog && agent.activityLog.length > 0 && (
+                                    <div>
+                                      <div className="flex items-center justify-between mb-2">
+                                        <p className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-dark-500">
+                                          Recent Activity
+                                        </p>
+                                        <button
+                                          onClick={() => setActiveView('activity')}
+                                          className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 flex items-center gap-1"
+                                        >
+                                          View all
+                                          <ChevronRight size={12} />
+                                        </button>
+                                      </div>
+                                      <AgentActivityLog
+                                        activities={agent.activityLog.slice(0, 3)}
+                                        onViewPerson={onViewPerson}
+                                        maxItems={3}
+                                      />
+                                    </div>
+                                  )}
+
+                                  {/* Activity info */}
+                                  <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-dark-400 mt-3">
                                     {agent.lastRun && (
                                       <span className="flex items-center gap-1">
                                         <Clock size={10} />
-                                        Last: {new Date(agent.lastRun).toLocaleDateString()}
+                                        Last run: {new Date(agent.lastRun).toLocaleDateString()}
                                       </span>
                                     )}
                                     {agent.runsThisWeek !== undefined && (
@@ -305,28 +432,28 @@ export function AgentsDashboard({ agents, onToggleAgent, onConfigureAgent }: Age
                                     )}
                                   </div>
                                 </div>
-                              </div>
+                              )}
                             </div>
-                          )}
-                        </div>
 
-                        {/* Status bar for active agents */}
-                        {agent.isEnabled && agent.status === 'active' && (
-                          <div className="px-4 py-2 bg-emerald-50 dark:bg-emerald-500/5 border-t border-emerald-100 dark:border-emerald-500/10">
-                            <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400">
-                              <CheckCircle size={12} />
-                              <span>Running • {agent.runsToday || 0} actions today</span>
-                            </div>
+                            {/* Status bar for active agents */}
+                            {agent.isEnabled && agent.status === 'active' && (
+                              <div className="px-4 py-2 bg-emerald-50 dark:bg-emerald-500/5 border-t border-emerald-100 dark:border-emerald-500/10">
+                                <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400">
+                                  <CheckCircle size={12} />
+                                  <span>Running • {agent.runsToday || 0} actions today</span>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
 
       {/* Info Banner */}
@@ -335,16 +462,25 @@ export function AgentsDashboard({ agents, onToggleAgent, onConfigureAgent }: Age
           <Info size={18} className="text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
           <div>
             <h3 className="text-sm font-medium text-indigo-900 dark:text-indigo-300">
-              About AI Agents
+              How Agents Work
             </h3>
             <p className="text-xs text-indigo-700 dark:text-indigo-400 mt-1">
-              Agents automate repetitive tasks like sending donation confirmations, tracking attendance,
-              and sending pastoral care messages. Enable agents to reduce admin workload and improve
-              member engagement. Each agent can be configured to match your church's workflow.
+              Each agent responds to specific triggers (like new donations or birthdays) and performs configured actions
+              (like sending emails or creating tasks). Click the <Settings className="inline w-3 h-3" /> icon to configure
+              triggers, actions, and notification preferences for each agent.
             </p>
           </div>
         </div>
       </div>
+
+      {/* Config Modal */}
+      {configuringAgent && (
+        <AgentConfigModal
+          agent={configuringAgent}
+          onSave={handleConfigureSave}
+          onClose={() => setConfiguringAgent(null)}
+        />
+      )}
     </div>
   );
 }

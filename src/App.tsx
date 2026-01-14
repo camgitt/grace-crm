@@ -33,7 +33,7 @@ import { MemberDonationStats } from './components/MemberDonationStats';
 import { DonationTracker } from './components/DonationTracker';
 import { AgentsDashboard } from './components/AgentsDashboard';
 import { useSupabaseData } from './hooks/useSupabaseData';
-import type { View, Person as LegacyPerson, Task as LegacyTask, Interaction as LegacyInteraction, Attendance, Campaign, Pledge, DonationBatch, BatchItem, GivingStatement, CharityBasket, BasketItem, AIAgent } from './types';
+import type { View, Person as LegacyPerson, Task as LegacyTask, Interaction as LegacyInteraction, Attendance, Campaign, Pledge, DonationBatch, BatchItem, GivingStatement, CharityBasket, BasketItem, AIAgent, AgentConfig, AgentTrigger, AgentAction } from './types';
 
 // Adapter functions to convert between database types and legacy component types
 function toPersonLegacy(p: {
@@ -293,6 +293,24 @@ function App() {
       runsToday: 12,
       runsThisWeek: 45,
       lastRun: new Date().toISOString(),
+      config: {
+        sendEmails: true,
+        emailTemplate: 'Thank you for your generous donation of ${amount}!',
+        runSchedule: 'realtime',
+        notifyOnRun: false,
+      },
+      triggers: [
+        { id: 'trig-1', type: 'new_donation', isActive: true },
+      ],
+      actions: [
+        { id: 'act-1', type: 'send_email', config: { template: 'donation-thank-you' }, order: 1 },
+        { id: 'act-2', type: 'log_interaction', config: { type: 'donation' }, order: 2 },
+      ],
+      activityLog: [
+        { id: 'log-1', agentId: 'agent-1', timestamp: new Date(Date.now() - 15 * 60000).toISOString(), triggerType: 'new_donation', actionsTaken: ['send_email', 'log_interaction'], targetPersonId: '1', targetPersonName: 'Sarah Johnson', status: 'success', details: 'Sent thank you email for $150 tithe donation' },
+        { id: 'log-2', agentId: 'agent-1', timestamp: new Date(Date.now() - 45 * 60000).toISOString(), triggerType: 'new_donation', actionsTaken: ['send_email', 'log_interaction'], targetPersonId: '2', targetPersonName: 'Michael Chen', status: 'success', details: 'Sent thank you email for $75 offering donation' },
+        { id: 'log-3', agentId: 'agent-1', timestamp: new Date(Date.now() - 2 * 3600000).toISOString(), triggerType: 'new_donation', actionsTaken: ['send_email'], targetPersonId: '3', targetPersonName: 'Emily Rodriguez', status: 'success', details: 'Sent thank you email for $200 missions donation' },
+      ],
     },
     {
       id: 'agent-2',
@@ -318,6 +336,30 @@ function App() {
       runsToday: 3,
       runsThisWeek: 21,
       lastRun: new Date().toISOString(),
+      config: {
+        sendEmails: true,
+        emailTemplate: 'Happy Birthday! May God bless you on your special day!',
+        sendSMS: true,
+        smsTemplate: 'Happy Birthday from Grace Church! 🎂',
+        runSchedule: 'daily',
+        runTime: '08:00',
+        notifyOnRun: true,
+        notifyEmail: 'pastor@grace.church',
+      },
+      triggers: [
+        { id: 'trig-3a', type: 'birthday', isActive: true },
+        { id: 'trig-3b', type: 'anniversary', isActive: true },
+      ],
+      actions: [
+        { id: 'act-3a', type: 'send_email', config: { template: 'birthday-greeting' }, order: 1 },
+        { id: 'act-3b', type: 'send_sms', config: { template: 'birthday-sms' }, order: 2 },
+        { id: 'act-3c', type: 'notify_staff', config: { recipients: ['pastor'] }, order: 3 },
+      ],
+      activityLog: [
+        { id: 'log-4', agentId: 'agent-3', timestamp: new Date(Date.now() - 3 * 3600000).toISOString(), triggerType: 'birthday', actionsTaken: ['send_email', 'send_sms', 'notify_staff'], targetPersonId: '4', targetPersonName: 'David Kim', status: 'success', details: 'Birthday greeting sent successfully' },
+        { id: 'log-5', agentId: 'agent-3', timestamp: new Date(Date.now() - 24 * 3600000).toISOString(), triggerType: 'anniversary', actionsTaken: ['send_email'], targetPersonId: '5', targetPersonName: 'James & Lisa Thompson', status: 'success', details: '15th wedding anniversary card sent' },
+        { id: 'log-6', agentId: 'agent-3', timestamp: new Date(Date.now() - 48 * 3600000).toISOString(), triggerType: 'birthday', actionsTaken: ['send_email', 'send_sms'], targetPersonId: '6', targetPersonName: 'Maria Garcia', status: 'success', details: 'Birthday greeting sent' },
+      ],
     },
     {
       id: 'agent-4',
@@ -376,6 +418,25 @@ function App() {
       runsToday: 24,
       runsThisWeek: 168,
       lastRun: new Date().toISOString(),
+      config: {
+        runSchedule: 'hourly',
+        amountThreshold: 1000,
+        notifyOnRun: true,
+        notifyEmail: 'finance@grace.church',
+      },
+      triggers: [
+        { id: 'trig-8a', type: 'giving_change', conditions: { changePercent: 20 }, isActive: true },
+        { id: 'trig-8b', type: 'schedule', conditions: { interval: 'hourly' }, isActive: true },
+      ],
+      actions: [
+        { id: 'act-8a', type: 'notify_staff', config: { recipients: ['finance-team'] }, order: 1 },
+        { id: 'act-8b', type: 'log_interaction', config: { type: 'finance-alert' }, order: 2 },
+      ],
+      activityLog: [
+        { id: 'log-7', agentId: 'agent-8', timestamp: new Date(Date.now() - 1 * 3600000).toISOString(), triggerType: 'schedule', actionsTaken: ['notify_staff'], status: 'success', details: 'Hourly report: $2,450 received today, 15% above daily average' },
+        { id: 'log-8', agentId: 'agent-8', timestamp: new Date(Date.now() - 2 * 3600000).toISOString(), triggerType: 'giving_change', actionsTaken: ['notify_staff', 'log_interaction'], targetPersonId: '7', targetPersonName: 'Thomas Williams', status: 'success', details: 'Large donation alert: $5,000 building fund contribution' },
+        { id: 'log-9', agentId: 'agent-8', timestamp: new Date(Date.now() - 5 * 3600000).toISOString(), triggerType: 'schedule', actionsTaken: ['notify_staff'], status: 'success', details: 'Hourly report: $1,200 received, on track for weekly goal' },
+      ],
     },
     {
       id: 'agent-9',
@@ -476,9 +537,12 @@ function App() {
     );
   };
 
-  const handleConfigureAgent = (agentId: string) => {
-    // For now, just log - could open a modal in the future
-    console.log('Configure agent:', agentId);
+  const handleConfigureAgent = (agentId: string, config: AgentConfig, triggers: AgentTrigger[], actions: AgentAction[]) => {
+    setAIAgents((prev) =>
+      prev.map((a) =>
+        a.id === agentId ? { ...a, config, triggers, actions } : a
+      )
+    );
   };
 
   // Campaign handlers
@@ -1009,9 +1073,11 @@ function App() {
             people={people}
             tasks={tasks}
             giving={giving}
+            agents={aiAgents}
             onViewPerson={handleViewPerson}
             onViewTasks={() => setView('tasks')}
             onViewGiving={() => setView('giving')}
+            onViewAgents={() => setView('agents')}
           />
         );
 
@@ -1242,6 +1308,7 @@ function App() {
             agents={aiAgents}
             onToggleAgent={handleToggleAgent}
             onConfigureAgent={handleConfigureAgent}
+            onViewPerson={handleViewPerson}
           />
         );
 

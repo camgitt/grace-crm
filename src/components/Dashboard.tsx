@@ -7,22 +7,25 @@ import {
   Clock,
   ArrowRight,
 } from 'lucide-react';
-import { Person, Task, Giving } from '../types';
+import { Person, Task, Giving, AIAgent } from '../types';
 import { PRIORITY_COLORS } from '../constants';
 import { DashboardCharts } from './DashboardCharts';
 import { BirthdayWidget } from './BirthdayWidget';
 import { GivingWidget } from './GivingWidget';
+import { AgentWidget } from './AgentWidget';
 
 interface DashboardProps {
   people: Person[];
   tasks: Task[];
   giving?: Giving[];
+  agents?: AIAgent[];
   onViewPerson: (id: string) => void;
   onViewTasks: () => void;
   onViewGiving?: () => void;
+  onViewAgents?: () => void;
 }
 
-export function Dashboard({ people, tasks, giving = [], onViewPerson, onViewTasks, onViewGiving }: DashboardProps) {
+export function Dashboard({ people, tasks, giving = [], agents = [], onViewPerson, onViewTasks, onViewGiving, onViewAgents }: DashboardProps) {
   const visitors = people.filter(p => p.status === 'visitor');
   const inactive = people.filter(p => p.status === 'inactive');
   const pendingTasks = tasks.filter(t => !t.completed);
@@ -181,12 +184,15 @@ export function Dashboard({ people, tasks, giving = [], onViewPerson, onViewTask
         </div>
       </div>
 
-      {/* Giving Widget */}
-      {onViewGiving && (
-        <div className="mt-4">
+      {/* Giving & Agents Widgets */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+        {onViewGiving && (
           <GivingWidget giving={giving} onViewGiving={onViewGiving} />
-        </div>
-      )}
+        )}
+        {onViewAgents && agents.length > 0 && (
+          <AgentWidget agents={agents} onViewAgents={onViewAgents} onViewPerson={onViewPerson} />
+        )}
+      </div>
 
       {/* Inactive Members Alert */}
       {inactive.length > 0 && (
