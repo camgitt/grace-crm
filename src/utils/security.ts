@@ -5,6 +5,8 @@
  * to prevent XSS, injection attacks, and other security vulnerabilities.
  */
 
+import DOMPurify from 'dompurify';
+
 // HTML entities to escape for XSS prevention
 const HTML_ENTITIES: Record<string, string> = {
   '&': '&amp;',
@@ -26,29 +28,43 @@ export function escapeHtml(str: string): string {
 }
 
 /**
- * Sanitizes a string for safe display in HTML context
- * Removes script tags and event handlers
+ * Sanitizes HTML content using DOMPurify for robust XSS protection.
+ * This is the recommended method for sanitizing HTML that will be rendered.
+ *
+ * DOMPurify handles edge cases and obfuscation techniques that regex-based
+ * sanitization cannot catch, including:
+ * - Mutation XSS attacks
+ * - SVG-based XSS
+ * - MathML-based XSS
+ * - Character encoding attacks
+ * - DOM clobbering attacks
  */
 export function sanitizeHtml(html: string): string {
   if (typeof html !== 'string') return '';
 
-  return html
-    // Remove script tags and their content
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    // Remove event handlers
-    .replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '')
-    .replace(/\s*on\w+\s*=\s*[^\s>]*/gi, '')
-    // Remove javascript: URLs
-    .replace(/javascript:/gi, '')
-    // Remove data: URLs that could contain scripts
-    .replace(/data:\s*text\/html/gi, '')
-    // Remove vbscript: URLs
-    .replace(/vbscript:/gi, '')
-    // Remove expression() CSS
-    .replace(/expression\s*\(/gi, '')
-    // Remove iframe, embed, object tags
-    .replace(/<(iframe|embed|object|frame|frameset)[^>]*>.*?<\/\1>/gi, '')
-    .replace(/<(iframe|embed|object|frame|frameset)[^>]*\/?>/gi, '');
+  // Configure DOMPurify to allow safe HTML for reports
+  return DOMPurify.sanitize(html, {
+    // Allow common formatting tags used in reports
+    ALLOWED_TAGS: [
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'p', 'div', 'span', 'br',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td',
+      'ul', 'ol', 'li',
+      'strong', 'b', 'em', 'i',
+      'a', 'img',
+    ],
+    // Allow safe attributes
+    ALLOWED_ATTR: [
+      'class', 'id', 'style',
+      'href', 'src', 'alt', 'title',
+      'colspan', 'rowspan',
+    ],
+    // Block javascript: and data: URLs in href/src
+    ALLOW_DATA_ATTR: false,
+    // Remove any script-related content
+    FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
+  });
 }
 
 /**

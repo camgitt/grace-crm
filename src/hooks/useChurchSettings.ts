@@ -1,38 +1,34 @@
 /**
  * Hook for managing church-specific settings including integrations
  *
- * Each church stores their own API credentials in the database,
+ * Each church stores their own configuration in the database,
  * making it easy to onboard new churches without code changes.
  *
- * SECURITY NOTE: Secret keys (Stripe, Twilio, Resend) should ideally be
- * handled by a backend server. This frontend storage is for development/demo only.
+ * SECURITY: Secret API keys (Stripe secret key, Twilio auth token, Resend API key)
+ * are NOT stored here. They must be configured via environment variables on the
+ * backend server. Only non-sensitive configuration like publishable keys,
+ * from addresses, and phone numbers are stored in the database.
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
-import { maskSensitiveData } from '../utils/security';
 
 export interface IntegrationCredentials {
-  // Email (Resend)
-  resendApiKey?: string;
+  // Email (Resend) - Only non-secret fields
+  // Note: API key should be set via RESEND_API_KEY env var on the backend
   emailFromAddress?: string;
   emailFromName?: string;
 
-  // SMS (Twilio)
-  twilioAccountSid?: string;
-  twilioAuthToken?: string;
+  // SMS (Twilio) - Only non-secret fields
+  // Note: Account SID and Auth Token should be set via env vars on the backend
+  // TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN
   twilioPhoneNumber?: string;
 
-  // Payments (Stripe)
+  // Payments (Stripe) - Only publishable key (safe for frontend)
+  // Note: Secret key should be set via STRIPE_SECRET_KEY env var on the backend
   stripePublishableKey?: string;
-  /**
-   * @deprecated SECURITY WARNING: Secret keys should NEVER be stored in the frontend.
-   * This field exists for development/demo purposes only.
-   * In production, implement a backend API to handle Stripe operations.
-   */
-  stripeSecretKey?: string;
 
-  // Auth (Clerk) - Usually set at app level, not per-church
+  // Auth (Clerk) - Usually set at app level via env var, not per-church
   clerkPublishableKey?: string;
 }
 
@@ -135,21 +131,8 @@ export function useChurchSettings(churchId: string = 'demo-church') {
     }
   }, [churchId, settings]);
 
-  // Save just integration credentials
+  // Save just integration credentials (only non-secret fields allowed)
   const saveIntegrations = useCallback(async (integrations: Partial<IntegrationCredentials>): Promise<boolean> => {
-    // Security warning for secret keys
-    if (integrations.stripeSecretKey || integrations.twilioAuthToken || integrations.resendApiKey) {
-      console.warn(
-        '[SECURITY WARNING] Storing API secrets in the database is not recommended for production. ' +
-        'Consider implementing a backend API to handle sensitive operations. ' +
-        'Credentials being stored (masked): ',
-        {
-          stripeSecretKey: integrations.stripeSecretKey ? maskSensitiveData(integrations.stripeSecretKey) : undefined,
-          twilioAuthToken: integrations.twilioAuthToken ? maskSensitiveData(integrations.twilioAuthToken) : undefined,
-          resendApiKey: integrations.resendApiKey ? maskSensitiveData(integrations.resendApiKey) : undefined,
-        }
-      );
-    }
     return saveSettings({
       integrations: { ...settings.integrations, ...integrations }
     });
@@ -161,18 +144,14 @@ export function useChurchSettings(churchId: string = 'demo-church') {
 
     switch (integration) {
       case 'email':
-        delete clearedIntegrations.resendApiKey;
         delete clearedIntegrations.emailFromAddress;
         delete clearedIntegrations.emailFromName;
         break;
       case 'sms':
-        delete clearedIntegrations.twilioAccountSid;
-        delete clearedIntegrations.twilioAuthToken;
         delete clearedIntegrations.twilioPhoneNumber;
         break;
       case 'payments':
         delete clearedIntegrations.stripePublishableKey;
-        delete clearedIntegrations.stripeSecretKey;
         break;
       case 'auth':
         delete clearedIntegrations.clerkPublishableKey;

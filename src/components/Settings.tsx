@@ -11,8 +11,6 @@ import {
   Check,
   X,
   ExternalLink,
-  Eye,
-  EyeOff,
 } from 'lucide-react';
 import { useIntegrations } from '../contexts/IntegrationsContext';
 
@@ -111,44 +109,6 @@ function ConfigModal({ title, isOpen, onClose, children }: ConfigModalProps) {
   );
 }
 
-function PasswordInput({
-  label,
-  value,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-}) {
-  const [show, setShow] = useState(false);
-
-  return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">
-        {label}
-      </label>
-      <div className="relative">
-        <input
-          type={show ? 'text' : 'password'}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="w-full px-4 py-2.5 pr-10 border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
-        <button
-          type="button"
-          onClick={() => setShow(!show)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-        >
-          {show ? <EyeOff size={16} /> : <Eye size={16} />}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export function Settings() {
   const { status, saveIntegrations } = useIntegrations();
 
@@ -158,16 +118,13 @@ export function Settings() {
   const [showPaymentConfig, setShowPaymentConfig] = useState(false);
   const [showAuthConfig, setShowAuthConfig] = useState(false);
 
-  // Form states
+  // Form states - Only non-secret fields
   const [emailConfig, setEmailConfig] = useState({
-    resendApiKey: '',
     emailFromAddress: '',
     emailFromName: '',
   });
 
   const [smsConfig, setSmsConfig] = useState({
-    twilioAccountSid: '',
-    twilioAuthToken: '',
     twilioPhoneNumber: '',
   });
 
@@ -183,8 +140,7 @@ export function Settings() {
     setSaving(false);
     if (success) {
       setShowEmailConfig(false);
-      // Clear form for security
-      setEmailConfig({ resendApiKey: '', emailFromAddress: '', emailFromName: '' });
+      setEmailConfig({ emailFromAddress: '', emailFromName: '' });
     }
   };
 
@@ -194,8 +150,7 @@ export function Settings() {
     setSaving(false);
     if (success) {
       setShowSmsConfig(false);
-      // Clear form for security
-      setSmsConfig({ twilioAccountSid: '', twilioAuthToken: '', twilioPhoneNumber: '' });
+      setSmsConfig({ twilioPhoneNumber: '' });
     }
   };
 
@@ -407,12 +362,11 @@ export function Settings() {
         onClose={() => setShowEmailConfig(false)}
       >
         <div className="space-y-4">
-          <PasswordInput
-            label="Resend API Key"
-            value={emailConfig.resendApiKey}
-            onChange={(v) => setEmailConfig({ ...emailConfig, resendApiKey: v })}
-            placeholder="re_..."
-          />
+          <div className="p-4 bg-blue-50 dark:bg-blue-500/10 rounded-xl">
+            <p className="text-sm text-blue-800 dark:text-blue-400">
+              <strong>Security Note:</strong> The Resend API key must be configured on the backend server via the <code className="bg-blue-100 dark:bg-blue-500/20 px-1 rounded">RESEND_API_KEY</code> environment variable.
+            </p>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">
               From Email Address
@@ -439,7 +393,7 @@ export function Settings() {
           </div>
           <button
             onClick={handleSaveEmailConfig}
-            disabled={saving || !emailConfig.resendApiKey}
+            disabled={saving || !emailConfig.emailFromAddress}
             className="w-full px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save Configuration'}
@@ -454,18 +408,15 @@ export function Settings() {
         onClose={() => setShowSmsConfig(false)}
       >
         <div className="space-y-4">
-          <PasswordInput
-            label="Account SID"
-            value={smsConfig.twilioAccountSid}
-            onChange={(v) => setSmsConfig({ ...smsConfig, twilioAccountSid: v })}
-            placeholder="AC..."
-          />
-          <PasswordInput
-            label="Auth Token"
-            value={smsConfig.twilioAuthToken}
-            onChange={(v) => setSmsConfig({ ...smsConfig, twilioAuthToken: v })}
-            placeholder="Your auth token"
-          />
+          <div className="p-4 bg-green-50 dark:bg-green-500/10 rounded-xl">
+            <p className="text-sm text-green-800 dark:text-green-400">
+              <strong>Security Note:</strong> Twilio credentials must be configured on the backend server via environment variables:
+            </p>
+            <ul className="mt-2 text-sm text-green-700 dark:text-green-400 list-disc list-inside">
+              <li><code className="bg-green-100 dark:bg-green-500/20 px-1 rounded">TWILIO_ACCOUNT_SID</code></li>
+              <li><code className="bg-green-100 dark:bg-green-500/20 px-1 rounded">TWILIO_AUTH_TOKEN</code></li>
+            </ul>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">
               Twilio Phone Number
@@ -480,7 +431,7 @@ export function Settings() {
           </div>
           <button
             onClick={handleSaveSmsConfig}
-            disabled={saving || !smsConfig.twilioAccountSid || !smsConfig.twilioAuthToken || !smsConfig.twilioPhoneNumber}
+            disabled={saving || !smsConfig.twilioPhoneNumber}
             className="w-full px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save Configuration'}
@@ -495,15 +446,26 @@ export function Settings() {
         onClose={() => setShowPaymentConfig(false)}
       >
         <div className="space-y-4">
-          <PasswordInput
-            label="Stripe Publishable Key"
-            value={paymentConfig.stripePublishableKey}
-            onChange={(v) => setPaymentConfig({ ...paymentConfig, stripePublishableKey: v })}
-            placeholder="pk_test_..."
-          />
-          <p className="text-xs text-gray-500 dark:text-dark-400">
-            Note: For production use, you'll also need to set up a backend server to handle Stripe webhooks and secret key operations securely.
-          </p>
+          <div className="p-4 bg-purple-50 dark:bg-purple-500/10 rounded-xl">
+            <p className="text-sm text-purple-800 dark:text-purple-400">
+              <strong>Security Note:</strong> The Stripe secret key must be configured on the backend server via the <code className="bg-purple-100 dark:bg-purple-500/20 px-1 rounded">STRIPE_SECRET_KEY</code> environment variable.
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">
+              Stripe Publishable Key
+            </label>
+            <input
+              type="text"
+              value={paymentConfig.stripePublishableKey}
+              onChange={(e) => setPaymentConfig({ ...paymentConfig, stripePublishableKey: e.target.value })}
+              placeholder="pk_test_..."
+              className="w-full px-4 py-2.5 border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-dark-400">
+              Publishable keys (starting with pk_) are safe for frontend use.
+            </p>
+          </div>
           <button
             onClick={handleSavePaymentConfig}
             disabled={saving || !paymentConfig.stripePublishableKey}
