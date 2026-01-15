@@ -25,3 +25,8 @@ export {
   NewMemberAgent,
   createDefaultNewMemberConfig,
 } from './NewMemberAgent';
+
+export {
+  TaskReminderAgent,
+  createDefaultTaskReminderConfig,
+} from './TaskReminderAgent';

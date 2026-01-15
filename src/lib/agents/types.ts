@@ -14,12 +14,17 @@ export interface AgentConfig {
   id: string;
   name: string;
   description: string;
-  category: 'engagement' | 'finance' | 'pastoral' | 'administration';
+  category: 'engagement' | 'finance' | 'pastoral' | 'administration' | 'operational';
   status: AgentStatus;
   enabled: boolean;
   settings: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
+}
+
+// Base config that can be extended
+export interface BaseAgentConfig extends AgentConfig {
+  settings: Record<string, unknown>;
 }
 
 export interface AgentTrigger {
@@ -146,6 +151,21 @@ export interface DripMessage {
   subject: string;
   emailTemplate: string;
   smsTemplate: string;
+}
+
+// Task Reminder Agent Types
+export interface TaskReminderConfig extends AgentConfig {
+  settings: {
+    remindDaysBefore: number;
+    remindOnDueDate: boolean;
+    remindWhenOverdue: boolean;
+    overdueReminderFrequency: 'daily' | 'every3days' | 'weekly';
+    sendEmail: boolean;
+    sendSMS: boolean;
+    onlyHighPriority: boolean;
+    excludeCategories: string[];
+    churchName: string;
+  };
 }
 
 // Agent execution context
