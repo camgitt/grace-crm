@@ -28,6 +28,8 @@ import {
   Contact,
   Baby,
   FormInput,
+  UserCircle,
+  HeartHandshake,
 } from 'lucide-react';
 import { View } from '../types';
 import { useTheme } from '../ThemeContext';
@@ -58,6 +60,9 @@ const navItems: { view: View; label: string; icon: ReactNode }[] = [
   { view: 'directory', label: 'Directory', icon: <Contact size={18} /> },
   { view: 'connect-card', label: 'Connect Card', icon: <QrCode size={18} /> },
   { view: 'forms', label: 'Forms', icon: <FormInput size={18} /> },
+  { view: 'member-portal', label: 'Member Portal', icon: <UserCircle size={18} /> },
+  { view: 'prayer-wall', label: 'Prayer Wall', icon: <Heart size={18} /> },
+  { view: 'volunteer-signup', label: 'Volunteer Signup', icon: <HeartHandshake size={18} /> },
 ];
 
 // View labels for breadcrumbs
@@ -90,6 +95,10 @@ const viewLabels: Record<View, string> = {
   directory: 'Directory',
   'child-checkin': 'Child Check-In',
   forms: 'Forms',
+  'member-portal': 'Member Portal',
+  'prayer-wall': 'Prayer Wall',
+  'volunteer-signup': 'Volunteer Signup',
+  'group-hub': 'Group Hub',
 };
 
 export function Layout({ currentView, setView, children, onOpenSearch }: LayoutProps) {

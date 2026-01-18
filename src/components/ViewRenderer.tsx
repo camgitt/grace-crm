@@ -30,6 +30,12 @@ const MemberDirectory = lazy(() => import('./MemberDirectory').then(m => ({ defa
 const ChildCheckIn = lazy(() => import('./ChildCheckIn').then(m => ({ default: m.ChildCheckIn })));
 const FormBuilder = lazy(() => import('./FormBuilder').then(m => ({ default: m.FormBuilder })));
 
+// Phase 5: Community Layer components
+const MemberPortal = lazy(() => import('./MemberPortal').then(m => ({ default: m.MemberPortal })));
+const PublicPrayerWall = lazy(() => import('./PublicPrayerWall').then(m => ({ default: m.PublicPrayerWall })));
+const VolunteerSignup = lazy(() => import('./VolunteerSignup').then(m => ({ default: m.VolunteerSignup })));
+const SmallGroupHub = lazy(() => import('./SmallGroupHub').then(m => ({ default: m.SmallGroupHub })));
+
 // Loading fallback component
 function ViewLoader() {
   return (
@@ -327,6 +333,129 @@ export function ViewRenderer(props: ViewRendererProps) {
 
       case 'forms':
         return <FormBuilder onBack={() => setView('settings')} />;
+
+      // Phase 5: Community Layer views
+      case 'member-portal':
+        return (
+          <MemberPortal
+            profile={{
+              id: 'current-user',
+              firstName: 'Member',
+              lastName: 'User',
+              email: 'member@example.com',
+            }}
+            events={events.map(e => ({
+              id: e.id,
+              title: e.title,
+              description: e.description,
+              date: e.startDate,
+              time: '10:00 AM',
+              location: e.location,
+              rsvpStatus: rsvps.find(r => r.eventId === e.id)?.status || null,
+              attendeeCount: rsvps.filter(r => r.eventId === e.id && r.status === 'yes').length,
+            }))}
+            smallGroups={groups.map(g => ({
+              id: g.id,
+              name: g.name,
+              description: g.description,
+              meetingDay: g.meetingDay || 'Wednesday',
+              meetingTime: g.meetingTime || '7:00 PM',
+              location: g.location,
+              leaderName: people.find(p => p.id === g.leaderId)?.firstName || 'TBD',
+              memberCount: g.members.length,
+            }))}
+            volunteerRoles={[]}
+            givingSummary={{
+              thisYear: giving.filter(g => new Date(g.date).getFullYear() === new Date().getFullYear()).reduce((sum, g) => sum + g.amount, 0),
+              lastGift: giving.length > 0 ? { amount: giving[0].amount, date: giving[0].date, fund: giving[0].fund } : null,
+            }}
+            prayerCount={prayers.filter(p => !p.isAnswered).length}
+            churchName="Grace Church"
+            onRSVP={(eventId, status) => handlers.rsvp(eventId, 'current-user', status)}
+            onVolunteerSignup={() => {}}
+            onNavigate={(section) => {
+              if (section === 'prayer-wall') setView('prayer-wall');
+              else if (section === 'give') setView('online-giving');
+              else if (section === 'giving-statement') setView('statements');
+            }}
+            onLogout={() => setView('dashboard')}
+          />
+        );
+
+      case 'prayer-wall':
+        return (
+          <PublicPrayerWall
+            prayers={prayers.filter(p => !p.isPrivate).map(p => ({
+              id: p.id,
+              content: p.content,
+              authorName: people.find(pr => pr.id === p.personId)?.firstName || 'Anonymous',
+              authorInitials: people.find(pr => pr.id === p.personId)
+                ? `${people.find(pr => pr.id === p.personId)!.firstName[0]}${people.find(pr => pr.id === p.personId)!.lastName[0]}`
+                : '?',
+              isAnonymous: !p.personId,
+              isAnswered: p.isAnswered,
+              testimony: p.testimony,
+              prayerCount: Math.floor(Math.random() * 20) + 1,
+              createdAt: p.createdAt,
+              category: 'other',
+            }))}
+            onSubmitPrayer={() => {}}
+            onPrayFor={() => {}}
+            churchName="Grace Church"
+          />
+        );
+
+      case 'volunteer-signup':
+        return (
+          <VolunteerSignup
+            opportunities={[]}
+            myRoles={[]}
+            churchName="Grace Church"
+            onSignup={() => {}}
+            onWithdraw={() => {}}
+            onContact={() => {}}
+          />
+        );
+
+      case 'group-hub':
+        const firstGroup = groups[0];
+        if (!firstGroup) {
+          setView('groups');
+          return null;
+        }
+        return (
+          <SmallGroupHub
+            group={{
+              id: firstGroup.id,
+              name: firstGroup.name,
+              description: firstGroup.description,
+              meetingDay: firstGroup.meetingDay || 'Wednesday',
+              meetingTime: firstGroup.meetingTime || '7:00 PM',
+              location: firstGroup.location,
+              members: firstGroup.members.map(memberId => {
+                const person = people.find(p => p.id === memberId);
+                return {
+                  id: memberId,
+                  firstName: person?.firstName || 'Unknown',
+                  lastName: person?.lastName || '',
+                  email: person?.email,
+                  phone: person?.phone,
+                  isLeader: memberId === firstGroup.leaderId,
+                };
+              }),
+              announcements: [],
+              messages: [],
+              prayerRequests: [],
+              upcomingMeetings: [],
+            }}
+            currentUserId="current-user"
+            onSendMessage={() => {}}
+            onPostAnnouncement={() => {}}
+            onSubmitPrayer={() => {}}
+            onPrayFor={() => {}}
+            onRSVP={() => {}}
+          />
+        );
 
       default:
         return null;

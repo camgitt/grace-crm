@@ -105,7 +105,7 @@ export interface CalendarEvent {
   attendees?: string[];
 }
 
-export type View = 'dashboard' | 'people' | 'person' | 'tasks' | 'calendar' | 'groups' | 'prayer' | 'giving' | 'settings' | 'pipeline' | 'attendance' | 'volunteers' | 'tags' | 'reports' | 'birthdays' | 'online-giving' | 'batch-entry' | 'pledges' | 'campaigns' | 'statements' | 'charity-baskets' | 'donation-tracker' | 'member-stats' | 'agents' | 'connect-card' | 'directory' | 'child-checkin' | 'forms';
+export type View = 'dashboard' | 'people' | 'person' | 'tasks' | 'calendar' | 'groups' | 'prayer' | 'giving' | 'settings' | 'pipeline' | 'attendance' | 'volunteers' | 'tags' | 'reports' | 'birthdays' | 'online-giving' | 'batch-entry' | 'pledges' | 'campaigns' | 'statements' | 'charity-baskets' | 'donation-tracker' | 'member-stats' | 'agents' | 'connect-card' | 'directory' | 'child-checkin' | 'forms' | 'member-portal' | 'prayer-wall' | 'volunteer-signup' | 'group-hub';
 
 // ============================================
 // COLLECTION & DONATION MANAGEMENT TYPES

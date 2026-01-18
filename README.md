@@ -95,11 +95,28 @@
 - Public and private prayer tracking
 - Mark prayers as answered
 - Testimony recording
+- **Public Prayer Wall** for community-wide prayer sharing
 
 ### 💝 Giving Dashboard
 - Giving overview by fund
 - Recurring gift tracking
 - Transaction history
+- Online giving form with Stripe
+- Donation tracker with advanced filtering
+- Giving statements for tax purposes
+
+### 🤖 AI Agents (Automation)
+- **New Member Agent** - Automated welcome sequences and drip campaigns
+- **Life Event Agent** - Birthday and anniversary auto-greetings
+- **Task Reminder Agent** - Automated reminders for upcoming/overdue tasks
+- **Donation Agent** - Thank-you messages and receipt automation
+
+### 🌐 Member Portal
+- Member-facing dashboard with personalized info
+- Event RSVP (Yes/No/Maybe)
+- Small group communication hub
+- Volunteer signup portal
+- Prayer wall interaction
 
 ---
 
@@ -184,31 +201,33 @@ grace-crm/
 - [x] Birthday/anniversary widget
 - [x] Global search
 
-### Phase 3: Backend Integration (Current)
+### Phase 3: Backend Integration ✅
 - [x] Supabase database connection
-- [ ] User authentication (Clerk)
+- [x] Security hardening (API keys moved to backend)
+- [x] XSS protection with DOMPurify
+- [ ] User authentication (Clerk) - in progress
 - [ ] Multi-church support
-- [ ] Stripe payments
 
-### Phase 4: Automation
-- [ ] Automated visitor follow-up emails
-- [ ] Attendance tracking integration
-- [ ] Task reminder notifications
-- [ ] SMS messaging
-- [ ] Birthday auto-reminders
+### Phase 4: Automation ✅
+- [x] Automated visitor follow-up emails (NewMemberAgent)
+- [x] Task reminder notifications (TaskReminderAgent)
+- [x] Birthday auto-reminders (LifeEventAgent)
+- [x] Donation processing & thank-you (DonationProcessingAgent)
+- [x] SMS messaging integration
 
-### Phase 5: Community Layer
-- [ ] Member-facing app / portal
-- [ ] Prayer wall (public sharing)
-- [ ] Event RSVPs
-- [ ] Small group communication
-- [ ] Volunteer scheduling
+### Phase 5: Community Layer ✅
+- [x] Member-facing portal (MemberPortal)
+- [x] Public prayer wall (PublicPrayerWall)
+- [x] Event RSVPs with Yes/No/Maybe
+- [x] Small group communication hub (SmallGroupHub)
+- [x] Volunteer signup portal (VolunteerSignup)
 
 ### Phase 6: Advanced Features
-- [ ] Reporting & export (CSV/PDF)
-- [ ] Attendance check-in system
-- [ ] Giving trends & charts
-- [ ] Mobile PWA support
+- [x] Reporting & export (CSV/PDF)
+- [x] Attendance check-in system
+- [x] Child check-in system
+- [x] Giving trends & charts
+- [x] Mobile PWA support
 - [ ] Offline mode
 
 ---
