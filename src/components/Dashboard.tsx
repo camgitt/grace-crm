@@ -74,9 +74,22 @@ export function Dashboard({ people, tasks, giving = [], onViewPerson, onViewTask
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-900 dark:text-dark-100">Dashboard</h1>
-        <p className="text-sm text-gray-500 dark:text-dark-400 mt-0.5">Welcome back. Here's what needs your attention.</p>
+      {/* Welcome Banner */}
+      <div className="mb-6 relative overflow-hidden rounded-2xl">
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200&h=400&fit=crop&crop=faces"
+            alt="Community gathering"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/90 via-indigo-800/70 to-transparent" />
+        </div>
+        <div className="relative px-6 py-8 sm:py-10">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Welcome back</h1>
+          <p className="text-indigo-100 mt-1 text-sm sm:text-base max-w-md">
+            Here's what needs your attention today. Every connection matters.
+          </p>
+        </div>
       </div>
 
       {/* Stats Grid */}
