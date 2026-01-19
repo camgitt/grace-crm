@@ -25,3 +25,14 @@ export {
   NewMemberAgent,
   createDefaultNewMemberConfig,
 } from './NewMemberAgent';
+
+export {
+  DayPlannerAgent,
+  createDefaultDayPlannerConfig,
+  type DayPlannerConfig,
+  type DailyDigest,
+  type TaskItem,
+  type ContactItem,
+  type MessageItem,
+  type CelebrationItem,
+} from './DayPlannerAgent';

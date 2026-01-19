@@ -184,3 +184,142 @@ Format as a numbered list.`,
     maxTokens: 400,
   });
 }
+
+// ============================================
+// Message Classification & Reply Generation
+// ============================================
+
+export interface MessageClassification {
+  category: 'question' | 'thanks' | 'concern' | 'prayer_request' | 'event_rsvp' | 'unsubscribe' | 'spam' | 'other';
+  sentiment: 'positive' | 'neutral' | 'negative' | 'urgent';
+  summary: string;
+  suggestedAction: string;
+  confidence: number;
+}
+
+/**
+ * Classify an incoming message using AI
+ */
+export async function classifyInboundMessage(
+  body: string,
+  subject?: string,
+  senderName?: string
+): Promise<{ success: boolean; classification?: MessageClassification; error?: string }> {
+  const prompt = `Classify this incoming message from a church member.
+
+${subject ? `Subject: ${subject}` : ''}
+${senderName ? `From: ${senderName}` : ''}
+Message: "${body}"
+
+Analyze the message and respond with JSON only:
+{
+  "category": "question|thanks|concern|prayer_request|event_rsvp|unsubscribe|spam|other",
+  "sentiment": "positive|neutral|negative|urgent",
+  "summary": "One sentence summary of what they're saying",
+  "suggestedAction": "Brief suggested response approach",
+  "confidence": 0.0 to 1.0
+}
+
+Categories:
+- question: Asking for information or help
+- thanks: Expressing gratitude
+- concern: Expressing worry, complaint, or issue
+- prayer_request: Requesting prayer
+- event_rsvp: Responding to an event invitation
+- unsubscribe: Wanting to stop receiving messages
+- spam: Irrelevant or promotional content
+- other: Doesn't fit other categories`;
+
+  try {
+    const result = await generateAIText({ prompt, maxTokens: 300 });
+
+    if (result.success && result.text) {
+      const jsonMatch = result.text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]) as MessageClassification;
+        return { success: true, classification: parsed };
+      }
+    }
+
+    return { success: false, error: 'Failed to parse classification' };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Classification failed',
+    };
+  }
+}
+
+/**
+ * Generate a reply draft for an incoming message
+ */
+export async function generateReplyDraft(
+  originalMessage: string,
+  category: string,
+  personName: string,
+  churchName: string,
+  additionalContext?: string
+): Promise<AIGenerateResult> {
+  return generateAIText({
+    prompt: `Write a warm, helpful reply to this ${category} from ${personName}:
+
+"${originalMessage}"
+
+${additionalContext ? `Additional context: ${additionalContext}` : ''}
+
+Reply on behalf of ${churchName}. Guidelines:
+- Keep it under 100 words
+- Be friendly and pastoral
+- Address their specific message
+- If it's a question, provide a helpful answer or offer to help further
+- If it's a concern, acknowledge it and show care
+- If it's thanks, express appreciation for their kind words
+- If it's a prayer request, acknowledge it and offer comfort
+
+Do not include a subject line. Write only the message body.`,
+    maxTokens: 300,
+  });
+}
+
+/**
+ * Generate a scheduled message for a specific purpose
+ */
+export async function generateScheduledMessage(
+  personName: string,
+  messageType: 'birthday' | 'anniversary' | 'follow_up' | 'welcome' | 'thank_you',
+  churchName: string,
+  additionalContext?: string
+): Promise<AIGenerateResult> {
+  const prompts: Record<string, string> = {
+    birthday: `Write a warm birthday message for ${personName} from ${churchName}. Keep it under 60 words, cheerful and personal.`,
+    anniversary: `Write a message celebrating ${personName}'s membership anniversary at ${churchName}. ${additionalContext || ''} Keep it under 60 words, appreciative and warm.`,
+    follow_up: `Write a friendly follow-up message for ${personName} from ${churchName}. ${additionalContext || ''} Keep it under 80 words, caring and inviting.`,
+    welcome: `Write a warm welcome message for ${personName} who recently joined ${churchName}. Keep it under 80 words, friendly and inviting.`,
+    thank_you: `Write a heartfelt thank you message for ${personName} from ${churchName}. ${additionalContext || ''} Keep it under 60 words, genuine and appreciative.`,
+  };
+
+  return generateAIText({
+    prompt: prompts[messageType] || prompts.follow_up,
+    maxTokens: 200,
+  });
+}
+
+/**
+ * Generate talking points for contacting someone
+ */
+export async function generateContactTalkingPoints(
+  personName: string,
+  reason: string,
+  context?: string
+): Promise<AIGenerateResult> {
+  return generateAIText({
+    prompt: `Generate 3-4 brief talking points for reaching out to ${personName}.
+
+Reason for contact: ${reason}
+${context ? `Context: ${context}` : ''}
+
+Format as a bulleted list. Keep each point concise (1-2 sentences).
+Focus on being warm, personal, and helpful.`,
+    maxTokens: 300,
+  });
+}
