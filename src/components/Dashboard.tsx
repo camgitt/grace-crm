@@ -3,16 +3,15 @@ import {
   Users,
   UserPlus,
   AlertCircle,
-  ChevronRight,
-  CheckCircle2,
   Clock,
-  ArrowRight,
+  ChevronDown,
+  ChevronUp,
+  BarChart3,
 } from 'lucide-react';
 import { Person, Task, Giving } from '../types';
-import { PRIORITY_COLORS } from '../constants';
 import { DashboardCharts } from './DashboardCharts';
-import { BirthdayWidget } from './BirthdayWidget';
 import { GivingWidget } from './GivingWidget';
+import { ActionFeed } from './ActionFeed';
 import { useAuthContext } from '../contexts/AuthContext';
 
 interface DashboardProps {
@@ -24,259 +23,98 @@ interface DashboardProps {
   onViewGiving?: () => void;
 }
 
-// Church-appropriate banner image from Unsplash (hands together in community)
-const BANNER_IMAGE_URL = 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1200&h=400&fit=crop';
-
 export function Dashboard({ people, tasks, giving = [], onViewPerson, onViewTasks, onViewGiving }: DashboardProps) {
   const { user } = useAuthContext();
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
 
-  // Memoize filtered arrays to prevent recalculation on every render
-  const { visitors, inactive, pendingTasks } = useMemo(() => ({
-    visitors: people.filter(p => p.status === 'visitor'),
-    inactive: people.filter(p => p.status === 'inactive'),
-    pendingTasks: tasks.filter(t => !t.completed),
-  }), [people, tasks]);
+  // Compute key metrics
+  const metrics = useMemo(() => {
+    const visitors = people.filter(p => p.status === 'visitor').length;
+    const inactive = people.filter(p => p.status === 'inactive').length;
+    const pendingTasks = tasks.filter(t => !t.completed).length;
+    const overdueTasks = tasks.filter(t => !t.completed && new Date(t.dueDate) < new Date()).length;
 
-  // Memoize sorted pending tasks
-  const sortedPendingTasks = useMemo(() =>
-    [...pendingTasks].sort((a, b) => {
-      const priorityOrder = { high: 0, medium: 1, low: 2 };
-      return priorityOrder[a.priority] - priorityOrder[b.priority];
-    }).slice(0, 5),
-    [pendingTasks]
-  );
+    return { visitors, inactive, pendingTasks, overdueTasks, total: people.length };
+  }, [people, tasks]);
 
-  // Memoize person lookup map for O(1) access
-  const personMap = useMemo(() => new Map(people.map(p => [p.id, p])), [people]);
-
-  const stats = [
-    {
-      label: 'Total People',
-      value: people.length,
-      icon: <Users className="text-indigo-600 dark:text-indigo-400" size={18} />,
-      bg: 'bg-indigo-100 dark:bg-indigo-500/10'
-    },
-    {
-      label: 'New Visitors',
-      value: visitors.length,
-      icon: <UserPlus className="text-amber-600 dark:text-amber-400" size={18} />,
-      bg: 'bg-amber-100 dark:bg-amber-500/10',
-      highlight: visitors.length > 0
-    },
-    {
-      label: 'Need Attention',
-      value: inactive.length,
-      icon: <AlertCircle className="text-red-500 dark:text-red-400" size={18} />,
-      bg: 'bg-red-100 dark:bg-red-500/10',
-      highlight: inactive.length > 0
-    },
-    {
-      label: 'Pending Tasks',
-      value: pendingTasks.length,
-      icon: <Clock className="text-blue-600 dark:text-blue-400" size={18} />,
-      bg: 'bg-blue-100 dark:bg-blue-500/10'
-    },
-  ];
+  // Calculate urgent count for header
+  const urgentCount = metrics.visitors + metrics.overdueTasks;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Welcome Banner */}
-      <div className="mb-6 relative overflow-hidden rounded-2xl h-32 sm:h-36">
-        {/* Fallback gradient background (always visible, works if image fails) */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 dark:from-indigo-800 dark:via-indigo-900 dark:to-purple-950" />
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto">
+      {/* Compact Header */}
+      <div className="mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-dark-100">
+          {user?.firstName ? `Hey ${user.firstName}` : 'Welcome back'}
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-dark-400 mt-0.5">
+          {urgentCount > 0
+            ? `You have ${urgentCount} ${urgentCount === 1 ? 'thing' : 'things'} that need attention`
+            : "You're all caught up for now"
+          }
+        </p>
 
-        {/* Loading skeleton */}
-        {!imageLoaded && !imageError && (
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/50 to-transparent animate-pulse" />
-        )}
-
-        {/* Background image with lazy loading */}
-        {!imageError && (
-          <img
-            src={BANNER_IMAGE_URL}
-            alt="Church community joining hands together"
-            loading="lazy"
-            onLoad={() => setImageLoaded(true)}
-            onError={() => setImageError(true)}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
-              imageLoaded ? 'opacity-100' : 'opacity-0'
-            }`}
-          />
-        )}
-
-        {/* Gradient overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/90 via-indigo-800/70 to-transparent dark:from-gray-900/95 dark:via-gray-900/80 dark:to-transparent" />
-
-        {/* Content */}
-        <div className="relative h-full flex flex-col justify-center px-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">
-            Welcome back{user?.firstName ? `, ${user.firstName}` : ''}
-          </h1>
-          <p className="text-indigo-100 dark:text-indigo-200 mt-1 text-sm sm:text-base max-w-md">
-            Here's what needs your attention today. Every connection matters.
-          </p>
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        {stats.map((stat) => (
-          <div key={stat.label} className="p-4 bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-dark-700">
-            <div className="flex items-center justify-between mb-3">
-              <div className={`w-8 h-8 ${stat.bg} rounded-lg flex items-center justify-center`}>
-                {stat.icon}
-              </div>
-              {stat.highlight && (
-                <span className="text-[10px] font-medium text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded">
-                  Action
-                </span>
-              )}
-            </div>
-            <p className="text-2xl font-semibold text-gray-900 dark:text-dark-100">{stat.value}</p>
-            <p className="text-xs text-gray-500 dark:text-dark-400 mt-1">{stat.label}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Recent Visitors */}
-        <div className="bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-dark-700 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-medium text-gray-900 dark:text-dark-100">Recent Visitors</h2>
-            <span className="text-xs text-gray-400 dark:text-dark-500">Last 30 days</span>
-          </div>
-
-          {visitors.length === 0 ? (
-            <p className="text-gray-400 dark:text-dark-500 text-sm py-6 text-center">No recent visitors</p>
-          ) : (
-            <div className="space-y-1">
-              {visitors.slice(0, 5).map((person) => (
-                <button
-                  key={person.id}
-                  onClick={() => onViewPerson(person.id)}
-                  className="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-750 transition-colors group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-amber-100 dark:bg-amber-500/10 rounded-full flex items-center justify-center text-amber-700 dark:text-amber-400 text-xs font-medium">
-                      {person.firstName[0]}{person.lastName[0]}
-                    </div>
-                    <div className="text-left">
-                      <p className="text-sm font-medium text-gray-900 dark:text-dark-100">{person.firstName} {person.lastName}</p>
-                      <p className="text-xs text-gray-400 dark:text-dark-500">
-                        {person.firstVisit ? new Date(person.firstVisit).toLocaleDateString() : 'Unknown'}
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight size={16} className="text-gray-300 dark:text-dark-600 group-hover:text-gray-400 dark:group-hover:text-dark-500" />
-                </button>
-              ))}
-            </div>
+        {/* Inline Stats */}
+        <div className="flex flex-wrap gap-2 mt-3">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 dark:bg-dark-800 rounded-full text-xs font-medium text-gray-600 dark:text-dark-300">
+            <Users size={12} />
+            {metrics.total} people
+          </span>
+          {metrics.visitors > 0 && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 dark:bg-amber-500/20 rounded-full text-xs font-medium text-amber-700 dark:text-amber-400">
+              <UserPlus size={12} />
+              {metrics.visitors} new
+            </span>
           )}
-        </div>
-
-        {/* Priority Tasks */}
-        <div className="bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-dark-700 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-medium text-gray-900 dark:text-dark-100">Priority Follow-Ups</h2>
-            <button
-              onClick={onViewTasks}
-              className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium flex items-center gap-1"
-            >
-              View all
-              <ArrowRight size={12} />
-            </button>
-          </div>
-
-          {pendingTasks.length === 0 ? (
-            <div className="py-6 text-center">
-              <CheckCircle2 className="mx-auto text-emerald-500 mb-2" size={24} />
-              <p className="text-gray-400 dark:text-dark-500 text-sm">All caught up!</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {sortedPendingTasks.map((task) => {
-                  const person = task.personId ? personMap.get(task.personId) : undefined;
-                  const isOverdue = new Date(task.dueDate) < new Date();
-
-                  return (
-                    <div
-                      key={task.id}
-                      className={`p-3 rounded-lg border ${isOverdue ? 'border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/5' : 'border-gray-100 dark:border-dark-700 bg-gray-50 dark:bg-dark-850'}`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 dark:text-dark-100 truncate">{task.title}</p>
-                          {person && (
-                            <p className="text-xs text-gray-400 dark:text-dark-500 mt-0.5">
-                              {person.firstName} {person.lastName}
-                            </p>
-                          )}
-                        </div>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${PRIORITY_COLORS[task.priority]}`}>
-                          {task.priority}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 mt-2">
-                        <Clock size={10} className={isOverdue ? 'text-red-500' : 'text-gray-400 dark:text-dark-500'} />
-                        <span className={`text-[10px] ${isOverdue ? 'text-red-600 dark:text-red-400 font-medium' : 'text-gray-400 dark:text-dark-500'}`}>
-                          {isOverdue ? 'Overdue' : 'Due'}: {new Date(task.dueDate).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
+          {metrics.overdueTasks > 0 && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-100 dark:bg-red-500/20 rounded-full text-xs font-medium text-red-700 dark:text-red-400">
+              <AlertCircle size={12} />
+              {metrics.overdueTasks} overdue
+            </span>
+          )}
+          {metrics.pendingTasks > 0 && metrics.overdueTasks === 0 && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 dark:bg-blue-500/20 rounded-full text-xs font-medium text-blue-700 dark:text-blue-400">
+              <Clock size={12} />
+              {metrics.pendingTasks} tasks
+            </span>
           )}
         </div>
       </div>
 
-      {/* Giving Widget */}
-      {onViewGiving && (
-        <div className="mt-4">
+      {/* Action Feed - The Main Event */}
+      <div className="mb-6">
+        <ActionFeed
+          people={people}
+          tasks={tasks}
+          onViewPerson={onViewPerson}
+        />
+      </div>
+
+      {/* Giving Widget - Secondary */}
+      {onViewGiving && giving.length > 0 && (
+        <div className="mb-6">
           <GivingWidget giving={giving} onViewGiving={onViewGiving} />
         </div>
       )}
 
-      {/* Inactive Members Alert */}
-      {inactive.length > 0 && (
-        <div className="mt-4 bg-red-50 dark:bg-red-500/5 rounded-xl p-4 border border-red-100 dark:border-red-500/20">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-red-100 dark:bg-red-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-              <AlertCircle className="text-red-600 dark:text-red-400" size={16} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-dark-100">Members Need Care</h3>
-              <p className="text-xs text-gray-500 dark:text-dark-400 mt-0.5">
-                {inactive.length} {inactive.length === 1 ? 'person hasn\'t' : 'people haven\'t'} been active recently.
-              </p>
-              <div className="flex flex-wrap gap-1.5 mt-3">
-                {inactive.slice(0, 3).map((person) => (
-                  <button
-                    key={person.id}
-                    onClick={() => onViewPerson(person.id)}
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-white dark:bg-dark-800 rounded text-xs font-medium text-gray-700 dark:text-dark-300 hover:bg-gray-50 dark:hover:bg-dark-750 border border-gray-200 dark:border-dark-600"
-                  >
-                    {person.firstName} {person.lastName}
-                    <ChevronRight size={12} />
-                  </button>
-                ))}
-              </div>
-            </div>
+      {/* Collapsible Analytics */}
+      <div className="border-t border-gray-200 dark:border-dark-700 pt-4">
+        <button
+          onClick={() => setShowAnalytics(!showAnalytics)}
+          className="w-full flex items-center justify-between py-2 text-sm font-medium text-gray-600 dark:text-dark-300 hover:text-gray-900 dark:hover:text-dark-100 transition-colors"
+        >
+          <span className="flex items-center gap-2">
+            <BarChart3 size={16} />
+            Analytics & Trends
+          </span>
+          {showAnalytics ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </button>
+
+        {showAnalytics && (
+          <div className="mt-4 space-y-4">
+            <DashboardCharts people={people} />
           </div>
-        </div>
-      )}
-
-      {/* Charts Section */}
-      <div className="mt-6">
-        <h2 className="text-sm font-medium text-gray-900 dark:text-dark-100 mb-3">Analytics</h2>
-        <DashboardCharts people={people} />
-      </div>
-
-      {/* Birthday Widget */}
-      <div className="mt-6">
-        <BirthdayWidget people={people} onViewPerson={onViewPerson} />
+        )}
       </div>
     </div>
   );
