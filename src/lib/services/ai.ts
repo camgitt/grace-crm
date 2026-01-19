@@ -78,7 +78,15 @@ export async function generateWelcomeMessage(
   return generateAIText({
     prompt: `Write a warm, personal welcome message for ${firstName} who just joined ${churchName}.
 ${interestContext}
-Keep it under 100 words, friendly, and inviting. Don't use overly religious language.`,
+
+Guidelines:
+- Start with their name and express genuine joy about their visit
+- Keep it conversational and warm, like a friend welcoming them
+- Mention one specific thing they can look forward to (community, worship, etc.)
+- End with an invitation to connect (coffee, small group, or just reach out)
+- Keep it under 100 words
+- Avoid churchy jargon - be accessible and genuine
+- Sign off warmly (e.g., "Looking forward to seeing you!" or "Can't wait to get to know you better!")`,
     maxTokens: 256,
   });
 }
@@ -94,13 +102,31 @@ export async function generateDonationThankYou(
   isFirstTime: boolean
 ): Promise<AIGenerateResult> {
   const firstTimeNote = isFirstTime
-    ? 'This is their first donation to the church.'
-    : '';
+    ? 'This is their FIRST gift to the church - make this extra special and acknowledging!'
+    : 'They are a returning giver - acknowledge their ongoing faithfulness.';
+
+  const fundImpact: Record<string, string> = {
+    tithe: 'supporting the daily ministry and operations of the church',
+    missions: 'spreading hope to communities around the world',
+    building: 'creating welcoming spaces for worship and community',
+    benevolence: 'helping neighbors in need in our community',
+    offering: 'furthering the mission and vision of our church',
+  };
+
+  const impact = fundImpact[fund.toLowerCase()] || 'making a real difference in our community';
 
   return generateAIText({
     prompt: `Write a heartfelt thank-you message for ${firstName} who donated $${amount.toFixed(2)} to the ${fund} fund at ${churchName}.
 ${firstTimeNote}
-Keep it under 80 words, genuine, and appreciative. Mention the impact of their generosity without being preachy.`,
+
+Guidelines:
+- Express genuine, specific gratitude (not generic "thanks for your gift")
+- Briefly mention how their gift helps: ${impact}
+- Make them feel like a valued partner, not just a donor
+- Keep it under 80 words
+- Be warm and personal, not formal or transactional
+- Don't be preachy or mention "sowing seeds" or "blessings returned"
+- End with warmth (e.g., "Grateful for you!" or "You're making a difference!")`,
     maxTokens: 200,
   });
 }
@@ -110,11 +136,24 @@ Keep it under 80 words, genuine, and appreciative. Mention the impact of their g
  */
 export async function generateBirthdayGreeting(
   firstName: string,
-  churchName: string
+  churchName: string,
+  age?: number
 ): Promise<AIGenerateResult> {
+  const ageContext = age ? `They are turning ${age} today.` : '';
+
   return generateAIText({
-    prompt: `Write a warm birthday greeting for ${firstName} from ${churchName}.
-Keep it under 50 words, cheerful, and personal. Include a brief blessing or well-wish.`,
+    prompt: `Write a warm, personal birthday greeting for ${firstName} from your church family at ${churchName}.
+${ageContext}
+
+Guidelines:
+- Start with "Happy Birthday" and their name
+- Express that they are thought of and valued
+- Include a brief, sincere blessing or wish for the year ahead
+- Keep it under 50 words - quality over quantity
+- Be genuine and warm, not generic
+- Optional: mention something about celebrating them
+- Avoid clichés like "may all your dreams come true"
+- End on an uplifting note`,
     maxTokens: 128,
   });
 }
@@ -260,23 +299,38 @@ export async function generateReplyDraft(
   churchName: string,
   additionalContext?: string
 ): Promise<AIGenerateResult> {
+  const categoryGuidelines: Record<string, string> = {
+    question: `They're asking a question. Provide a helpful, clear answer. If you don't have enough info, offer to help them find the answer or connect them with someone who can.`,
+    thanks: `They're expressing gratitude. Receive it graciously, affirm that they're valued, and perhaps share how their presence/involvement blesses the community.`,
+    concern: `They've shared a concern or complaint. Acknowledge their feelings first, thank them for sharing, express that you take it seriously, and offer a next step (call, meeting, or follow-up).`,
+    prayer_request: `They've shared a prayer request. Respond with compassion, let them know they're not alone, confirm you'll be praying, and offer any practical support if appropriate.`,
+    event_rsvp: `They're responding about an event. Confirm receipt, express excitement about seeing them (or understanding if they can't make it), and share any relevant details.`,
+    unsubscribe: `They want to stop receiving messages. Respect their request, apologize for any inconvenience, confirm you'll remove them, and leave the door open warmly.`,
+    other: `Respond thoughtfully to their message, acknowledge what they've shared, and offer appropriate next steps.`,
+  };
+
+  const guidelines = categoryGuidelines[category] || categoryGuidelines.other;
+
   return generateAIText({
-    prompt: `Write a warm, helpful reply to this ${category} from ${personName}:
+    prompt: `Write a warm, pastoral reply to this message from ${personName}:
 
 "${originalMessage}"
 
-${additionalContext ? `Additional context: ${additionalContext}` : ''}
+${additionalContext ? `Context: ${additionalContext}` : ''}
+
+Category: ${category}
+${guidelines}
 
 Reply on behalf of ${churchName}. Guidelines:
-- Keep it under 100 words
-- Be friendly and pastoral
-- Address their specific message
-- If it's a question, provide a helpful answer or offer to help further
-- If it's a concern, acknowledge it and show care
-- If it's thanks, express appreciation for their kind words
-- If it's a prayer request, acknowledge it and offer comfort
+- Start by addressing them by name
+- Keep it under 100 words but make every word count
+- Be genuinely warm and personal, not formal or corporate
+- Match the tone to the situation (caring for concerns, joyful for celebrations)
+- End with a warm sign-off that fits the context
+- Don't use religious jargon unless they did
+- Be a real person, not a form letter
 
-Do not include a subject line. Write only the message body.`,
+Write only the message body, no subject line.`,
     maxTokens: 300,
   });
 }
@@ -286,16 +340,78 @@ Do not include a subject line. Write only the message body.`,
  */
 export async function generateScheduledMessage(
   personName: string,
-  messageType: 'birthday' | 'anniversary' | 'follow_up' | 'welcome' | 'thank_you',
+  messageType: 'birthday' | 'anniversary' | 'follow_up' | 'welcome' | 'thank_you' | 'check_in' | 'encouragement',
   churchName: string,
   additionalContext?: string
 ): Promise<AIGenerateResult> {
   const prompts: Record<string, string> = {
-    birthday: `Write a warm birthday message for ${personName} from ${churchName}. Keep it under 60 words, cheerful and personal.`,
-    anniversary: `Write a message celebrating ${personName}'s membership anniversary at ${churchName}. ${additionalContext || ''} Keep it under 60 words, appreciative and warm.`,
-    follow_up: `Write a friendly follow-up message for ${personName} from ${churchName}. ${additionalContext || ''} Keep it under 80 words, caring and inviting.`,
-    welcome: `Write a warm welcome message for ${personName} who recently joined ${churchName}. Keep it under 80 words, friendly and inviting.`,
-    thank_you: `Write a heartfelt thank you message for ${personName} from ${churchName}. ${additionalContext || ''} Keep it under 60 words, genuine and appreciative.`,
+    birthday: `Write a warm, personal birthday message for ${personName} from ${churchName}.
+
+Guidelines:
+- Start with "Happy Birthday, ${personName}!"
+- Express that they're celebrated and valued in the church family
+- Include a brief, heartfelt blessing for the year ahead
+- Keep it under 60 words - sincere and memorable
+- Avoid generic phrases like "may all your wishes come true"
+- End warmly`,
+
+    anniversary: `Write a message celebrating ${personName}'s membership anniversary at ${churchName}.
+${additionalContext ? `Context: ${additionalContext}` : ''}
+
+Guidelines:
+- Acknowledge the milestone with genuine appreciation
+- Mention something about their journey/contribution (even generally)
+- Express gratitude for their faithfulness and presence
+- Keep it under 60 words, heartfelt and personal
+- Make them feel valued and seen`,
+
+    follow_up: `Write a friendly follow-up message for ${personName} from ${churchName}.
+${additionalContext ? `Context: ${additionalContext}` : 'They visited recently.'}
+
+Guidelines:
+- Express that you're thinking of them
+- Reference their visit/connection naturally
+- Extend a warm, no-pressure invitation to return or connect
+- Keep it under 80 words, caring and genuine
+- Make it easy to respond (offer specific next steps)`,
+
+    welcome: `Write a warm welcome message for ${personName} who recently joined ${churchName}.
+
+Guidelines:
+- Welcome them genuinely to the church family
+- Express excitement about getting to know them
+- Mention one way they can connect (small group, service, event)
+- Keep it under 80 words, friendly and inviting
+- Make them feel like they belong already`,
+
+    thank_you: `Write a heartfelt thank you message for ${personName} from ${churchName}.
+${additionalContext ? `Context: ${additionalContext}` : ''}
+
+Guidelines:
+- Be specific about what you're thanking them for (if context provided)
+- Express the impact of their contribution/service/presence
+- Keep it under 60 words, genuine and warm
+- Avoid being over-the-top; sincere is better than effusive`,
+
+    check_in: `Write a caring check-in message for ${personName} from ${churchName}.
+${additionalContext ? `Context: ${additionalContext}` : 'Haven\'t seen them in a while.'}
+
+Guidelines:
+- Express that they've been missed and thought of
+- Show genuine care without guilt-tripping
+- Keep the door open for them to share how they're doing
+- Offer support without being pushy
+- Keep it under 70 words, warm and gracious`,
+
+    encouragement: `Write an encouraging message for ${personName} from ${churchName}.
+${additionalContext ? `Context: ${additionalContext}` : ''}
+
+Guidelines:
+- Acknowledge any difficulty they may be facing
+- Offer genuine encouragement and hope
+- Remind them they're not alone
+- Keep it under 70 words, uplifting but not dismissive of struggles
+- Be a friend, not preachy`,
   };
 
   return generateAIText({

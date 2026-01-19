@@ -210,12 +210,16 @@ function App() {
         case 'm': e.preventDefault(); modals.openQuickNote(); break;
         case 'd': e.preventDefault(); modals.openQuickDonation(); break;
         case '/': e.preventDefault(); modals.openSearch(); break;
+        // Navigation shortcuts
+        case 'c': e.preventDefault(); setView('content-calendar'); break;
+        case 'i': e.preventDefault(); setView('message-inbox'); break;
+        case 'h': e.preventDefault(); setView('dashboard'); break;
         case 'escape': modals.closeAll(); break;
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [modals]);
+  }, [modals, setView]);
 
   // Memoize person lookup
   const personMap = useMemo(() => new Map(people.map(p => [p.id, p])), [people]);
