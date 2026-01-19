@@ -31,7 +31,7 @@ const ChildCheckIn = lazy(() => import('./ChildCheckIn').then(m => ({ default: m
 const FormBuilder = lazy(() => import('./FormBuilder').then(m => ({ default: m.FormBuilder })));
 const ContentCalendar = lazy(() => import('./ContentCalendar').then(m => ({ default: m.ContentCalendar })));
 const MessageInbox = lazy(() => import('./MessageInbox').then(m => ({ default: m.MessageInbox })));
-const DailyDigestPanel = lazy(() => import('./DailyDigestPanel').then(m => ({ default: m.DailyDigestPanel })));
+// DailyDigestPanel available for dashboard integration: lazy(() => import('./DailyDigestPanel').then(m => ({ default: m.DailyDigestPanel })))
 
 // Loading fallback component
 function ViewLoader() {

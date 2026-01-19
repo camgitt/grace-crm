@@ -161,7 +161,7 @@ export function createDefaultDayPlannerConfig(churchName: string): DayPlannerCon
 }
 
 export class DayPlannerAgent extends BaseAgent {
-  private config: DayPlannerConfig;
+  private dayPlannerConfig: DayPlannerConfig;
   private people: PersonData[];
   private tasks: TaskData[];
   private scheduledMessages: ScheduledMessageData[];
@@ -176,7 +176,7 @@ export class DayPlannerAgent extends BaseAgent {
     interactions: InteractionData[] = []
   ) {
     super(config, context);
-    this.config = config;
+    this.dayPlannerConfig = config;
     this.people = people;
     this.tasks = tasks;
     this.scheduledMessages = scheduledMessages;
@@ -212,7 +212,7 @@ export class DayPlannerAgent extends BaseAgent {
 
   async generateDailyDigest(): Promise<DailyDigest> {
     const today = this.context.currentDate;
-    const settings = this.config.settings;
+    const settings = this.dayPlannerConfig.settings;
 
     // Get priority tasks
     const priorityTasks = this.getPriorityTasks();
@@ -275,7 +275,7 @@ export class DayPlannerAgent extends BaseAgent {
   private getPriorityTasks(): TaskItem[] {
     const today = this.context.currentDate;
     const lookAhead = new Date(today);
-    lookAhead.setDate(lookAhead.getDate() + this.config.settings.lookAheadDays);
+    lookAhead.setDate(lookAhead.getDate() + this.dayPlannerConfig.settings.lookAheadDays);
 
     // Get person lookup map
     const personMap = new Map(this.people.map(p => [p.id, p]));
@@ -319,7 +319,7 @@ export class DayPlannerAgent extends BaseAgent {
 
   private getPeopleToContact(): ContactItem[] {
     const today = this.context.currentDate;
-    const settings = this.config.settings;
+    const settings = this.dayPlannerConfig.settings;
     const contacts: ContactItem[] = [];
 
     // Create interaction lookup (most recent interaction per person)
@@ -424,7 +424,7 @@ export class DayPlannerAgent extends BaseAgent {
   }
 
   private getCelebrations(): CelebrationItem[] {
-    if (!this.config.settings.includeBirthdays) return [];
+    if (!this.dayPlannerConfig.settings.includeBirthdays) return [];
 
     const today = this.context.currentDate;
     const celebrations: CelebrationItem[] = [];
@@ -480,9 +480,9 @@ export class DayPlannerAgent extends BaseAgent {
     celebrations: CelebrationItem[];
     stats: DailyDigest['stats'];
   }): Promise<{ summary: string; recommendations: string[] } | null> {
-    const { tasks, contacts, messages, celebrations, stats } = data;
+    const { tasks, contacts, celebrations, stats } = data;
 
-    const prompt = `You are an assistant for ${this.config.settings.churchName}. Generate a brief daily summary and 2-3 actionable recommendations based on this data:
+    const prompt = `You are an assistant for ${this.dayPlannerConfig.settings.churchName}. Generate a brief daily summary and 2-3 actionable recommendations based on this data:
 
 Today's Overview:
 - ${stats.totalTasks} pending tasks (${stats.overdueTasks} overdue)

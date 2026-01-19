@@ -66,7 +66,8 @@ const DEMO_MESSAGES: InboundMessage[] = [
   },
 ];
 
-export function useMessageInbox({ churchId, churchName }: UseMessageInboxOptions) {
+export function useMessageInbox({ churchId: _churchId, churchName }: UseMessageInboxOptions) {
+  // _churchId reserved for future Supabase integration
   const [messages, setMessages] = useState<InboundMessage[]>(() => {
     if (typeof window === 'undefined') return DEMO_MESSAGES;
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -130,10 +131,10 @@ export function useMessageInbox({ churchId, churchName }: UseMessageInboxOptions
   // Send reply
   const sendReply = useCallback(async (
     messageId: string,
-    response: string,
-    channel: 'email' | 'sms'
+    _response: string,
+    _channel: 'email' | 'sms'
   ) => {
-    // In production, this would actually send the message
+    // In production, this would actually send the message using _response and _channel
     // For now, just update the status
     setMessages(prev =>
       prev.map(msg =>

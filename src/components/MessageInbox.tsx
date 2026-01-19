@@ -5,11 +5,9 @@ import {
   MessageSquare,
   User,
   Clock,
-  Tag,
   Send,
   Archive,
   Flag,
-  CheckCircle,
   AlertCircle,
   HelpCircle,
   Heart,
@@ -20,11 +18,10 @@ import {
   Sparkles,
   RefreshCw,
   ChevronRight,
-  Edit2,
   Loader2,
   ArrowLeft,
 } from 'lucide-react';
-import { Person } from '../types';
+import type { Person } from '../types';
 
 // Inbound message types
 export interface InboundMessage {
@@ -119,7 +116,7 @@ const statusConfig: Record<string, { label: string; color: string }> = {
 
 export function MessageInbox({
   messages,
-  people,
+  people: _people,
   isLoading,
   onRefresh,
   onMarkRead,
@@ -129,6 +126,7 @@ export function MessageInbox({
   onGenerateResponse,
   onViewPerson,
 }: MessageInboxProps) {
+  // _people available for future person matching functionality
   const [selectedMessage, setSelectedMessage] = useState<InboundMessage | null>(null);
   const [replyText, setReplyText] = useState('');
   const [replyChannel, setReplyChannel] = useState<'email' | 'sms'>('email');

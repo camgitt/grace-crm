@@ -1,13 +1,11 @@
 import { useState, useMemo, useCallback } from 'react';
 import {
-  Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
   Mail,
   MessageSquare,
   Send,
   Clock,
-  User,
   Plus,
   Edit2,
   Trash2,

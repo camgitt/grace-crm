@@ -17,7 +17,8 @@ interface UseScheduledMessagesOptions {
 
 const STORAGE_KEY = 'grace-crm-scheduled-messages';
 
-export function useScheduledMessages({ churchId, churchName }: UseScheduledMessagesOptions) {
+export function useScheduledMessages({ churchId: _churchId, churchName }: UseScheduledMessagesOptions) {
+  // _churchId reserved for future Supabase integration
   const [messages, setMessages] = useState<ScheduledMessage[]>(() => {
     if (typeof window === 'undefined') return [];
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -31,7 +32,7 @@ export function useScheduledMessages({ churchId, churchName }: UseScheduledMessa
     return [];
   });
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   // Persist to localStorage
   useEffect(() => {
@@ -78,10 +79,11 @@ export function useScheduledMessages({ churchId, churchName }: UseScheduledMessa
 
   // Generate AI message content
   const generateAIMessage = useCallback(async (
-    personId: string,
+    _personId: string,
     messageType: string,
     personName?: string
   ): Promise<string> => {
+    // _personId available for future person-specific context
     const name = personName || 'Friend';
     const type = messageType as 'birthday' | 'anniversary' | 'follow_up' | 'welcome' | 'thank_you';
 

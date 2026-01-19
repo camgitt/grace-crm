@@ -10,7 +10,6 @@ import {
   Phone,
   Gift,
   Heart,
-  AlertCircle,
   ChevronRight,
   Sparkles,
   RefreshCw,
@@ -19,7 +18,7 @@ import {
   ArrowRight,
   Loader2,
 } from 'lucide-react';
-import type { DailyDigest, TaskItem, ContactItem, CelebrationItem, MessageItem } from '../lib/agents/DayPlannerAgent';
+import type { DailyDigest } from '../lib/agents/DayPlannerAgent';
 
 interface DailyDigestPanelProps {
   digest: DailyDigest | null;
