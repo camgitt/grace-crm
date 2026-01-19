@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Users,
   UserPlus,
@@ -13,6 +13,7 @@ import { PRIORITY_COLORS } from '../constants';
 import { DashboardCharts } from './DashboardCharts';
 import { BirthdayWidget } from './BirthdayWidget';
 import { GivingWidget } from './GivingWidget';
+import { useAuthContext } from '../contexts/AuthContext';
 
 interface DashboardProps {
   people: Person[];
@@ -23,7 +24,14 @@ interface DashboardProps {
   onViewGiving?: () => void;
 }
 
+// Church-appropriate banner image from Unsplash (hands together in community)
+const BANNER_IMAGE_URL = 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1200&h=400&fit=crop';
+
 export function Dashboard({ people, tasks, giving = [], onViewPerson, onViewTasks, onViewGiving }: DashboardProps) {
+  const { user } = useAuthContext();
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   // Memoize filtered arrays to prevent recalculation on every render
   const { visitors, inactive, pendingTasks } = useMemo(() => ({
     visitors: people.filter(p => p.status === 'visitor'),
@@ -75,18 +83,38 @@ export function Dashboard({ people, tasks, giving = [], onViewPerson, onViewTask
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Welcome Banner */}
-      <div className="mb-6 relative overflow-hidden rounded-2xl">
-        <div className="absolute inset-0">
+      <div className="mb-6 relative overflow-hidden rounded-2xl h-32 sm:h-36">
+        {/* Fallback gradient background (always visible, works if image fails) */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 dark:from-indigo-800 dark:via-indigo-900 dark:to-purple-950" />
+
+        {/* Loading skeleton */}
+        {!imageLoaded && !imageError && (
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/50 to-transparent animate-pulse" />
+        )}
+
+        {/* Background image with lazy loading */}
+        {!imageError && (
           <img
-            src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200&h=400&fit=crop&crop=faces"
-            alt="Community gathering"
-            className="w-full h-full object-cover"
+            src={BANNER_IMAGE_URL}
+            alt="Church community joining hands together"
+            loading="lazy"
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageError(true)}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/90 via-indigo-800/70 to-transparent" />
-        </div>
-        <div className="relative px-6 py-8 sm:py-10">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">Welcome back</h1>
-          <p className="text-indigo-100 mt-1 text-sm sm:text-base max-w-md">
+        )}
+
+        {/* Gradient overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/90 via-indigo-800/70 to-transparent dark:from-gray-900/95 dark:via-gray-900/80 dark:to-transparent" />
+
+        {/* Content */}
+        <div className="relative h-full flex flex-col justify-center px-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">
+            Welcome back{user?.firstName ? `, ${user.firstName}` : ''}
+          </h1>
+          <p className="text-indigo-100 dark:text-indigo-200 mt-1 text-sm sm:text-base max-w-md">
             Here's what needs your attention today. Every connection matters.
           </p>
         </div>
