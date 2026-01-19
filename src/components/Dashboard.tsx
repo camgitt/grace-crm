@@ -13,6 +13,8 @@ import { PRIORITY_COLORS } from '../constants';
 import { DashboardCharts } from './DashboardCharts';
 import { BirthdayWidget } from './BirthdayWidget';
 import { GivingWidget } from './GivingWidget';
+import { DailyDigestPanel } from './DailyDigestPanel';
+import type { DailyDigest } from '../lib/agents/DayPlannerAgent';
 
 interface DashboardProps {
   people: Person[];
@@ -21,9 +23,18 @@ interface DashboardProps {
   onViewPerson: (id: string) => void;
   onViewTasks: () => void;
   onViewGiving?: () => void;
+  // Daily Digest props (optional for backwards compatibility)
+  dailyDigest?: {
+    digest: DailyDigest | null;
+    isLoading: boolean;
+    onRefresh: () => void;
+    onCompleteTask: (taskId: string) => void;
+    onContactPerson: (personId: string, method: 'email' | 'phone' | 'sms') => void;
+    onViewCalendar: () => void;
+  };
 }
 
-export function Dashboard({ people, tasks, giving = [], onViewPerson, onViewTasks, onViewGiving }: DashboardProps) {
+export function Dashboard({ people, tasks, giving = [], onViewPerson, onViewTasks, onViewGiving, dailyDigest }: DashboardProps) {
   // Memoize filtered arrays to prevent recalculation on every render
   const { visitors, inactive, pendingTasks } = useMemo(() => ({
     visitors: people.filter(p => p.status === 'visitor'),
@@ -98,6 +109,22 @@ export function Dashboard({ people, tasks, giving = [], onViewPerson, onViewTask
           </div>
         ))}
       </div>
+
+      {/* Daily Digest Panel */}
+      {dailyDigest && (
+        <div className="mb-6">
+          <DailyDigestPanel
+            digest={dailyDigest.digest}
+            isLoading={dailyDigest.isLoading}
+            onRefresh={dailyDigest.onRefresh}
+            onViewPerson={onViewPerson}
+            onCompleteTask={dailyDigest.onCompleteTask}
+            onContactPerson={dailyDigest.onContactPerson}
+            onViewAllTasks={onViewTasks}
+            onViewCalendar={dailyDigest.onViewCalendar}
+          />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Recent Visitors */}

@@ -16,6 +16,9 @@ import { useCharityBaskets } from './hooks/useCharityBaskets';
 import { useModals } from './hooks/useModals';
 import { useAgents } from './hooks/useAgents';
 import { useAppHandlers } from './hooks/useAppHandlers';
+import { useScheduledMessages } from './hooks/useScheduledMessages';
+import { useMessageInbox } from './hooks/useMessageInbox';
+import { useDailyDigest } from './hooks/useDailyDigest';
 import {
   toPersonLegacy,
   toTaskLegacy,
@@ -139,6 +142,61 @@ function App() {
     onCreateTask: handleAgentCreateTask,
   });
 
+  // AI Messaging hooks
+  const scheduledMessages = useScheduledMessages({
+    churchId,
+    churchName: 'Grace Church',
+  });
+
+  const messageInbox = useMessageInbox({
+    churchId,
+    churchName: 'Grace Church',
+  });
+
+  const dailyDigest = useDailyDigest({
+    churchId,
+    churchName: 'Grace Church',
+    people,
+    tasks,
+    scheduledMessages: scheduledMessages.messages,
+    interactions,
+  });
+
+  // Create messaging object for ViewRenderer
+  const messaging = useMemo(() => ({
+    scheduledMessages: scheduledMessages.messages,
+    inboundMessages: messageInbox.messages,
+    dailyDigest: dailyDigest.digest,
+    isLoadingDigest: dailyDigest.isLoading,
+    createScheduledMessage: scheduledMessages.createMessage,
+    updateScheduledMessage: scheduledMessages.updateMessage,
+    deleteScheduledMessage: scheduledMessages.deleteMessage,
+    sendMessageNow: scheduledMessages.sendNow,
+    generateAIMessage: scheduledMessages.generateAIMessage,
+    refreshDigest: dailyDigest.generateDigest,
+    completeTask: (taskId: string) => handlers.toggleTask(taskId),
+    contactPerson: (_personId: string, _method: 'email' | 'phone' | 'sms') => {
+      // In production, this would open email/phone/sms
+      // For now, navigate to person profile
+      setSelectedPersonId(_personId);
+      setView('person');
+    },
+    refreshInbox: messageInbox.refresh,
+    markMessageRead: messageInbox.markRead,
+    archiveMessage: messageInbox.archive,
+    flagMessage: messageInbox.flag,
+    sendReply: messageInbox.sendReply,
+    generateResponse: messageInbox.generateResponse,
+    viewCalendar: () => setView('content-calendar'),
+  }), [
+    scheduledMessages,
+    messageInbox,
+    dailyDigest,
+    handlers.toggleTask,
+    setSelectedPersonId,
+    setView,
+  ]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -206,6 +264,7 @@ function App() {
           collectionMgmt={collectionMgmt}
           charityBasketMgmt={charityBasketMgmt}
           agents={agents}
+          messaging={messaging}
         />
       </Layout>
 

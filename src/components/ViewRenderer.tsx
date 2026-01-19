@@ -119,20 +119,21 @@ interface ViewRendererProps {
     inboundMessages: any[];
     dailyDigest: any | null;
     isLoadingDigest: boolean;
-    createScheduledMessage: (msg: any) => Promise<void>;
-    updateScheduledMessage: (id: string, updates: any) => Promise<void>;
-    deleteScheduledMessage: (id: string) => Promise<void>;
-    sendMessageNow: (id: string) => Promise<void>;
-    generateAIMessage: (personId: string, type: string) => Promise<string>;
-    refreshDigest: () => void;
-    completeTask: (taskId: string) => void;
+    createScheduledMessage: (msg: any) => Promise<any>;
+    updateScheduledMessage: (id: string, updates: any) => Promise<any>;
+    deleteScheduledMessage: (id: string) => Promise<any>;
+    sendMessageNow: (id: string) => Promise<any>;
+    generateAIMessage: (personId: string, type: string, personName?: string) => Promise<string>;
+    refreshDigest: () => Promise<any>;
+    completeTask: (taskId: string) => Promise<any>;
     contactPerson: (personId: string, method: 'email' | 'phone' | 'sms') => void;
-    refreshInbox: () => void;
+    refreshInbox: () => Promise<any>;
     markMessageRead: (id: string) => void;
     archiveMessage: (id: string) => void;
     flagMessage: (id: string) => void;
-    sendReply: (id: string, response: string, channel: 'email' | 'sms') => Promise<void>;
+    sendReply: (id: string, response: string, channel: 'email' | 'sms') => Promise<any>;
     generateResponse: (id: string) => Promise<string>;
+    viewCalendar: () => void;
   };
 }
 
@@ -152,6 +153,14 @@ export function ViewRenderer(props: ViewRendererProps) {
           onViewPerson={handlers.viewPerson}
           onViewTasks={() => setView('tasks')}
           onViewGiving={() => setView('giving')}
+          dailyDigest={props.messaging ? {
+            digest: props.messaging.dailyDigest,
+            isLoading: props.messaging.isLoadingDigest,
+            onRefresh: props.messaging.refreshDigest,
+            onCompleteTask: props.messaging.completeTask,
+            onContactPerson: props.messaging.contactPerson,
+            onViewCalendar: props.messaging.viewCalendar,
+          } : undefined}
         />
       );
 
