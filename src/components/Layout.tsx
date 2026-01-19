@@ -28,6 +28,8 @@ import {
   Contact,
   Baby,
   FormInput,
+  CalendarClock,
+  Inbox,
 } from 'lucide-react';
 import { View } from '../types';
 import { useTheme } from '../ThemeContext';
@@ -53,6 +55,8 @@ const navItems: { view: View; label: string; icon: ReactNode }[] = [
   { view: 'prayer', label: 'Prayer', icon: <Heart size={18} /> },
   { view: 'giving', label: 'Giving', icon: <DollarSign size={18} /> },
   { view: 'agents', label: 'AI Agents', icon: <Bot size={18} /> },
+  { view: 'content-calendar', label: 'Content Calendar', icon: <CalendarClock size={18} /> },
+  { view: 'message-inbox', label: 'Message Inbox', icon: <Inbox size={18} /> },
   { view: 'tags', label: 'Tags', icon: <Tag size={18} /> },
   { view: 'reports', label: 'Reports', icon: <FileText size={18} /> },
   { view: 'directory', label: 'Directory', icon: <Contact size={18} /> },
@@ -90,6 +94,8 @@ const viewLabels: Record<View, string> = {
   directory: 'Directory',
   'child-checkin': 'Child Check-In',
   forms: 'Forms',
+  'content-calendar': 'Content Calendar',
+  'message-inbox': 'Message Inbox',
 };
 
 export function Layout({ currentView, setView, children, onOpenSearch }: LayoutProps) {

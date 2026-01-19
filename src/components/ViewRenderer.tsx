@@ -29,6 +29,9 @@ const ConnectCard = lazy(() => import('./ConnectCard').then(m => ({ default: m.C
 const MemberDirectory = lazy(() => import('./MemberDirectory').then(m => ({ default: m.MemberDirectory })));
 const ChildCheckIn = lazy(() => import('./ChildCheckIn').then(m => ({ default: m.ChildCheckIn })));
 const FormBuilder = lazy(() => import('./FormBuilder').then(m => ({ default: m.FormBuilder })));
+const ContentCalendar = lazy(() => import('./ContentCalendar').then(m => ({ default: m.ContentCalendar })));
+const MessageInbox = lazy(() => import('./MessageInbox').then(m => ({ default: m.MessageInbox })));
+const DailyDigestPanel = lazy(() => import('./DailyDigestPanel').then(m => ({ default: m.DailyDigestPanel })));
 
 // Loading fallback component
 function ViewLoader() {
@@ -109,6 +112,27 @@ interface ViewRendererProps {
     toggleAgent: (agentId: string, enabled: boolean) => void;
     updateConfig: (agentId: string, config: any) => void;
     runAgent: (agentId: string) => Promise<any>;
+  };
+  // AI Messaging features (optional for backwards compatibility)
+  messaging?: {
+    scheduledMessages: any[];
+    inboundMessages: any[];
+    dailyDigest: any | null;
+    isLoadingDigest: boolean;
+    createScheduledMessage: (msg: any) => Promise<void>;
+    updateScheduledMessage: (id: string, updates: any) => Promise<void>;
+    deleteScheduledMessage: (id: string) => Promise<void>;
+    sendMessageNow: (id: string) => Promise<void>;
+    generateAIMessage: (personId: string, type: string) => Promise<string>;
+    refreshDigest: () => void;
+    completeTask: (taskId: string) => void;
+    contactPerson: (personId: string, method: 'email' | 'phone' | 'sms') => void;
+    refreshInbox: () => void;
+    markMessageRead: (id: string) => void;
+    archiveMessage: (id: string) => void;
+    flagMessage: (id: string) => void;
+    sendReply: (id: string, response: string, channel: 'email' | 'sms') => Promise<void>;
+    generateResponse: (id: string) => Promise<string>;
   };
 }
 
@@ -327,6 +351,41 @@ export function ViewRenderer(props: ViewRendererProps) {
 
       case 'forms':
         return <FormBuilder onBack={() => setView('settings')} />;
+
+      case 'content-calendar':
+        if (!props.messaging) {
+          return <div className="p-8 text-center text-gray-500">Content Calendar not configured</div>;
+        }
+        return (
+          <ContentCalendar
+            scheduledMessages={props.messaging.scheduledMessages}
+            people={people}
+            onCreateMessage={props.messaging.createScheduledMessage}
+            onUpdateMessage={props.messaging.updateScheduledMessage}
+            onDeleteMessage={props.messaging.deleteScheduledMessage}
+            onSendNow={props.messaging.sendMessageNow}
+            onGenerateAI={props.messaging.generateAIMessage}
+          />
+        );
+
+      case 'message-inbox':
+        if (!props.messaging) {
+          return <div className="p-8 text-center text-gray-500">Message Inbox not configured</div>;
+        }
+        return (
+          <MessageInbox
+            messages={props.messaging.inboundMessages}
+            people={people}
+            isLoading={false}
+            onRefresh={props.messaging.refreshInbox}
+            onMarkRead={props.messaging.markMessageRead}
+            onArchive={props.messaging.archiveMessage}
+            onFlag={props.messaging.flagMessage}
+            onSendReply={props.messaging.sendReply}
+            onGenerateResponse={props.messaging.generateResponse}
+            onViewPerson={handlers.viewPerson}
+          />
+        );
 
       default:
         return null;
