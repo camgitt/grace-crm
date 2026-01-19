@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Users2, MapPin, Clock, User } from 'lucide-react';
 import { SmallGroup, Person } from '../types';
+import { Avatar } from './ui/Avatar';
 
 interface GroupsProps {
   groups: SmallGroup[];
@@ -65,13 +66,13 @@ export function Groups({ groups, people }: GroupsProps) {
                 <p className="text-xs text-gray-400 dark:text-dark-500 mb-2">{members.length} members</p>
                 <div className="flex -space-x-2">
                   {members.slice(0, 5).map((member) => (
-                    <div
+                    <Avatar
                       key={member.id}
-                      className="w-8 h-8 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-medium border-2 border-white dark:border-dark-850"
-                      title={`${member.firstName} ${member.lastName}`}
-                    >
-                      {member.firstName[0]}{member.lastName[0]}
-                    </div>
+                      firstName={member.firstName}
+                      lastName={member.lastName}
+                      size="sm"
+                      className="border-2 border-white dark:border-dark-850"
+                    />
                   ))}
                   {members.length > 5 && (
                     <div className="w-8 h-8 bg-gray-200 dark:bg-dark-700 rounded-full flex items-center justify-center text-gray-500 dark:text-dark-300 text-xs font-medium border-2 border-white dark:border-dark-850">

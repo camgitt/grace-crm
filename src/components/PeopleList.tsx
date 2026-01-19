@@ -7,6 +7,7 @@ import { ViewToggle } from './ViewToggle';
 import { ProfileCompletenessBadge } from './ProfileCompleteness';
 import { SavedFilters, SavedFilter } from './SavedFilters';
 import { useToast } from './Toast';
+import { Avatar } from './ui/Avatar';
 
 interface PeopleListProps {
   people: Person[];
@@ -528,9 +529,11 @@ export function PeopleList({
                   onClick={() => onViewPerson(person.id)}
                   className="flex items-center gap-4 text-left"
                 >
-                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center text-white font-medium text-lg">
-                    {person.firstName[0]}{person.lastName[0]}
-                  </div>
+                  <Avatar
+                    firstName={person.firstName}
+                    lastName={person.lastName}
+                    size="lg"
+                  />
                   <div>
                     <p className="font-semibold text-gray-900 dark:text-dark-100">{person.firstName} {person.lastName}</p>
                     <p className="text-sm text-gray-400 dark:text-dark-400">{person.email || 'No email'}</p>
@@ -606,9 +609,11 @@ export function PeopleList({
                   )}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                        {person.firstName[0]}{person.lastName[0]}
-                      </div>
+                      <Avatar
+                        firstName={person.firstName}
+                        lastName={person.lastName}
+                        size="sm"
+                      />
                       <span className="font-medium text-gray-900 dark:text-dark-100">
                         {person.firstName} {person.lastName}
                       </span>

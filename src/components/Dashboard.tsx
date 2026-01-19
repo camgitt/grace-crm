@@ -14,6 +14,7 @@ import { DashboardCharts } from './DashboardCharts';
 import { BirthdayWidget } from './BirthdayWidget';
 import { GivingWidget } from './GivingWidget';
 import { DailyDigestPanel } from './DailyDigestPanel';
+import { Avatar } from './ui/Avatar';
 import type { DailyDigest } from '../lib/agents/DayPlannerAgent';
 
 interface DashboardProps {
@@ -145,9 +146,12 @@ export function Dashboard({ people, tasks, giving = [], onViewPerson, onViewTask
                   className="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-750 transition-colors group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-amber-100 dark:bg-amber-500/10 rounded-full flex items-center justify-center text-amber-700 dark:text-amber-400 text-xs font-medium">
-                      {person.firstName[0]}{person.lastName[0]}
-                    </div>
+                    <Avatar
+                      firstName={person.firstName}
+                      lastName={person.lastName}
+                      size="sm"
+                      color="amber"
+                    />
                     <div className="text-left">
                       <p className="text-sm font-medium text-gray-900 dark:text-dark-100">{person.firstName} {person.lastName}</p>
                       <p className="text-xs text-gray-400 dark:text-dark-500">
