@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Search, X, User, CheckSquare, Heart } from 'lucide-react';
 import { Person, Task, PrayerRequest } from '../types';
+import { useDebounce } from '../hooks/useDebounce';
 
 interface GlobalSearchProps {
   people: Person[];
@@ -30,6 +31,7 @@ export function GlobalSearch({
   onClose
 }: GlobalSearchProps) {
   const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounce(query, 200);
   const [results, setResults] = useState<SearchResult[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -41,12 +43,12 @@ export function GlobalSearch({
   }, []);
 
   useEffect(() => {
-    if (!query.trim()) {
+    if (!debouncedQuery.trim()) {
       setResults([]);
       return;
     }
 
-    const q = query.toLowerCase();
+    const q = debouncedQuery.toLowerCase();
     const searchResults: SearchResult[] = [];
 
     // Search people
@@ -100,7 +102,7 @@ export function GlobalSearch({
     });
 
     setResults(searchResults.slice(0, 10));
-  }, [query, people, tasks, prayers, personMap]);
+  }, [debouncedQuery, people, tasks, prayers, personMap]);
 
   const handleSelect = (result: SearchResult) => {
     switch (result.type) {

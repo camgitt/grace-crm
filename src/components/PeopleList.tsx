@@ -7,6 +7,7 @@ import { ViewToggle } from './ViewToggle';
 import { ProfileCompletenessBadge } from './ProfileCompleteness';
 import { SavedFilters, SavedFilter } from './SavedFilters';
 import { useToast } from './Toast';
+import { useDebounce } from '../hooks/useDebounce';
 
 interface PeopleListProps {
   people: Person[];
@@ -35,6 +36,7 @@ export function PeopleList({
 }: PeopleListProps) {
   const toast = useToast();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
   const [statusFilter, setStatusFilter] = useState<MemberStatus | 'all'>('all');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -90,17 +92,18 @@ export function PeopleList({
     [people]
   );
 
-  // Memoize filtered people list
+  // Memoize filtered people list (uses debounced search for performance)
   const filtered = useMemo(() => people.filter((person) => {
-    const matchesSearch =
-      `${person.firstName} ${person.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
-      person.email.toLowerCase().includes(search.toLowerCase());
+    const searchLower = debouncedSearch.toLowerCase();
+    const matchesSearch = !searchLower ||
+      `${person.firstName} ${person.lastName}`.toLowerCase().includes(searchLower) ||
+      person.email.toLowerCase().includes(searchLower);
     const matchesStatus = statusFilter === 'all' || person.status === statusFilter;
     const matchesTag = !tagFilter || person.tags.includes(tagFilter);
     const matchesEmail = hasEmailFilter === null || (hasEmailFilter ? person.email : !person.email);
     const matchesPhone = hasPhoneFilter === null || (hasPhoneFilter ? person.phone : !person.phone);
     return matchesSearch && matchesStatus && matchesTag && matchesEmail && matchesPhone;
-  }), [people, search, statusFilter, tagFilter, hasEmailFilter, hasPhoneFilter]);
+  }), [people, debouncedSearch, statusFilter, tagFilter, hasEmailFilter, hasPhoneFilter]);
 
   // Memoize status counts (single pass through people array)
   const statusCounts = useMemo(() => {

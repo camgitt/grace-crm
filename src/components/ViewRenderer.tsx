@@ -3,6 +3,7 @@ import { Dashboard } from './Dashboard';
 import { PeopleList } from './PeopleList';
 import { PersonProfile } from './PersonProfile';
 import { Tasks } from './Tasks';
+import { ErrorBoundary } from './ErrorBoundary';
 import type { View, Person, Task, Interaction, SmallGroup, PrayerRequest, CalendarEvent, Giving, Attendance } from '../types';
 
 // Lazy load less frequently used views for code splitting
@@ -118,29 +119,34 @@ export function ViewRenderer(props: ViewRendererProps) {
     collectionMgmt, charityBasketMgmt, agents } = props;
 
   // Core views (not lazy loaded for instant response)
+  // Wrapped in ErrorBoundary to prevent crashes from taking down the entire app
   switch (view) {
     case 'dashboard':
       return (
-        <Dashboard
-          people={people}
-          tasks={tasks}
-          giving={giving}
-          onViewPerson={handlers.viewPerson}
-          onViewTasks={() => setView('tasks')}
-          onViewGiving={() => setView('giving')}
-        />
+        <ErrorBoundary>
+          <Dashboard
+            people={people}
+            tasks={tasks}
+            giving={giving}
+            onViewPerson={handlers.viewPerson}
+            onViewTasks={() => setView('tasks')}
+            onViewGiving={() => setView('giving')}
+          />
+        </ErrorBoundary>
       );
 
     case 'people':
       return (
-        <PeopleList
-          people={people}
-          onViewPerson={handlers.viewPerson}
-          onAddPerson={handlers.addPerson}
-          onBulkUpdateStatus={handlers.bulkUpdateStatus}
-          onBulkAddTag={handlers.bulkAddTag}
-          onImportCSV={handlers.importCSV}
-        />
+        <ErrorBoundary>
+          <PeopleList
+            people={people}
+            onViewPerson={handlers.viewPerson}
+            onAddPerson={handlers.addPerson}
+            onBulkUpdateStatus={handlers.bulkUpdateStatus}
+            onBulkAddTag={handlers.bulkAddTag}
+            onImportCSV={handlers.importCSV}
+          />
+        </ErrorBoundary>
       );
 
     case 'person':
@@ -149,29 +155,37 @@ export function ViewRenderer(props: ViewRendererProps) {
         return null;
       }
       return (
-        <PersonProfile
-          person={selectedPerson}
-          interactions={interactions}
-          tasks={tasks}
-          giving={giving}
-          onBack={handlers.backToPeople}
-          onAddInteraction={handlers.addInteraction}
-          onAddTask={handlers.addTask}
-          onToggleTask={handlers.toggleTask}
-          onEditPerson={handlers.editPerson}
-          onViewAllGiving={() => setView('giving')}
-        />
+        <ErrorBoundary>
+          <PersonProfile
+            person={selectedPerson}
+            interactions={interactions}
+            tasks={tasks}
+            giving={giving}
+            onBack={handlers.backToPeople}
+            onAddInteraction={handlers.addInteraction}
+            onAddTask={handlers.addTask}
+            onToggleTask={handlers.toggleTask}
+            onEditPerson={handlers.editPerson}
+            onViewAllGiving={() => setView('giving')}
+          />
+        </ErrorBoundary>
       );
 
     case 'tasks':
-      return <Tasks tasks={tasks} people={people} onToggleTask={handlers.toggleTask} onAddTask={handlers.addTask} />;
+      return (
+        <ErrorBoundary>
+          <Tasks tasks={tasks} people={people} onToggleTask={handlers.toggleTask} onAddTask={handlers.addTask} />
+        </ErrorBoundary>
+      );
   }
 
-  // Lazy-loaded views wrapped in Suspense
+  // Lazy-loaded views wrapped in Suspense and ErrorBoundary
   return (
-    <Suspense fallback={<ViewLoader />}>
-      {renderLazyView()}
-    </Suspense>
+    <ErrorBoundary>
+      <Suspense fallback={<ViewLoader />}>
+        {renderLazyView()}
+      </Suspense>
+    </ErrorBoundary>
   );
 
   function renderLazyView() {
