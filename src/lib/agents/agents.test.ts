@@ -313,7 +313,8 @@ describe('NewMemberAgent', () => {
     };
 
     const success = await agent.handleNewMember(newMemberEvent);
-    const result = agent.getResults();
+    // Call execute() to get the results (public method)
+    const result = await agent.execute();
 
     expect(success).toBe(true);
     expect(result.logs.some(log =>
@@ -342,7 +343,8 @@ describe('NewMemberAgent', () => {
     };
 
     await agent.handleNewMember(newMemberEvent);
-    const result = agent.getResults();
+    // Call execute() to get the results (public method)
+    const result = await agent.execute();
 
     expect(result.success).toBe(true);
     expect(result.logs.some(log =>
