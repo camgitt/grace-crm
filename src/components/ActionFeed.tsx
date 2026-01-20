@@ -8,7 +8,6 @@ import {
   Mail,
   ChevronRight,
   CheckCircle2,
-  Sparkles,
 } from 'lucide-react';
 import { Person, Task } from '../types';
 
@@ -29,10 +28,9 @@ interface ActionFeedProps {
   people: Person[];
   tasks: Task[];
   onViewPerson: (id: string) => void;
-  onCompleteTask?: (taskId: string) => void;
 }
 
-export function ActionFeed({ people, tasks, onViewPerson, onCompleteTask }: ActionFeedProps) {
+export function ActionFeed({ people, tasks, onViewPerson }: ActionFeedProps) {
   const actionItems = useMemo(() => {
     const items: ActionItem[] = [];
     const today = new Date();
@@ -126,7 +124,7 @@ export function ActionFeed({ people, tasks, onViewPerson, onCompleteTask }: Acti
         type: 'birthday',
         priority: 40 + idx,
         title: `Wish ${person.firstName} a happy birthday!`,
-        subtitle: person.birthday ? `Turning ${new Date().getFullYear() - new Date(person.birthday).getFullYear()}` : 'Birthday today',
+        subtitle: person.birthDate ? `Turning ${new Date().getFullYear() - new Date(person.birthDate).getFullYear()}` : 'Birthday today',
         person,
         icon: <Gift size={16} />,
         iconBg: 'bg-pink-100 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400',

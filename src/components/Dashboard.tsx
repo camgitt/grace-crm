@@ -23,7 +23,7 @@ interface DashboardProps {
   onViewGiving?: () => void;
 }
 
-export function Dashboard({ people, tasks, giving = [], onViewPerson, onViewTasks, onViewGiving }: DashboardProps) {
+export function Dashboard({ people, tasks, giving = [], onViewPerson, onViewTasks: _onViewTasks, onViewGiving }: DashboardProps) {
   const { user } = useAuthContext();
   const [showAnalytics, setShowAnalytics] = useState(false);
 
