@@ -65,7 +65,7 @@ export function AIMessageGenerator({
             amount || 0,
             fund || 'general',
             churchName,
-            isFirstTime || false
+            { isFirstTime: isFirstTime || false }
           );
           break;
         case 'birthday':

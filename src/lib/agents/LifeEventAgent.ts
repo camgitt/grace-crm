@@ -15,6 +15,7 @@ import type {
 } from './types';
 import { emailService } from '../services/email';
 import { smsService } from '../services/sms';
+import { generateBirthdayGreeting, generateAnniversaryGreeting, type PersonContext } from '../services/ai';
 
 interface PersonData {
   id: string;
@@ -25,6 +26,10 @@ interface PersonData {
   birthDate?: string;
   joinDate?: string;
   status: string;
+  // Additional context for AI personalization
+  tags?: string[];
+  groups?: string[];
+  volunteerRoles?: string[];
 }
 
 export class LifeEventAgent extends BaseAgent {
@@ -97,30 +102,75 @@ export class LifeEventAgent extends BaseAgent {
    * Send birthday greeting
    */
   private async sendBirthdayGreeting(event: LifeEvent): Promise<boolean> {
-    const { sendEmail, sendSMS, churchName } = this.config.settings;
+    const { sendEmail, sendSMS, churchName, useAIMessages } = this.config.settings;
     let success = true;
 
     const firstName = event.personName.split(' ')[0];
+    const person = this.people.find(p => p.id === event.personId);
+
+    // Build person context for AI personalization
+    const personContext: Partial<PersonContext> | undefined = person ? {
+      firstName: person.firstName,
+      lastName: person.lastName,
+      memberSince: person.joinDate,
+      smallGroup: person.groups?.[0],
+      volunteerRoles: person.volunteerRoles,
+    } : undefined;
+
+    // Generate AI message if enabled
+    let aiMessage: string | null = null;
+    if (useAIMessages) {
+      try {
+        this.log(`Generating AI birthday message for ${event.personName}`);
+        const aiResult = await generateBirthdayGreeting(firstName, churchName, personContext);
+        if (aiResult.success && aiResult.text) {
+          aiMessage = aiResult.text;
+          this.log(`AI message generated for ${event.personName}`);
+        } else {
+          this.warn(`AI message generation failed, using template: ${aiResult.error}`);
+        }
+      } catch (err) {
+        this.warn(`AI message generation error, using template: ${err}`);
+      }
+    }
 
     // Send email
     if (sendEmail && event.email) {
       try {
         if (!this.context.dryRun) {
-          const result = await emailService.sendBirthdayEmail(
-            { email: event.email, name: event.personName },
-            { firstName, churchName }
-          );
+          let result;
+          if (aiMessage) {
+            // Send AI-generated message
+            const html = `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; text-align: center;">
+                <h1 style="color: #4F46E5;">Happy Birthday! 🎂</h1>
+                <p>${aiMessage.replace(/\n/g, '<br>')}</p>
+                <p>With love,<br/>Your ${churchName} Family</p>
+              </div>
+            `;
+            result = await emailService.send({
+              to: { email: event.email, name: event.personName },
+              subject: `Happy Birthday, ${firstName}!`,
+              html,
+            });
+          } else {
+            // Use template
+            result = await emailService.sendBirthdayEmail(
+              { email: event.email, name: event.personName },
+              { firstName, churchName }
+            );
+          }
           if (!result.success) {
             this.error(`Failed to send birthday email to ${event.personName}: ${result.error}`);
             success = false;
           } else {
-            this.log(`Sent birthday email to ${event.personName}`, { messageId: result.messageId });
+            this.log(`Sent birthday email to ${event.personName}`, { messageId: result.messageId, aiGenerated: !!aiMessage });
           }
         } else {
-          this.log(`[DRY RUN] Would send birthday email to ${event.personName}`);
+          this.log(`[DRY RUN] Would send birthday email to ${event.personName}`, { aiGenerated: !!aiMessage });
         }
         this.recordAction('email', success, {
-          template: 'BIRTHDAY',
+          template: aiMessage ? 'AI_GENERATED' : 'BIRTHDAY',
           templateData: { firstName, churchName },
           targetPersonId: event.personId,
         });
@@ -134,21 +184,28 @@ export class LifeEventAgent extends BaseAgent {
     if (sendSMS && event.phone) {
       try {
         if (!this.context.dryRun) {
-          const result = await smsService.sendBirthdaySMS(event.phone, {
-            firstName,
-            churchName,
-          });
+          let result;
+          if (aiMessage) {
+            // Use AI message (truncated for SMS)
+            const smsMessage = aiMessage.length > 160 ? aiMessage.substring(0, 157) + '...' : aiMessage;
+            result = await smsService.send({ to: event.phone, message: smsMessage });
+          } else {
+            result = await smsService.sendBirthdaySMS(event.phone, {
+              firstName,
+              churchName,
+            });
+          }
           if (!result.success) {
             this.error(`Failed to send birthday SMS to ${event.personName}: ${result.error}`);
             success = false;
           } else {
-            this.log(`Sent birthday SMS to ${event.personName}`, { messageId: result.messageId });
+            this.log(`Sent birthday SMS to ${event.personName}`, { messageId: result.messageId, aiGenerated: !!aiMessage });
           }
         } else {
-          this.log(`[DRY RUN] Would send birthday SMS to ${event.personName}`);
+          this.log(`[DRY RUN] Would send birthday SMS to ${event.personName}`, { aiGenerated: !!aiMessage });
         }
         this.recordAction('sms', success, {
-          template: 'BIRTHDAY',
+          template: aiMessage ? 'AI_GENERATED' : 'BIRTHDAY',
           templateData: { firstName, churchName },
           targetPersonId: event.personId,
         });
@@ -165,25 +222,60 @@ export class LifeEventAgent extends BaseAgent {
    * Send membership anniversary greeting
    */
   private async sendMembershipAnniversaryGreeting(event: LifeEvent): Promise<boolean> {
-    const { sendEmail, sendSMS, churchName } = this.config.settings;
+    const { sendEmail, sendSMS, churchName, useAIMessages } = this.config.settings;
     let success = true;
 
     const firstName = event.personName.split(' ')[0];
-    const years = event.yearsCount?.toString() || '1';
+    const years = event.yearsCount || 1;
+    const person = this.people.find(p => p.id === event.personId);
+
+    // Build highlights for AI personalization
+    const highlights: string[] = [];
+    if (person?.volunteerRoles?.length) {
+      highlights.push(`Volunteers as ${person.volunteerRoles.join(', ')}`);
+    }
+    if (person?.groups?.length) {
+      highlights.push(`Active in ${person.groups[0]}`);
+    }
+
+    // Generate AI message if enabled
+    let aiMessage: string | null = null;
+    if (useAIMessages) {
+      try {
+        this.log(`Generating AI anniversary message for ${event.personName}`);
+        const aiResult = await generateAnniversaryGreeting(firstName, churchName, years, highlights);
+        if (aiResult.success && aiResult.text) {
+          aiMessage = aiResult.text;
+          this.log(`AI anniversary message generated for ${event.personName}`);
+        } else {
+          this.warn(`AI message generation failed, using template: ${aiResult.error}`);
+        }
+      } catch (err) {
+        this.warn(`AI message generation error, using template: ${err}`);
+      }
+    }
 
     // Custom email for membership anniversary
     if (sendEmail && event.email) {
       try {
         const subject = `Happy ${years} Year Anniversary at ${churchName}!`;
-        const html = `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; text-align: center;">
-            <h1 style="color: #4F46E5;">Happy Anniversary!</h1>
-            <p>Dear ${firstName},</p>
-            <p>Today marks <strong>${years} ${parseInt(years) === 1 ? 'year' : 'years'}</strong> since you joined our church family!</p>
-            <p>We are so grateful for your presence in our community. Thank you for being part of ${churchName}.</p>
-            <p>With love and gratitude,<br/>Your ${churchName} Family</p>
-          </div>
-        `;
+        const html = aiMessage
+          ? `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; text-align: center;">
+              <h1 style="color: #4F46E5;">Happy Anniversary!</h1>
+              <p>${aiMessage.replace(/\n/g, '<br>')}</p>
+              <p>With love and gratitude,<br/>Your ${churchName} Family</p>
+            </div>
+          `
+          : `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; text-align: center;">
+              <h1 style="color: #4F46E5;">Happy Anniversary!</h1>
+              <p>Dear ${firstName},</p>
+              <p>Today marks <strong>${years} ${years === 1 ? 'year' : 'years'}</strong> since you joined our church family!</p>
+              <p>We are so grateful for your presence in our community. Thank you for being part of ${churchName}.</p>
+              <p>With love and gratitude,<br/>Your ${churchName} Family</p>
+            </div>
+          `;
 
         if (!this.context.dryRun) {
           const result = await emailService.send({
@@ -198,14 +290,15 @@ export class LifeEventAgent extends BaseAgent {
             this.log(`Sent membership anniversary email to ${event.personName}`, {
               years,
               messageId: result.messageId,
+              aiGenerated: !!aiMessage,
             });
           }
         } else {
-          this.log(`[DRY RUN] Would send anniversary email to ${event.personName}`);
+          this.log(`[DRY RUN] Would send anniversary email to ${event.personName}`, { aiGenerated: !!aiMessage });
         }
         this.recordAction('email', success, {
-          template: 'MEMBERSHIP_ANNIVERSARY',
-          templateData: { firstName, churchName, years },
+          template: aiMessage ? 'AI_GENERATED' : 'MEMBERSHIP_ANNIVERSARY',
+          templateData: { firstName, churchName, years: String(years) },
           targetPersonId: event.personId,
         });
       } catch (err) {
@@ -217,7 +310,9 @@ export class LifeEventAgent extends BaseAgent {
     // Custom SMS for membership anniversary
     if (sendSMS && event.phone) {
       try {
-        const message = `Happy ${years}-year anniversary at ${churchName}, ${firstName}! Thank you for being part of our family!`;
+        const message = aiMessage
+          ? (aiMessage.length > 160 ? aiMessage.substring(0, 157) + '...' : aiMessage)
+          : `Happy ${years}-year anniversary at ${churchName}, ${firstName}! Thank you for being part of our family!`;
 
         if (!this.context.dryRun) {
           const result = await smsService.send({ to: event.phone, message });
@@ -225,14 +320,14 @@ export class LifeEventAgent extends BaseAgent {
             this.error(`Failed to send anniversary SMS to ${event.personName}: ${result.error}`);
             success = false;
           } else {
-            this.log(`Sent membership anniversary SMS to ${event.personName}`, { years });
+            this.log(`Sent membership anniversary SMS to ${event.personName}`, { years, aiGenerated: !!aiMessage });
           }
         } else {
-          this.log(`[DRY RUN] Would send anniversary SMS to ${event.personName}`);
+          this.log(`[DRY RUN] Would send anniversary SMS to ${event.personName}`, { aiGenerated: !!aiMessage });
         }
         this.recordAction('sms', success, {
-          template: 'MEMBERSHIP_ANNIVERSARY',
-          templateData: { firstName, churchName, years },
+          template: aiMessage ? 'AI_GENERATED' : 'MEMBERSHIP_ANNIVERSARY',
+          templateData: { firstName, churchName, years: String(years) },
           targetPersonId: event.personId,
         });
       } catch (err) {
