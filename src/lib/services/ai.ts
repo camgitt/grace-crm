@@ -3,7 +3,26 @@
  *
  * Provides AI-powered message generation for church CRM communications.
  * All prompts are carefully crafted for warmth, authenticity, and appropriate tone.
+ * Includes robust error handling with retry logic, circuit breaker, and fallbacks.
  */
+
+import {
+  isCircuitOpen,
+  recordSuccess,
+  recordFailure,
+  categorizeError,
+  withRetry,
+  logAIError,
+} from './ai-errors';
+
+// Re-export error handling utilities for external use
+export {
+  getCircuitBreakerStatus,
+  getRecentAIErrors,
+  getAIErrorStats,
+  clearAIErrorLogs,
+  fallbackTemplates,
+} from './ai-errors';
 
 export interface AIGenerateOptions {
   prompt: string;
@@ -50,46 +69,122 @@ AVOID:
 - Generic phrases that could apply to anyone
 - Excessive exclamation marks or emojis`;
 
+// Request timeout in milliseconds
+const REQUEST_TIMEOUT = 30000;
+
 /**
  * Generate text using the Gemini AI model
+ * Includes automatic retry with exponential backoff and circuit breaker protection
  */
-export async function generateAIText(options: AIGenerateOptions): Promise<AIGenerateResult> {
-  const { prompt, context, maxTokens } = options;
+export async function generateAIText(
+  options: AIGenerateOptions & { skipRetry?: boolean }
+): Promise<AIGenerateResult> {
+  const { prompt, context, maxTokens, skipRetry = false } = options;
 
-  try {
-    const response = await fetch(API_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt: `${CHURCH_COMMUNICATION_SYSTEM}\n\n${prompt}`,
-        context,
-        maxTokens,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        success: false,
-        error: data.error || `Request failed with status ${response.status}`,
-      };
-    }
-
-    return {
-      success: true,
-      text: data.text,
-      model: data.model,
-    };
-  } catch (error) {
-    console.error('AI service error:', error);
+  // Check circuit breaker
+  if (isCircuitOpen()) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Network error',
+      error: 'AI service temporarily unavailable. Please try again in a minute.',
     };
   }
+
+  const makeRequest = async (): Promise<AIGenerateResult> => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
+    try {
+      const response = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: `${CHURCH_COMMUNICATION_SYSTEM}\n\n${prompt}`,
+          context,
+          maxTokens,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const error = categorizeError(data.error, response.status);
+        recordFailure();
+        return {
+          success: false,
+          error: error.message,
+        };
+      }
+
+      recordSuccess();
+      return {
+        success: true,
+        text: data.text,
+        model: data.model,
+      };
+    } catch (error) {
+      clearTimeout(timeoutId);
+      const aiError = categorizeError(error);
+      recordFailure();
+
+      // Log the error
+      logAIError('generateAIText', aiError, 1, false);
+
+      return {
+        success: false,
+        error: aiError.message,
+      };
+    }
+  };
+
+  // If skipRetry is true, just make one request
+  if (skipRetry) {
+    return makeRequest();
+  }
+
+  // Use retry logic
+  try {
+    const result = await withRetry(
+      async () => {
+        const res = await makeRequest();
+        if (!res.success) {
+          // Throw to trigger retry
+          const error = new Error(res.error) as Error & { retryable: boolean };
+          error.retryable = true; // Most errors should be retried
+          throw error;
+        }
+        return res;
+      },
+      (error) => {
+        // Retry on most errors except auth and invalid_request
+        if (error instanceof Error && 'retryable' in error) {
+          return (error as Error & { retryable: boolean }).retryable;
+        }
+        return true;
+      },
+      { maxRetries: 2, initialDelay: 1000 }
+    );
+    return result;
+  } catch (error) {
+    // All retries failed
+    const aiError = categorizeError(error);
+    logAIError('generateAIText', aiError, 3, false);
+    return {
+      success: false,
+      error: aiError.message,
+    };
+  }
+}
+
+/**
+ * Check if AI service is available
+ */
+export function isAIServiceAvailable(): boolean {
+  return !isCircuitOpen();
 }
 
 // ============================================

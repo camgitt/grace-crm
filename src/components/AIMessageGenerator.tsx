@@ -6,7 +6,9 @@ import {
   generateDonationThankYou,
   generateBirthdayGreeting,
   generateFollowUpTalkingPoints,
+  getCircuitBreakerStatus,
 } from '../lib/services/ai';
+import { AIOfflineIndicator, AIFallbackIndicator } from './AIErrorBoundary';
 
 type MessageType = 'welcome' | 'donation' | 'birthday' | 'followup' | 'custom';
 
@@ -44,6 +46,7 @@ export function AIMessageGenerator({
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedMessage, setGeneratedMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [usedFallback, setUsedFallback] = useState(false);
 
   const firstName = personName.split(' ')[0] || 'friend';
 
@@ -51,6 +54,7 @@ export function AIMessageGenerator({
     setIsGenerating(true);
     setError(null);
     setGeneratedMessage(null);
+    setUsedFallback(false);
 
     try {
       let result;
@@ -115,14 +119,20 @@ export function AIMessageGenerator({
 
   // Initial state - show generate button
   if (!generatedMessage && !isGenerating && !error) {
+    const circuitStatus = getCircuitBreakerStatus();
+
     return (
-      <button
-        onClick={generate}
-        className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-500/10 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-500/20 transition-colors"
-      >
-        <Sparkles size={16} />
-        Generate with AI
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={generate}
+          disabled={circuitStatus.isOpen}
+          className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-500/10 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Sparkles size={16} />
+          Generate with AI
+        </button>
+        <AIOfflineIndicator />
+      </div>
     );
   }
 
@@ -165,7 +175,8 @@ export function AIMessageGenerator({
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 text-sm font-medium text-purple-600 dark:text-purple-400">
           <Sparkles size={16} />
-          AI Generated
+          {usedFallback ? 'Template Message' : 'AI Generated'}
+          <AIFallbackIndicator show={usedFallback} reason="AI was unavailable" />
         </div>
         <div className="flex items-center gap-1">
           <button
