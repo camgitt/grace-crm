@@ -24,6 +24,7 @@ import {
   Copy,
   Check,
 } from 'lucide-react';
+import { PageHeader, PAGE_GRADIENTS } from './PageHeader';
 
 interface IntegrationStatus {
   stripe: boolean;
@@ -351,29 +352,23 @@ export function Integrations() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       {/* Header */}
+      <PageHeader
+        title="Integrations"
+        subtitle="Manage your third-party service connections"
+        icon={<Plug className="w-6 h-6" />}
+        gradient={PAGE_GRADIENTS.integrations}
+        image="/images/headers/integrations.jpg"
+      >
+        <button
+          onClick={checkAllStatus}
+          className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Refresh Status
+        </button>
+      </PageHeader>
+
       <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-              <Plug className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Integrations
-              </h1>
-              <p className="text-gray-500 dark:text-gray-400">
-                Manage your third-party service connections
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={checkAllStatus}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Refresh Status
-          </button>
-        </div>
 
         {/* Summary */}
         <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">

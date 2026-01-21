@@ -25,6 +25,7 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import type { Person } from '../types';
+import { PageHeader, PAGE_GRADIENTS } from './PageHeader';
 
 interface LifeAppsProps {
   people: Person[];
@@ -355,29 +356,23 @@ export function LifeApps({ people, onBack }: LifeAppsProps) {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
+      {/* Back Button */}
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
+      >
+        <ChevronLeft className="w-4 h-4" />
+        Back to Dashboard
+      </button>
+
       {/* Header */}
-      <div className="mb-8">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          Back to Dashboard
-        </button>
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg">
-            <Sparkles className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              LifeApps
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400">
-              Tools for spiritual growth and faith journey
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="LifeApps"
+        subtitle="Tools for spiritual growth and faith journey"
+        icon={<Sparkles className="w-6 h-6" />}
+        gradient={PAGE_GRADIENTS.lifeApps}
+        image="/images/headers/lifeapps.jpg"
+      />
 
       {/* Quick Actions */}
       <div className="mb-8">

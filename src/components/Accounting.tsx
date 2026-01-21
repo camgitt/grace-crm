@@ -26,6 +26,7 @@ import {
   ArrowDownRight,
 } from 'lucide-react';
 import type { Giving, Person } from '../types';
+import { PageHeader, PAGE_GRADIENTS } from './PageHeader';
 
 interface AccountingProps {
   giving: Giving[];
@@ -391,41 +392,32 @@ export function Accounting({ giving, people: _people, onBack }: AccountingProps)
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      {/* Back Button */}
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
+      >
+        <ChevronLeft className="w-4 h-4" />
+        Back to Giving
+      </button>
+
       {/* Header */}
-      <div className="mb-8">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          Back to Giving
+      <PageHeader
+        title="Fund Accounting"
+        subtitle="Manage church finances and generate reports"
+        icon={<Building className="w-6 h-6" />}
+        gradient={PAGE_GRADIENTS.accounting}
+        image="/images/headers/accounting.jpg"
+      >
+        <button className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors">
+          <Calendar className="w-4 h-4" />
+          This Month
         </button>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-              <Building className="w-6 h-6 text-green-600 dark:text-green-400" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Fund Accounting
-              </h1>
-              <p className="text-gray-500 dark:text-gray-400">
-                Manage church finances and generate reports
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
-              <Calendar className="w-4 h-4" />
-              This Month
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-              <Download className="w-4 h-4" />
-              Export
-            </button>
-          </div>
-        </div>
-      </div>
+        <button className="flex items-center gap-2 px-4 py-2 bg-white text-green-700 rounded-lg hover:bg-gray-100 transition-colors">
+          <Download className="w-4 h-4" />
+          Export
+        </button>
+      </PageHeader>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

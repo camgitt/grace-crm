@@ -7,12 +7,14 @@ import {
   CheckCircle2,
   Clock,
   ArrowRight,
+  LayoutDashboard,
 } from 'lucide-react';
 import { Person, Task, Giving } from '../types';
 import { PRIORITY_COLORS } from '../constants';
 import { DashboardCharts } from './DashboardCharts';
 import { BirthdayWidget } from './BirthdayWidget';
 import { GivingWidget } from './GivingWidget';
+import { PageHeader, PAGE_GRADIENTS } from './PageHeader';
 
 interface DashboardProps {
   people: Person[];
@@ -74,10 +76,13 @@ export function Dashboard({ people, tasks, giving = [], onViewPerson, onViewTask
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-900 dark:text-dark-100">Dashboard</h1>
-        <p className="text-sm text-gray-500 dark:text-dark-400 mt-0.5">Welcome back. Here's what needs your attention.</p>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        subtitle="Welcome back. Here's what needs your attention."
+        icon={<LayoutDashboard className="w-6 h-6" />}
+        gradient={PAGE_GRADIENTS.dashboard}
+        image="/images/headers/dashboard.jpg"
+      />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
