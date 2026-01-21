@@ -31,6 +31,7 @@ const ChildCheckIn = lazy(() => import('./ChildCheckIn').then(m => ({ default: m
 const FormBuilder = lazy(() => import('./FormBuilder').then(m => ({ default: m.FormBuilder })));
 const MemberPortal = lazy(() => import('./member/MemberPortal').then(m => ({ default: m.MemberPortal })));
 const HelpCenter = lazy(() => import('./HelpCenter').then(m => ({ default: m.HelpCenter })));
+const OnboardingGuide = lazy(() => import('./OnboardingGuide').then(m => ({ default: m.OnboardingGuide })));
 
 // Loading fallback component
 function ViewLoader() {
@@ -351,6 +352,9 @@ export function ViewRenderer(props: ViewRendererProps) {
 
       case 'help':
         return <HelpCenter onBack={() => setView('dashboard')} />;
+
+      case 'onboarding':
+        return <OnboardingGuide onBack={() => setView('dashboard')} />;
 
       default:
         return null;

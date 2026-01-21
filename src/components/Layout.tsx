@@ -30,6 +30,7 @@ import {
   FormInput,
   Smartphone,
   HelpCircle,
+  Rocket,
 } from 'lucide-react';
 import { View } from '../types';
 import { useTheme } from '../ThemeContext';
@@ -99,6 +100,7 @@ const viewLabels: Record<View, string> = {
   'member-events': 'Member Events',
   'member-checkin': 'Member Check-In',
   help: 'Help Center',
+  onboarding: 'Setup Guide',
 };
 
 export function Layout({ currentView, setView, children, onOpenSearch }: LayoutProps) {
@@ -295,6 +297,22 @@ export function Layout({ currentView, setView, children, onOpenSearch }: LayoutP
             {sidebarCollapsed && (
               <span className="hidden lg:group-hover:flex absolute left-full ml-2 px-2 py-1 bg-gray-900 dark:bg-dark-700 text-white text-xs rounded-md whitespace-nowrap z-50 shadow-lg">
                 Settings
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => handleNavClick('onboarding')}
+            className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-gray-600 dark:text-dark-400 hover:bg-gray-100 dark:hover:bg-dark-800 transition-colors group relative ${
+              sidebarCollapsed ? 'lg:justify-center' : ''
+            }`}
+            title={sidebarCollapsed ? 'Setup Guide' : undefined}
+          >
+            <Rocket size={18} />
+            <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Setup Guide</span>
+            {sidebarCollapsed && (
+              <span className="hidden lg:group-hover:flex absolute left-full ml-2 px-2 py-1 bg-gray-900 dark:bg-dark-700 text-white text-xs rounded-md whitespace-nowrap z-50 shadow-lg">
+                Setup Guide
               </span>
             )}
           </button>
