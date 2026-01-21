@@ -8,6 +8,7 @@ interface MemberLayoutProps {
   onTabChange: (tab: MemberPortalTab) => void;
   onBack?: () => void;
   churchName?: string;
+  headerRight?: ReactNode;
 }
 
 const tabs: { id: MemberPortalTab; label: string; icon: typeof Users }[] = [
@@ -22,7 +23,8 @@ export function MemberLayout({
   activeTab,
   onTabChange,
   onBack,
-  churchName = 'Grace Church'
+  churchName = 'Grace Church',
+  headerRight
 }: MemberLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark-900 flex flex-col">
@@ -47,6 +49,7 @@ export function MemberLayout({
             <p className="text-xs text-gray-500 dark:text-dark-400">Member Portal</p>
           </div>
         </div>
+        {headerRight}
       </header>
 
       {/* Main Content */}
