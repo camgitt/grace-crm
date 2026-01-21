@@ -26,6 +26,7 @@ import {
   Calendar,
   Gift,
   Users,
+  Inbox,
 } from 'lucide-react';
 import type {
   AgentConfig,
@@ -35,7 +36,10 @@ import type {
   DonationProcessingConfig,
   NewMemberConfig,
   LifeEvent,
+  PendingMessage,
+  ReviewQueueStats,
 } from '../lib/agents/types';
+import { MessageReviewQueue } from './MessageReviewQueue';
 
 interface AgentDashboardProps {
   lifeEventConfig: LifeEventConfig;
@@ -48,6 +52,16 @@ interface AgentDashboardProps {
     donation: AgentStats;
     newMember: AgentStats;
   };
+  // Review queue props
+  pendingMessages?: PendingMessage[];
+  reviewQueueStats?: ReviewQueueStats;
+  onApproveMessage?: (id: string) => Promise<void>;
+  onRejectMessage?: (id: string, reason?: string) => void;
+  onEditMessage?: (id: string, editedMessage: string) => Promise<void>;
+  onRegenerateMessage?: (id: string) => Promise<void>;
+  onBulkApprove?: (ids: string[]) => Promise<void>;
+  onBulkReject?: (ids: string[], reason?: string) => void;
+  // Agent actions
   onToggleAgent: (agentId: string, enabled: boolean) => void;
   onUpdateConfig: (agentId: string, config: Partial<AgentConfig>) => void;
   onRunAgent: (agentId: string) => void;
@@ -219,11 +233,19 @@ export function AgentDashboard({
   upcomingLifeEvents,
   recentLogs,
   stats,
+  pendingMessages = [],
+  reviewQueueStats = { pending: 0, approvedToday: 0, rejectedToday: 0, editedToday: 0 },
+  onApproveMessage,
+  onRejectMessage,
+  onEditMessage,
+  onRegenerateMessage,
+  onBulkApprove,
+  onBulkReject,
   onToggleAgent,
   onUpdateConfig,
   onRunAgent,
 }: AgentDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'logs' | 'upcoming'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'review' | 'upcoming' | 'logs'>('overview');
   const [configModal, setConfigModal] = useState<string | null>(null);
 
   // Filter logs by level
@@ -278,17 +300,23 @@ export function AgentDashboard({
       {/* Tabs */}
       <div className="border-b border-gray-200 dark:border-gray-700">
         <nav className="flex gap-4">
-          {(['overview', 'upcoming', 'logs'] as const).map((tab) => (
+          {(['overview', 'review', 'upcoming', 'logs'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
+              className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
                 activeTab === tab
                   ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
                   : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
+              {tab === 'review' && <Inbox className="w-4 h-4" />}
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tab === 'review' && reviewQueueStats.pending > 0 && (
+                <span className="px-1.5 py-0.5 text-xs font-medium bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-full">
+                  {reviewQueueStats.pending}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -436,6 +464,19 @@ export function AgentDashboard({
             </div>
           </AgentCard>
         </div>
+      )}
+
+      {activeTab === 'review' && onApproveMessage && onRejectMessage && onEditMessage && (
+        <MessageReviewQueue
+          messages={pendingMessages}
+          stats={reviewQueueStats}
+          onApprove={onApproveMessage}
+          onReject={onRejectMessage}
+          onEdit={onEditMessage}
+          onRegenerate={onRegenerateMessage}
+          onBulkApprove={onBulkApprove}
+          onBulkReject={onBulkReject}
+        />
       )}
 
       {activeTab === 'upcoming' && (

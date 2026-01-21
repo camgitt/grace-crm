@@ -164,3 +164,48 @@ export interface AgentResult {
   logs: AgentLog[];
   errors?: string[];
 }
+
+// ============================================
+// AI Message Review Queue Types
+// ============================================
+
+export type ReviewStatus = 'pending' | 'approved' | 'rejected' | 'edited';
+export type MessageChannel = 'email' | 'sms';
+
+export interface PendingMessage {
+  id: string;
+  agentId: string;
+  agentName: string;
+  recipientId: string;
+  recipientName: string;
+  recipientEmail?: string;
+  recipientPhone?: string;
+  channel: MessageChannel;
+  subject?: string; // For emails
+  messageBody: string;
+  originalMessage?: string; // Original AI-generated text before edits
+  messageType: string; // e.g., 'birthday', 'donation_thank_you', 'welcome'
+  isAIGenerated: boolean;
+  usedFallback: boolean;
+  context?: Record<string, unknown>; // Original context used for generation
+  status: ReviewStatus;
+  createdAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  scheduledFor?: string; // When the message should be sent
+  error?: string;
+}
+
+export interface ReviewQueueStats {
+  pending: number;
+  approvedToday: number;
+  rejectedToday: number;
+  editedToday: number;
+}
+
+export interface ReviewAction {
+  messageId: string;
+  action: 'approve' | 'reject' | 'edit' | 'regenerate';
+  editedMessage?: string;
+  reason?: string;
+}
