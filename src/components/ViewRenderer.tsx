@@ -30,6 +30,7 @@ const MemberDirectory = lazy(() => import('./MemberDirectory').then(m => ({ defa
 const ChildCheckIn = lazy(() => import('./ChildCheckIn').then(m => ({ default: m.ChildCheckIn })));
 const FormBuilder = lazy(() => import('./FormBuilder').then(m => ({ default: m.FormBuilder })));
 const MemberPortal = lazy(() => import('./member/MemberPortal').then(m => ({ default: m.MemberPortal })));
+const HelpCenter = lazy(() => import('./HelpCenter').then(m => ({ default: m.HelpCenter })));
 
 // Loading fallback component
 function ViewLoader() {
@@ -347,6 +348,9 @@ export function ViewRenderer(props: ViewRendererProps) {
             onCheckIn={handlers.checkIn}
           />
         );
+
+      case 'help':
+        return <HelpCenter onBack={() => setView('dashboard')} />;
 
       default:
         return null;

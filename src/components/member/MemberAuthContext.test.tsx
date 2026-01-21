@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { MemberAuthProvider, useMemberAuth } from './MemberAuthContext';
 import type { Person } from '../../types';
@@ -36,7 +36,6 @@ global.fetch = fetchMock;
 vi.spyOn(console, 'log').mockImplementation(() => {});
 
 // Mock Math.random to return predictable value for verification codes
-const originalRandom = Math.random;
 vi.spyOn(Math, 'random').mockImplementation(() => 0.5);
 
 describe('MemberAuthContext', () => {
@@ -66,7 +65,7 @@ describe('MemberAuthContext', () => {
       firstName: 'Bob',
       lastName: 'Wilson',
       email: 'bob@email.com',
-      phone: null,
+      phone: '',
       status: 'regular',
       tags: [],
       smallGroups: [],
