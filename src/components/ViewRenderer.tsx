@@ -29,6 +29,9 @@ const ConnectCard = lazy(() => import('./ConnectCard').then(m => ({ default: m.C
 const MemberDirectory = lazy(() => import('./MemberDirectory').then(m => ({ default: m.MemberDirectory })));
 const ChildCheckIn = lazy(() => import('./ChildCheckIn').then(m => ({ default: m.ChildCheckIn })));
 const FormBuilder = lazy(() => import('./FormBuilder').then(m => ({ default: m.FormBuilder })));
+const Integrations = lazy(() => import('./Integrations').then(m => ({ default: m.Integrations })));
+const LifeApps = lazy(() => import('./LifeApps').then(m => ({ default: m.LifeApps })));
+const Accounting = lazy(() => import('./Accounting').then(m => ({ default: m.Accounting })));
 
 // Loading fallback component
 function ViewLoader() {
@@ -327,6 +330,15 @@ export function ViewRenderer(props: ViewRendererProps) {
 
       case 'forms':
         return <FormBuilder onBack={() => setView('settings')} />;
+
+      case 'integrations':
+        return <Integrations />;
+
+      case 'life-apps':
+        return <LifeApps people={people} onBack={() => setView('dashboard')} />;
+
+      case 'accounting':
+        return <Accounting giving={giving} people={people} onBack={() => setView('giving')} />;
 
       default:
         return null;

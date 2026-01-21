@@ -28,6 +28,9 @@ import {
   Contact,
   Baby,
   FormInput,
+  Plug,
+  Sparkles,
+  Building,
 } from 'lucide-react';
 import { View } from '../types';
 import { useTheme } from '../ThemeContext';
@@ -58,6 +61,9 @@ const navItems: { view: View; label: string; icon: ReactNode }[] = [
   { view: 'directory', label: 'Directory', icon: <Contact size={18} /> },
   { view: 'connect-card', label: 'Connect Card', icon: <QrCode size={18} /> },
   { view: 'forms', label: 'Forms', icon: <FormInput size={18} /> },
+  { view: 'life-apps', label: 'LifeApps', icon: <Sparkles size={18} /> },
+  { view: 'accounting', label: 'Accounting', icon: <Building size={18} /> },
+  { view: 'integrations', label: 'Integrations', icon: <Plug size={18} /> },
 ];
 
 // View labels for breadcrumbs
@@ -90,6 +96,9 @@ const viewLabels: Record<View, string> = {
   directory: 'Directory',
   'child-checkin': 'Child Check-In',
   forms: 'Forms',
+  integrations: 'Integrations',
+  'life-apps': 'LifeApps',
+  accounting: 'Accounting',
 };
 
 export function Layout({ currentView, setView, children, onOpenSearch }: LayoutProps) {
