@@ -17,7 +17,16 @@ import {
   Loader2,
   Check,
   X,
+  Sparkles,
+  Cake,
+  UserPlus,
+  MessageCircle,
 } from 'lucide-react';
+import {
+  generateBirthdayGreeting,
+  generateWelcomeMessage,
+  generateFollowUpTalkingPoints,
+} from '../lib/services/ai';
 import { Person, Interaction, Task, Giving } from '../types';
 import { STATUS_COLORS, PRIORITY_COLORS } from '../constants';
 import { useIntegrations } from '../contexts/IntegrationsContext';
@@ -85,6 +94,58 @@ export function PersonProfile({
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
   const [smsMessage, setSmsMessage] = useState('');
+
+  // AI generation states
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  const handleGenerateAIMessage = async (type: 'birthday' | 'welcome' | 'followup') => {
+    setIsGeneratingAI(true);
+    setAiError(null);
+
+    try {
+      let result;
+      const firstName = person.firstName;
+      const churchName = 'Grace Church'; // Could be passed as prop
+
+      switch (type) {
+        case 'birthday':
+          result = await generateBirthdayGreeting(firstName, churchName);
+          if (result.success && result.text) {
+            setEmailSubject(`Happy Birthday, ${firstName}!`);
+            setEmailBody(result.text);
+          }
+          break;
+        case 'welcome':
+          result = await generateWelcomeMessage(firstName, churchName);
+          if (result.success && result.text) {
+            setEmailSubject(`Welcome to ${churchName}!`);
+            setEmailBody(result.text);
+          }
+          break;
+        case 'followup':
+          const visitDate = person.firstVisit || new Date().toLocaleDateString();
+          result = await generateFollowUpTalkingPoints(
+            `${person.firstName} ${person.lastName}`,
+            visitDate,
+            person.notes
+          );
+          if (result.success && result.text) {
+            setEmailSubject(`Checking in from Grace Church`);
+            setEmailBody(result.text);
+          }
+          break;
+      }
+
+      if (result && !result.success) {
+        setAiError(result.error || 'Failed to generate message');
+      }
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : 'Failed to generate AI message');
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
 
   const handleSendEmail = async () => {
     if (!person.email || !emailBody.trim()) return;
@@ -557,13 +618,62 @@ export function PersonProfile({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">
-                  Message
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-dark-300">
+                    Message
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-purple-600 dark:text-purple-400 flex items-center gap-1">
+                      <Sparkles size={12} />
+                      AI Generate:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateAIMessage('birthday')}
+                      disabled={isGeneratingAI}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-500/10 rounded hover:bg-purple-100 dark:hover:bg-purple-500/20 disabled:opacity-50"
+                      title="Generate birthday greeting"
+                    >
+                      <Cake size={12} />
+                      Birthday
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateAIMessage('welcome')}
+                      disabled={isGeneratingAI}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-500/10 rounded hover:bg-purple-100 dark:hover:bg-purple-500/20 disabled:opacity-50"
+                      title="Generate welcome message"
+                    >
+                      <UserPlus size={12} />
+                      Welcome
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateAIMessage('followup')}
+                      disabled={isGeneratingAI}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-500/10 rounded hover:bg-purple-100 dark:hover:bg-purple-500/20 disabled:opacity-50"
+                      title="Generate follow-up message"
+                    >
+                      <MessageCircle size={12} />
+                      Follow-up
+                    </button>
+                  </div>
+                </div>
+                {isGeneratingAI && (
+                  <div className="mb-2 p-2 bg-purple-50 dark:bg-purple-500/10 rounded-lg flex items-center gap-2 text-sm text-purple-600 dark:text-purple-400">
+                    <Loader2 size={14} className="animate-spin" />
+                    Generating AI message...
+                  </div>
+                )}
+                {aiError && (
+                  <div className="mb-2 p-2 bg-red-50 dark:bg-red-500/10 rounded-lg text-sm text-red-600 dark:text-red-400">
+                    {aiError}
+                  </div>
+                )}
                 <textarea
                   value={emailBody}
                   onChange={(e) => setEmailBody(e.target.value)}
-                  placeholder="Write your message..."
+                  placeholder="Write your message or use AI to generate one..."
                   rows={5}
                   className="w-full px-4 py-2.5 border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                 />
