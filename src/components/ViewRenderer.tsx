@@ -25,6 +25,7 @@ const CharityBaskets = lazy(() => import('./CharityBaskets').then(m => ({ defaul
 const MemberDonationStats = lazy(() => import('./MemberDonationStats').then(m => ({ default: m.MemberDonationStats })));
 const DonationTracker = lazy(() => import('./DonationTracker').then(m => ({ default: m.DonationTracker })));
 const AgentDashboard = lazy(() => import('./AgentDashboard').then(m => ({ default: m.AgentDashboard })));
+const ActionFeed = lazy(() => import('./ActionFeed').then(m => ({ default: m.ActionFeed })));
 const ConnectCard = lazy(() => import('./ConnectCard').then(m => ({ default: m.ConnectCard })));
 const MemberDirectory = lazy(() => import('./MemberDirectory').then(m => ({ default: m.MemberDirectory })));
 const ChildCheckIn = lazy(() => import('./ChildCheckIn').then(m => ({ default: m.ChildCheckIn })));
@@ -177,6 +178,9 @@ export function ViewRenderer(props: ViewRendererProps) {
 
   function renderLazyView() {
     switch (view) {
+      case 'actions':
+        return <ActionFeed people={people} churchName="Grace Church" />;
+
       case 'pipeline':
         return <VisitorPipeline people={people} onViewPerson={handlers.viewPerson} />;
 

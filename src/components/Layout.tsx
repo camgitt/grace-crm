@@ -29,6 +29,7 @@ import {
   Baby,
   FormInput,
   Smartphone,
+  Sparkles,
 } from 'lucide-react';
 import { View } from '../types';
 import { useTheme } from '../ThemeContext';
@@ -42,6 +43,7 @@ interface LayoutProps {
 
 const navItems: { view: View; label: string; icon: ReactNode }[] = [
   { view: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
+  { view: 'actions', label: 'Action Feed', icon: <Sparkles size={18} /> },
   { view: 'pipeline', label: 'Pipeline', icon: <TrendingUp size={18} /> },
   { view: 'people', label: 'People', icon: <Users size={18} /> },
   { view: 'tasks', label: 'Follow-Ups', icon: <CheckSquare size={18} /> },
@@ -65,6 +67,7 @@ const navItems: { view: View; label: string; icon: ReactNode }[] = [
 // View labels for breadcrumbs
 const viewLabels: Record<View, string> = {
   dashboard: 'Dashboard',
+  actions: 'Action Feed',
   pipeline: 'Pipeline',
   people: 'People',
   person: 'Profile',
