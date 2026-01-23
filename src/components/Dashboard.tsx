@@ -61,53 +61,59 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
     {
       label: 'Total People',
       value: people.length,
-      icon: <Users className="text-white" size={20} />,
-      gradient: 'from-blue-500 to-cyan-400',
-      lightBg: 'bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-500/10 dark:to-cyan-500/10',
+      icon: <Users className="text-slate-600 dark:text-slate-300" size={20} />,
+      bg: 'bg-slate-100 dark:bg-slate-800',
+      border: 'border-slate-200 dark:border-slate-700',
     },
     {
       label: 'New Visitors',
       value: visitors.length,
-      icon: <UserPlus className="text-white" size={20} />,
-      gradient: 'from-amber-500 to-orange-400',
-      lightBg: 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10',
+      icon: <UserPlus className="text-amber-600 dark:text-amber-400" size={20} />,
+      bg: 'bg-amber-50 dark:bg-amber-900/20',
+      border: 'border-amber-200 dark:border-amber-800',
       highlight: visitors.length > 0
     },
     {
       label: 'Need Attention',
       value: inactive.length,
-      icon: <AlertCircle className="text-white" size={20} />,
-      gradient: 'from-rose-500 to-pink-400',
-      lightBg: 'bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-500/10 dark:to-pink-500/10',
+      icon: <AlertCircle className="text-rose-600 dark:text-rose-400" size={20} />,
+      bg: 'bg-rose-50 dark:bg-rose-900/20',
+      border: 'border-rose-200 dark:border-rose-800',
       highlight: inactive.length > 0
     },
     {
       label: 'Pending Tasks',
       value: pendingTasks.length,
-      icon: <Clock className="text-white" size={20} />,
-      gradient: 'from-violet-500 to-purple-400',
-      lightBg: 'bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-500/10 dark:to-purple-500/10',
+      icon: <Clock className="text-indigo-600 dark:text-indigo-400" size={20} />,
+      bg: 'bg-indigo-50 dark:bg-indigo-900/20',
+      border: 'border-indigo-200 dark:border-indigo-800',
     },
   ];
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      {/* Hero Header with Gradient */}
-      <div className="mb-6 relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-6">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiIHN0cm9rZS13aWR0aD0iMiIvPjwvZz48L3N2Zz4=')] opacity-30" />
-        <div className="relative">
-          <div className="flex items-center justify-between mb-4">
+      {/* Hero Header with Photo */}
+      <div className="mb-6 relative overflow-hidden rounded-2xl h-48">
+        {/* Background Image - Church/Community themed */}
+        <img
+          src="https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=1200&h=400&fit=crop"
+          alt="Church community"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-800/70 to-slate-900/60" />
+        <div className="relative h-full p-6 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <Sparkles className="text-yellow-300" size={20} />
-                <span className="text-white/80 text-sm font-medium">Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}!</span>
+                <Sparkles className="text-amber-300" size={18} />
+                <span className="text-white/70 text-sm">Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}!</span>
               </div>
               <h1 className="text-2xl font-bold text-white">Welcome to Grace CRM</h1>
-              <p className="text-white/80 mt-1">Here's what needs your attention today.</p>
+              <p className="text-white/60 mt-1 text-sm">Here's what needs your attention today.</p>
             </div>
             <div className="hidden md:flex items-center gap-3">
-              <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                <Heart className="text-white" size={32} />
+              <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/20">
+                <Heart className="text-white/80" size={28} />
               </div>
             </div>
           </div>
@@ -116,10 +122,10 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
           <div className="flex gap-2">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'overview'
-                  ? 'bg-white text-purple-700 shadow-lg'
-                  : 'bg-white/20 text-white hover:bg-white/30'
+                  ? 'bg-white text-slate-800 shadow-md'
+                  : 'bg-white/10 text-white/90 hover:bg-white/20 border border-white/10'
               }`}
             >
               <LayoutDashboard size={16} />
@@ -127,10 +133,10 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
             </button>
             <button
               onClick={() => setActiveTab('sunday-prep')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'sunday-prep'
-                  ? 'bg-white text-purple-700 shadow-lg'
-                  : 'bg-white/20 text-white hover:bg-white/30'
+                  ? 'bg-white text-slate-800 shadow-md'
+                  : 'bg-white/10 text-white/90 hover:bg-white/20 border border-white/10'
               }`}
             >
               <Church size={16} />
@@ -146,43 +152,42 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
       ) : (
         <>
 
-      {/* Stats Grid - Colorful Cards */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {stats.map((stat) => (
-          <div key={stat.label} className={`relative p-5 ${stat.lightBg} rounded-2xl border border-white/50 dark:border-dark-700 overflow-hidden group hover:scale-[1.02] transition-transform`}>
+          <div key={stat.label} className={`p-5 ${stat.bg} rounded-xl border ${stat.border} transition-shadow hover:shadow-md`}>
             <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 bg-gradient-to-br ${stat.gradient} rounded-xl flex items-center justify-center shadow-lg`}>
+              <div className="w-10 h-10 bg-white dark:bg-dark-700 rounded-lg flex items-center justify-center shadow-sm">
                 {stat.icon}
               </div>
               {stat.highlight && (
-                <span className="text-[10px] font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 px-2 py-1 rounded-full shadow-sm">
-                  Action Needed
+                <span className="text-[10px] font-medium text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 rounded-full">
+                  Action
                 </span>
               )}
             </div>
-            <p className="text-3xl font-bold text-gray-900 dark:text-dark-100">{stat.value}</p>
-            <p className="text-sm text-gray-600 dark:text-dark-400 mt-1 font-medium">{stat.label}</p>
-            <div className={`absolute -right-4 -bottom-4 w-24 h-24 bg-gradient-to-br ${stat.gradient} rounded-full opacity-10 group-hover:opacity-20 transition-opacity`} />
+            <p className="text-2xl font-semibold text-gray-900 dark:text-dark-100">{stat.value}</p>
+            <p className="text-sm text-gray-500 dark:text-dark-400 mt-1">{stat.label}</p>
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Recent Visitors */}
-        <div className="bg-white dark:bg-dark-800 rounded-2xl border border-gray-200 dark:border-dark-700 overflow-hidden">
-          {/* Section Header with Gradient */}
-          <div className="bg-gradient-to-r from-amber-500 to-orange-400 p-4">
+        <div className="bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
+          {/* Section Header */}
+          <div className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-100 dark:border-amber-800/30 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                  <UserPlus className="text-white" size={20} />
+                <div className="w-9 h-9 bg-white dark:bg-dark-700 rounded-lg flex items-center justify-center shadow-sm">
+                  <UserPlus className="text-amber-600 dark:text-amber-400" size={18} />
                 </div>
                 <div>
-                  <h2 className="font-semibold text-white">Recent Visitors</h2>
-                  <span className="text-xs text-white/80">Last 30 days</span>
+                  <h2 className="font-medium text-gray-900 dark:text-dark-100">Recent Visitors</h2>
+                  <span className="text-xs text-gray-500 dark:text-dark-400">Last 30 days</span>
                 </div>
               </div>
-              <span className="text-2xl font-bold text-white">{visitors.length}</span>
+              <span className="text-xl font-semibold text-amber-700 dark:text-amber-400">{visitors.length}</span>
             </div>
           </div>
           <div className="p-4">
@@ -217,22 +222,22 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
         </div>
 
         {/* Priority Tasks */}
-        <div className="bg-white dark:bg-dark-800 rounded-2xl border border-gray-200 dark:border-dark-700 overflow-hidden">
-          {/* Section Header with Gradient */}
-          <div className="bg-gradient-to-r from-violet-500 to-purple-400 p-4">
+        <div className="bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
+          {/* Section Header */}
+          <div className="bg-indigo-50 dark:bg-indigo-900/20 border-b border-indigo-100 dark:border-indigo-800/30 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                  <CheckCircle2 className="text-white" size={20} />
+                <div className="w-9 h-9 bg-white dark:bg-dark-700 rounded-lg flex items-center justify-center shadow-sm">
+                  <CheckCircle2 className="text-indigo-600 dark:text-indigo-400" size={18} />
                 </div>
                 <div>
-                  <h2 className="font-semibold text-white">Priority Follow-Ups</h2>
-                  <span className="text-xs text-white/80">Tasks needing attention</span>
+                  <h2 className="font-medium text-gray-900 dark:text-dark-100">Priority Follow-Ups</h2>
+                  <span className="text-xs text-gray-500 dark:text-dark-400">Tasks needing attention</span>
                 </div>
               </div>
               <button
                 onClick={onViewTasks}
-                className="text-xs text-white/90 hover:text-white font-medium flex items-center gap-1 bg-white/20 px-3 py-1.5 rounded-full"
+                className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium flex items-center gap-1"
               >
                 View all
                 <ArrowRight size={12} />
@@ -306,26 +311,25 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
 
       {/* Inactive Members Alert */}
       {inactive.length > 0 && (
-        <div className="mt-4 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-500/5 dark:to-pink-500/5 rounded-2xl p-5 border border-rose-200/50 dark:border-rose-500/20 relative overflow-hidden">
-          <div className="absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br from-rose-400 to-pink-400 rounded-full opacity-10" />
-          <div className="flex items-start gap-4 relative">
-            <div className="w-12 h-12 bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-              <Heart className="text-white" size={20} />
+        <div className="mt-4 bg-rose-50 dark:bg-rose-900/10 rounded-xl p-4 border border-rose-200 dark:border-rose-800/30">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-white dark:bg-dark-700 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+              <Heart className="text-rose-500" size={18} />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-base font-semibold text-gray-900 dark:text-dark-100">Members Need Care</h3>
-              <p className="text-sm text-gray-600 dark:text-dark-400 mt-1">
-                {inactive.length} {inactive.length === 1 ? 'person hasn\'t' : 'people haven\'t'} been active recently. Let's reach out!
+              <h3 className="text-sm font-medium text-gray-900 dark:text-dark-100">Members Need Care</h3>
+              <p className="text-sm text-gray-500 dark:text-dark-400 mt-0.5">
+                {inactive.length} {inactive.length === 1 ? 'person hasn\'t' : 'people haven\'t'} been active recently.
               </p>
-              <div className="flex flex-wrap gap-2 mt-4">
+              <div className="flex flex-wrap gap-2 mt-3">
                 {inactive.slice(0, 3).map((person) => (
                   <button
                     key={person.id}
                     onClick={() => onViewPerson(person.id)}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-dark-800 rounded-xl text-sm font-medium text-gray-700 dark:text-dark-300 hover:bg-rose-50 dark:hover:bg-dark-750 border border-gray-200 dark:border-dark-600 transition-colors shadow-sm"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white dark:bg-dark-800 rounded-lg text-xs font-medium text-gray-700 dark:text-dark-300 hover:bg-rose-100 dark:hover:bg-dark-750 border border-gray-200 dark:border-dark-600 transition-colors"
                   >
                     {person.firstName} {person.lastName}
-                    <ChevronRight size={14} />
+                    <ChevronRight size={12} />
                   </button>
                 ))}
               </div>
@@ -337,11 +341,11 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
       {/* Charts Section */}
       <div className="mt-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-400 rounded-xl flex items-center justify-center shadow-lg">
-            <TrendingUp className="text-white" size={20} />
+          <div className="w-9 h-9 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center">
+            <TrendingUp className="text-emerald-600 dark:text-emerald-400" size={18} />
           </div>
           <div>
-            <h2 className="font-semibold text-gray-900 dark:text-dark-100">Analytics</h2>
+            <h2 className="font-medium text-gray-900 dark:text-dark-100">Analytics</h2>
             <p className="text-xs text-gray-500 dark:text-dark-400">Track your congregation's growth</p>
           </div>
         </div>
@@ -351,11 +355,11 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
       {/* Birthday Widget */}
       <div className="mt-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-400 rounded-xl flex items-center justify-center shadow-lg">
-            <Cake className="text-white" size={20} />
+          <div className="w-9 h-9 bg-pink-100 dark:bg-pink-900/30 rounded-lg flex items-center justify-center">
+            <Cake className="text-pink-600 dark:text-pink-400" size={18} />
           </div>
           <div>
-            <h2 className="font-semibold text-gray-900 dark:text-dark-100">Upcoming Birthdays</h2>
+            <h2 className="font-medium text-gray-900 dark:text-dark-100">Upcoming Birthdays</h2>
             <p className="text-xs text-gray-500 dark:text-dark-400">Celebrate with your community</p>
           </div>
         </div>

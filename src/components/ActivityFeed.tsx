@@ -173,24 +173,22 @@ export function ActivityFeed({
 
   if (activities.length === 0) {
     return (
-      <div className="bg-white dark:bg-dark-800 rounded-2xl border border-gray-200 dark:border-dark-700 overflow-hidden">
-        <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-4">
+      <div className="bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
+        <div className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700/50 p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-              <Clock className="text-white" size={20} />
+            <div className="w-9 h-9 bg-white dark:bg-dark-700 rounded-lg flex items-center justify-center shadow-sm">
+              <Clock className="text-slate-600 dark:text-slate-400" size={18} />
             </div>
             <div>
-              <h2 className="font-semibold text-white">Recent Activity</h2>
-              <span className="text-xs text-white/80">Latest updates</span>
+              <h2 className="font-medium text-gray-900 dark:text-dark-100">Recent Activity</h2>
+              <span className="text-xs text-gray-500 dark:text-dark-400">Latest updates</span>
             </div>
           </div>
         </div>
         <div className="p-4">
           <div className="py-8 text-center">
-            <div className="w-12 h-12 bg-cyan-100 dark:bg-cyan-500/10 rounded-full flex items-center justify-center mx-auto mb-2">
-              <Calendar className="text-cyan-500" size={24} />
-            </div>
-            <p className="text-gray-500 dark:text-dark-400 text-sm font-medium">No recent activity</p>
+            <Calendar className="text-gray-300 dark:text-dark-600 mx-auto mb-2" size={24} />
+            <p className="text-gray-400 dark:text-dark-500 text-sm">No recent activity</p>
           </div>
         </div>
       </div>
@@ -198,19 +196,19 @@ export function ActivityFeed({
   }
 
   return (
-    <div className="bg-white dark:bg-dark-800 rounded-2xl border border-gray-200 dark:border-dark-700 overflow-hidden">
-      <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-4">
+    <div className="bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
+      <div className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700/50 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-              <Clock className="text-white" size={20} />
+            <div className="w-9 h-9 bg-white dark:bg-dark-700 rounded-lg flex items-center justify-center shadow-sm">
+              <Clock className="text-slate-600 dark:text-slate-400" size={18} />
             </div>
             <div>
-              <h2 className="font-semibold text-white">Recent Activity</h2>
-              <span className="text-xs text-white/80">Latest updates</span>
+              <h2 className="font-medium text-gray-900 dark:text-dark-100">Recent Activity</h2>
+              <span className="text-xs text-gray-500 dark:text-dark-400">Latest updates</span>
             </div>
           </div>
-          <span className="text-2xl font-bold text-white">{activities.length}</span>
+          <span className="text-lg font-semibold text-slate-700 dark:text-slate-300">{activities.length}</span>
         </div>
       </div>
 

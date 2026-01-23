@@ -153,37 +153,42 @@ export function SundayPrep({ people, prayers, onViewPerson }: SundayPrepProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 p-6">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiIHN0cm9rZS13aWR0aD0iMiIvPjwvZz48L3N2Zz4=')] opacity-30" />
-        <div className="relative flex items-center justify-between">
+      {/* Header with Photo */}
+      <div className="relative overflow-hidden rounded-xl h-40">
+        <img
+          src="https://images.unsplash.com/photo-1507692049790-de58290a4334?w=1200&h=400&fit=crop"
+          alt="Church service preparation"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-800/70 to-slate-900/50" />
+        <div className="relative h-full p-5 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-              <Church className="text-white" size={28} />
+            <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/20">
+              <Church className="text-white/90" size={24} />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-white">Sunday Prep</h2>
-              <p className="text-white/80">Get ready for an amazing service</p>
+              <h2 className="text-xl font-semibold text-white">Sunday Prep</h2>
+              <p className="text-white/60 text-sm">Get ready for service</p>
             </div>
           </div>
-          <div className="hidden sm:flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-4">
             <div className="text-right">
-              <p className="text-3xl font-bold text-white">{progress}%</p>
-              <p className="text-sm text-white/70">ready</p>
+              <p className="text-2xl font-semibold text-white">{progress}%</p>
+              <p className="text-xs text-white/50">ready</p>
             </div>
             <button
               onClick={resetTasks}
-              className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-colors"
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors border border-white/10"
               title="Reset for new week"
             >
-              <RefreshCw size={20} className="text-white" />
+              <RefreshCw size={18} className="text-white/80" />
             </button>
           </div>
         </div>
         {/* Progress bar */}
-        <div className="mt-4 h-2 bg-white/20 rounded-full overflow-hidden">
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
           <div
-            className="h-full bg-white rounded-full transition-all duration-500"
+            className="h-full bg-white/80 transition-all duration-500"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -193,15 +198,15 @@ export function SundayPrep({ people, prayers, onViewPerson }: SundayPrepProps) {
         {/* Left Column - Checklist & Sermon */}
         <div className="space-y-6">
           {/* Pre-Service Checklist */}
-          <div className="bg-white dark:bg-dark-800 rounded-2xl border border-gray-200 dark:border-dark-700 overflow-hidden">
-            <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-4">
+          <div className="bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 border-b border-emerald-100 dark:border-emerald-800/30 p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                  <CheckCircle2 className="text-white" size={20} />
+                <div className="w-9 h-9 bg-white dark:bg-dark-700 rounded-lg flex items-center justify-center shadow-sm">
+                  <CheckCircle2 className="text-emerald-600 dark:text-emerald-400" size={18} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white">Before Service</h3>
-                  <p className="text-xs text-white/80">Complete these first</p>
+                  <h3 className="font-medium text-gray-900 dark:text-dark-100">Before Service</h3>
+                  <p className="text-xs text-gray-500 dark:text-dark-400">Complete these first</p>
                 </div>
               </div>
             </div>
@@ -210,16 +215,16 @@ export function SundayPrep({ people, prayers, onViewPerson }: SundayPrepProps) {
                 <button
                   key={task.id}
                   onClick={() => toggleTask(task.id)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left ${
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left ${
                     task.completed
-                      ? 'bg-emerald-50 dark:bg-emerald-500/10'
+                      ? 'bg-emerald-50 dark:bg-emerald-900/20'
                       : 'bg-gray-50 dark:bg-dark-750 hover:bg-gray-100 dark:hover:bg-dark-700'
                   }`}
                 >
                   {task.completed ? (
-                    <CheckCircle2 size={20} className="text-emerald-500 flex-shrink-0" />
+                    <CheckCircle2 size={18} className="text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                   ) : (
-                    <Circle size={20} className="text-gray-300 dark:text-dark-500 flex-shrink-0" />
+                    <Circle size={18} className="text-gray-300 dark:text-dark-500 flex-shrink-0" />
                   )}
                   <span className={`text-sm ${task.completed ? 'text-emerald-700 dark:text-emerald-400 line-through' : 'text-gray-700 dark:text-dark-200'}`}>
                     {task.label}
@@ -230,15 +235,15 @@ export function SundayPrep({ people, prayers, onViewPerson }: SundayPrepProps) {
           </div>
 
           {/* During Service */}
-          <div className="bg-white dark:bg-dark-800 rounded-2xl border border-gray-200 dark:border-dark-700 overflow-hidden">
-            <div className="bg-gradient-to-r from-violet-500 to-purple-500 p-4">
+          <div className="bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
+            <div className="bg-indigo-50 dark:bg-indigo-900/20 border-b border-indigo-100 dark:border-indigo-800/30 p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                  <Mic className="text-white" size={20} />
+                <div className="w-9 h-9 bg-white dark:bg-dark-700 rounded-lg flex items-center justify-center shadow-sm">
+                  <Mic className="text-indigo-600 dark:text-indigo-400" size={18} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white">During Service</h3>
-                  <p className="text-xs text-white/80">Don't forget these</p>
+                  <h3 className="font-medium text-gray-900 dark:text-dark-100">During Service</h3>
+                  <p className="text-xs text-gray-500 dark:text-dark-400">Don't forget these</p>
                 </div>
               </div>
             </div>
@@ -247,18 +252,18 @@ export function SundayPrep({ people, prayers, onViewPerson }: SundayPrepProps) {
                 <button
                   key={task.id}
                   onClick={() => toggleTask(task.id)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left ${
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left ${
                     task.completed
-                      ? 'bg-violet-50 dark:bg-violet-500/10'
+                      ? 'bg-indigo-50 dark:bg-indigo-900/20'
                       : 'bg-gray-50 dark:bg-dark-750 hover:bg-gray-100 dark:hover:bg-dark-700'
                   }`}
                 >
                   {task.completed ? (
-                    <CheckCircle2 size={20} className="text-violet-500 flex-shrink-0" />
+                    <CheckCircle2 size={18} className="text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
                   ) : (
-                    <Circle size={20} className="text-gray-300 dark:text-dark-500 flex-shrink-0" />
+                    <Circle size={18} className="text-gray-300 dark:text-dark-500 flex-shrink-0" />
                   )}
-                  <span className={`text-sm ${task.completed ? 'text-violet-700 dark:text-violet-400 line-through' : 'text-gray-700 dark:text-dark-200'}`}>
+                  <span className={`text-sm ${task.completed ? 'text-indigo-700 dark:text-indigo-400 line-through' : 'text-gray-700 dark:text-dark-200'}`}>
                     {task.label}
                   </span>
                 </button>
@@ -267,15 +272,15 @@ export function SundayPrep({ people, prayers, onViewPerson }: SundayPrepProps) {
           </div>
 
           {/* Sermon Notes */}
-          <div className="bg-white dark:bg-dark-800 rounded-2xl border border-gray-200 dark:border-dark-700 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-500 to-indigo-500 p-4">
+          <div className="bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
+            <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-100 dark:border-blue-800/30 p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                  <BookOpen className="text-white" size={20} />
+                <div className="w-9 h-9 bg-white dark:bg-dark-700 rounded-lg flex items-center justify-center shadow-sm">
+                  <BookOpen className="text-blue-600 dark:text-blue-400" size={18} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white">Sermon Highlights</h3>
-                  <p className="text-xs text-white/80">Key points to remember</p>
+                  <h3 className="font-medium text-gray-900 dark:text-dark-100">Sermon Highlights</h3>
+                  <p className="text-xs text-gray-500 dark:text-dark-400">Key points to remember</p>
                 </div>
               </div>
             </div>
@@ -289,7 +294,7 @@ export function SundayPrep({ people, prayers, onViewPerson }: SundayPrepProps) {
                   value={sermonTheme}
                   onChange={(e) => setSermonTheme(e.target.value)}
                   placeholder="e.g., Finding Peace in the Storm"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-dark-600 bg-gray-50 dark:bg-dark-750 text-gray-900 dark:text-dark-100 placeholder-gray-400 dark:placeholder-dark-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-dark-600 bg-white dark:bg-dark-750 text-gray-900 dark:text-dark-100 placeholder-gray-400 dark:placeholder-dark-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <div>
@@ -301,7 +306,7 @@ export function SundayPrep({ people, prayers, onViewPerson }: SundayPrepProps) {
                   onChange={(e) => setTalkingPoints(e.target.value)}
                   placeholder="• Main scripture reference&#10;• Key message&#10;• Call to action&#10;• Closing thought"
                   rows={5}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-dark-600 bg-gray-50 dark:bg-dark-750 text-gray-900 dark:text-dark-100 placeholder-gray-400 dark:placeholder-dark-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-dark-600 bg-white dark:bg-dark-750 text-gray-900 dark:text-dark-100 placeholder-gray-400 dark:placeholder-dark-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 />
               </div>
             </div>
@@ -311,15 +316,15 @@ export function SundayPrep({ people, prayers, onViewPerson }: SundayPrepProps) {
         {/* Right Column - Context & Connections */}
         <div className="space-y-6">
           {/* What to Address */}
-          <div className="bg-white dark:bg-dark-800 rounded-2xl border border-gray-200 dark:border-dark-700 overflow-hidden">
-            <div className="bg-gradient-to-r from-pink-500 to-rose-500 p-4">
+          <div className="bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
+            <div className="bg-rose-50 dark:bg-rose-900/20 border-b border-rose-100 dark:border-rose-800/30 p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                  <MessageSquare className="text-white" size={20} />
+                <div className="w-9 h-9 bg-white dark:bg-dark-700 rounded-lg flex items-center justify-center shadow-sm">
+                  <MessageSquare className="text-rose-600 dark:text-rose-400" size={18} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white">What to Address</h3>
-                  <p className="text-xs text-white/80">Personalize your message</p>
+                  <h3 className="font-medium text-gray-900 dark:text-dark-100">What to Address</h3>
+                  <p className="text-xs text-gray-500 dark:text-dark-400">Personalize your message</p>
                 </div>
               </div>
             </div>
@@ -401,40 +406,40 @@ export function SundayPrep({ people, prayers, onViewPerson }: SundayPrepProps) {
           </div>
 
           {/* News & Themes Connection */}
-          <div className="bg-white dark:bg-dark-800 rounded-2xl border border-gray-200 dark:border-dark-700 overflow-hidden">
-            <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-4">
+          <div className="bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-dark-700 overflow-hidden">
+            <div className="bg-cyan-50 dark:bg-cyan-900/20 border-b border-cyan-100 dark:border-cyan-800/30 p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                    <Newspaper className="text-white" size={20} />
+                  <div className="w-9 h-9 bg-white dark:bg-dark-700 rounded-lg flex items-center justify-center shadow-sm">
+                    <Newspaper className="text-cyan-600 dark:text-cyan-400" size={18} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-white">Connect the Theme</h3>
-                    <p className="text-xs text-white/80">Relevant world topics</p>
+                    <h3 className="font-medium text-gray-900 dark:text-dark-100">Connect the Theme</h3>
+                    <p className="text-xs text-gray-500 dark:text-dark-400">Relevant world topics</p>
                   </div>
                 </div>
                 <button
                   onClick={refreshNews}
                   disabled={isLoadingNews}
-                  className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-colors disabled:opacity-50"
+                  className="p-2 bg-white dark:bg-dark-700 hover:bg-gray-50 dark:hover:bg-dark-600 rounded-lg transition-colors disabled:opacity-50 border border-gray-200 dark:border-dark-600"
                 >
-                  <RefreshCw size={16} className={`text-white ${isLoadingNews ? 'animate-spin' : ''}`} />
+                  <RefreshCw size={14} className={`text-gray-500 dark:text-dark-400 ${isLoadingNews ? 'animate-spin' : ''}`} />
                 </button>
               </div>
             </div>
             <div className="p-4 space-y-3">
               {newsThemes.map((theme, index) => (
-                <div key={index} className="p-4 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-500/10 dark:to-blue-500/10 rounded-xl">
+                <div key={index} className="p-3 bg-gray-50 dark:bg-dark-750 rounded-lg border border-gray-100 dark:border-dark-600">
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Lightbulb size={16} className="text-white" />
+                    <div className="w-8 h-8 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Lightbulb size={14} className="text-cyan-600 dark:text-cyan-400" />
                     </div>
                     <div className="flex-1">
-                      <span className="inline-block px-2 py-0.5 bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 text-[10px] font-medium rounded-full mb-1">
+                      <span className="inline-block px-2 py-0.5 bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400 text-[10px] font-medium rounded-full mb-1">
                         {theme.category}
                       </span>
                       <h4 className="font-medium text-gray-900 dark:text-dark-100 text-sm">{theme.headline}</h4>
-                      <p className="text-xs text-gray-600 dark:text-dark-400 mt-1">{theme.connection}</p>
+                      <p className="text-xs text-gray-500 dark:text-dark-400 mt-1">{theme.connection}</p>
                     </div>
                   </div>
                 </div>
@@ -443,20 +448,20 @@ export function SundayPrep({ people, prayers, onViewPerson }: SundayPrepProps) {
           </div>
 
           {/* AI Sermon Helper */}
-          <div className="bg-gradient-to-br from-fuchsia-50 to-purple-50 dark:from-fuchsia-500/10 dark:to-purple-500/10 rounded-2xl border border-fuchsia-200/50 dark:border-fuchsia-500/20 p-5">
+          <div className="bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-fuchsia-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
-                <Sparkles className="text-white" size={20} />
+              <div className="w-9 h-9 bg-white dark:bg-dark-700 rounded-lg flex items-center justify-center shadow-sm">
+                <Sparkles className="text-slate-600 dark:text-slate-400" size={18} />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-dark-100">AI Sermon Helper</h3>
+                <h3 className="font-medium text-gray-900 dark:text-dark-100">AI Sermon Helper</h3>
                 <p className="text-xs text-gray-500 dark:text-dark-400">Get AI-powered suggestions</p>
               </div>
             </div>
-            <p className="text-sm text-gray-600 dark:text-dark-400 mb-3">
-              Need help crafting your message? Use the AI Assistant to generate sermon illustrations, talking points, or scripture connections.
+            <p className="text-sm text-gray-500 dark:text-dark-400 mb-3">
+              Need help crafting your message? Use the AI Assistant to generate sermon illustrations and scripture connections.
             </p>
-            <button className="w-full py-2.5 bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white font-medium rounded-xl hover:from-fuchsia-600 hover:to-purple-600 transition-all shadow-lg shadow-fuchsia-500/25">
+            <button className="w-full py-2.5 bg-slate-800 dark:bg-slate-700 text-white text-sm font-medium rounded-lg hover:bg-slate-700 dark:hover:bg-slate-600 transition-colors">
               Open AI Assistant
             </button>
           </div>

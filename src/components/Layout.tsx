@@ -30,17 +30,17 @@ interface LayoutProps {
   onOpenSearch?: () => void;
 }
 
-// Simplified navigation - core features with colors
-const navItems: { view: View; label: string; icon: ReactNode; gradient: string; lightBg: string; hoverBg: string }[] = [
-  { view: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} />, gradient: 'from-violet-500 to-purple-500', lightBg: 'bg-violet-50 dark:bg-violet-500/10', hoverBg: 'hover:bg-violet-50 dark:hover:bg-violet-500/5' },
-  { view: 'people', label: 'People', icon: <Users size={18} />, gradient: 'from-blue-500 to-cyan-500', lightBg: 'bg-blue-50 dark:bg-blue-500/10', hoverBg: 'hover:bg-blue-50 dark:hover:bg-blue-500/5' },
-  { view: 'tasks', label: 'Follow-Ups', icon: <CheckSquare size={18} />, gradient: 'from-emerald-500 to-teal-500', lightBg: 'bg-emerald-50 dark:bg-emerald-500/10', hoverBg: 'hover:bg-emerald-50 dark:hover:bg-emerald-500/5' },
-  { view: 'calendar', label: 'Calendar', icon: <Calendar size={18} />, gradient: 'from-orange-500 to-amber-500', lightBg: 'bg-orange-50 dark:bg-orange-500/10', hoverBg: 'hover:bg-orange-50 dark:hover:bg-orange-500/5' },
-  { view: 'groups', label: 'Groups', icon: <Users2 size={18} />, gradient: 'from-indigo-500 to-blue-500', lightBg: 'bg-indigo-50 dark:bg-indigo-500/10', hoverBg: 'hover:bg-indigo-50 dark:hover:bg-indigo-500/5' },
-  { view: 'prayer', label: 'Prayer', icon: <Heart size={18} />, gradient: 'from-pink-500 to-rose-500', lightBg: 'bg-pink-50 dark:bg-pink-500/10', hoverBg: 'hover:bg-pink-50 dark:hover:bg-pink-500/5' },
-  { view: 'giving', label: 'Giving', icon: <DollarSign size={18} />, gradient: 'from-green-500 to-emerald-500', lightBg: 'bg-green-50 dark:bg-green-500/10', hoverBg: 'hover:bg-green-50 dark:hover:bg-green-500/5' },
-  { view: 'agents', label: 'AI Assistant', icon: <Sparkles size={18} />, gradient: 'from-fuchsia-500 to-purple-500', lightBg: 'bg-fuchsia-50 dark:bg-fuchsia-500/10', hoverBg: 'hover:bg-fuchsia-50 dark:hover:bg-fuchsia-500/5' },
-  { view: 'reports', label: 'Reports', icon: <FileText size={18} />, gradient: 'from-slate-500 to-gray-500', lightBg: 'bg-slate-50 dark:bg-slate-500/10', hoverBg: 'hover:bg-slate-50 dark:hover:bg-slate-500/5' },
+// Simplified navigation - core features
+const navItems: { view: View; label: string; icon: ReactNode }[] = [
+  { view: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
+  { view: 'people', label: 'People', icon: <Users size={18} /> },
+  { view: 'tasks', label: 'Follow-Ups', icon: <CheckSquare size={18} /> },
+  { view: 'calendar', label: 'Calendar', icon: <Calendar size={18} /> },
+  { view: 'groups', label: 'Groups', icon: <Users2 size={18} /> },
+  { view: 'prayer', label: 'Prayer', icon: <Heart size={18} /> },
+  { view: 'giving', label: 'Giving', icon: <DollarSign size={18} /> },
+  { view: 'agents', label: 'AI Assistant', icon: <Sparkles size={18} /> },
+  { view: 'reports', label: 'Reports', icon: <FileText size={18} /> },
 ];
 
 // View labels for breadcrumbs
@@ -168,16 +168,16 @@ export function Layout({ currentView, setView, children, onOpenSearch }: LayoutP
         } ${sidebarCollapsed ? 'lg:w-16' : 'w-60'}`}
       >
         {/* Logo */}
-        <div className={`flex items-center h-16 border-b border-gray-200/50 dark:border-white/5 ${sidebarCollapsed ? 'lg:justify-center lg:px-0 px-4' : 'px-4'}`}>
-          <div className={`flex items-center ${sidebarCollapsed ? 'lg:justify-center' : 'gap-3'}`}>
-            <div className="w-10 h-10 bg-gradient-to-br from-violet-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-purple-500/25">
-              <span className="text-white font-bold text-lg">G</span>
+        <div className={`flex items-center h-14 border-b border-gray-200/50 dark:border-white/5 ${sidebarCollapsed ? 'lg:justify-center lg:px-0 px-4' : 'px-4'}`}>
+          <div className={`flex items-center ${sidebarCollapsed ? 'lg:justify-center' : 'gap-2.5'}`}>
+            <div className="w-8 h-8 bg-slate-800 dark:bg-slate-700 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-semibold text-sm">G</span>
             </div>
             <div className={sidebarCollapsed ? 'lg:hidden' : ''}>
-              <span className="font-bold text-lg bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-400 dark:to-purple-400 bg-clip-text text-transparent">
+              <span className="font-semibold text-slate-900 dark:text-white">
                 Grace
               </span>
-              <p className="text-[10px] text-gray-400 dark:text-gray-500 -mt-0.5">Church CRM</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 -mt-0.5">Church CRM</p>
             </div>
           </div>
           {/* Mobile close button */}
@@ -209,7 +209,7 @@ export function Layout({ currentView, setView, children, onOpenSearch }: LayoutP
         )}
 
         {/* Navigation */}
-        <nav className={`flex-1 px-3 py-3 space-y-1 overflow-y-auto ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
+        <nav className={`flex-1 px-3 py-3 space-y-0.5 overflow-y-auto ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
           {navItems.map((item) => {
             const givingViews = ['online-giving', 'batch-entry', 'pledges', 'campaigns', 'statements', 'charity-baskets', 'donation-tracker', 'member-stats'];
             const calendarViews = ['birthdays', 'attendance', 'volunteers', 'child-checkin'];
@@ -224,27 +224,23 @@ export function Layout({ currentView, setView, children, onOpenSearch }: LayoutP
               <button
                 key={item.view}
                 onClick={() => handleNavClick(item.view)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 group relative ${
+                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors group relative ${
                   sidebarCollapsed ? 'lg:justify-center' : ''
                 } ${
                   isActive
-                    ? `${item.lightBg} font-medium shadow-sm`
-                    : `text-gray-600 dark:text-gray-400 ${item.hoverBg} hover:text-gray-900 dark:hover:text-gray-200`
+                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-medium'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
                 title={sidebarCollapsed ? item.label : undefined}
               >
-                <span className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all ${
-                  isActive
-                    ? `bg-gradient-to-br ${item.gradient} text-white shadow-md`
-                    : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400'
-                }`}>
+                <span className={`${isActive ? 'text-slate-700 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500'}`}>
                   {item.icon}
                 </span>
-                <span className={`${sidebarCollapsed ? 'lg:hidden' : ''} ${isActive ? 'text-gray-900 dark:text-gray-100' : ''}`}>{item.label}</span>
+                <span className={sidebarCollapsed ? 'lg:hidden' : ''}>{item.label}</span>
 
                 {/* Tooltip for collapsed state */}
                 {sidebarCollapsed && (
-                  <span className={`hidden lg:group-hover:flex absolute left-full ml-2 px-3 py-2 bg-gradient-to-r ${item.gradient} text-white text-xs rounded-xl whitespace-nowrap z-50 shadow-lg font-medium`}>
+                  <span className="hidden lg:group-hover:flex absolute left-full ml-2 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-700 text-white text-xs rounded-lg whitespace-nowrap z-50 shadow-lg">
                     {item.label}
                   </span>
                 )}
