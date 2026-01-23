@@ -666,6 +666,89 @@ export const SAMPLE_PRAYERS: PrayerRequest[] = [
     testimony: 'God provided clarity through counsel from Pastor and peace in prayer.',
     createdAt: '2024-11-10',
     updatedAt: '2024-12-20'
+  },
+  // === MORE PRAYER REQUESTS ===
+  {
+    id: '4',
+    personId: '23',
+    content: 'Urgent: My mother Dorothy was just diagnosed with stage 3 cancer. Please pray for healing and peace for our family.',
+    isPrivate: false,
+    isAnswered: false,
+    createdAt: getDateString(0),
+    updatedAt: getDateString(0)
+  },
+  {
+    id: '5',
+    personId: '24',
+    content: 'Praying for our missionaries in Southeast Asia. They\'re facing challenges with local regulations.',
+    isPrivate: false,
+    isAnswered: false,
+    createdAt: getDateString(-2),
+    updatedAt: getDateString(-2)
+  },
+  {
+    id: '6',
+    personId: '9',
+    content: 'Please pray as I consider leading a new prayer ministry. Seeking God\'s direction.',
+    isPrivate: false,
+    isAnswered: false,
+    createdAt: getDateString(-3),
+    updatedAt: getDateString(-3)
+  },
+  {
+    id: '7',
+    personId: '14',
+    content: 'First time sharing: struggling with anxiety about my job. Coworker James invited me here.',
+    isPrivate: false,
+    isAnswered: false,
+    createdAt: getDateString(-1),
+    updatedAt: getDateString(-1)
+  },
+  {
+    id: '8',
+    personId: '26',
+    content: 'Pray for our family as we settle into the community. Kids are adjusting to new schools.',
+    isPrivate: false,
+    isAnswered: false,
+    createdAt: getDateString(-5),
+    updatedAt: getDateString(-5)
+  },
+  {
+    id: '9',
+    personId: '11',
+    content: 'Praise report: My husband got the promotion! Thank you for praying with us.',
+    isPrivate: false,
+    isAnswered: true,
+    testimony: 'After months of prayer, God opened this door. Grateful for church family support.',
+    createdAt: getDateString(-14),
+    updatedAt: getDateString(-1)
+  },
+  {
+    id: '10',
+    personId: '4',
+    content: 'Pray for our men\'s group as we study the book of James. For transformation and growth.',
+    isPrivate: false,
+    isAnswered: false,
+    createdAt: getDateString(-4),
+    updatedAt: getDateString(-4)
+  },
+  {
+    id: '11',
+    personId: '13',
+    content: 'New here - please pray as I look for a church home after relocating.',
+    isPrivate: false,
+    isAnswered: false,
+    createdAt: getDateString(-2),
+    updatedAt: getDateString(-2)
+  },
+  {
+    id: '12',
+    personId: '19',
+    content: 'Travel mercies for my son\'s mission trip to Guatemala next month.',
+    isPrivate: false,
+    isAnswered: false,
+    createdAt: getDateString(-7),
+    updatedAt: getDateString(-7)
   }
 ];
 
@@ -693,6 +776,143 @@ export const SAMPLE_INTERACTIONS: Interaction[] = [
     content: 'New Year\'s service visitor. Family of 4. Kids enjoyed children\'s church.',
     createdAt: '2025-01-01',
     createdBy: 'Welcome Team'
+  },
+  // === MORE RECENT INTERACTIONS ===
+  {
+    id: '4',
+    personId: '13',
+    type: 'email',
+    content: 'Sent welcome email to Jennifer. She replied asking about women\'s Bible study.',
+    createdAt: getDateString(0),
+    createdBy: 'Pastor John'
+  },
+  {
+    id: '5',
+    personId: '14',
+    type: 'text',
+    content: 'Marcus texted asking about men\'s group times. Sent him info about Tuesday meetings.',
+    createdAt: getDateString(0),
+    createdBy: 'James Peterson'
+  },
+  {
+    id: '6',
+    personId: '24',
+    type: 'call',
+    content: 'Called Richard to thank him for $5,000 missions gift. He wants to meet to discuss missions strategy. Scheduling lunch next week.',
+    createdAt: getDateString(-1),
+    createdBy: 'Pastor John'
+  },
+  {
+    id: '7',
+    personId: '6',
+    type: 'note',
+    content: 'Birthday today! Sent card from worship team. Planning surprise at rehearsal Thursday.',
+    createdAt: getDateString(0),
+    createdBy: 'Worship Leader'
+  },
+  {
+    id: '8',
+    personId: '9',
+    type: 'visit',
+    content: 'Home visit with Amanda. Discussed her interest in leading a new prayer group. Very excited about the opportunity.',
+    createdAt: getDateString(-2),
+    createdBy: 'Pastor John'
+  },
+  {
+    id: '9',
+    personId: '5',
+    type: 'text',
+    content: 'Emily reached out asking for prayer. Work stress continues. Need to schedule a pastoral visit this week.',
+    createdAt: getDateString(0),
+    createdBy: 'Pastor John'
+  },
+  {
+    id: '10',
+    personId: '20',
+    type: 'email',
+    content: 'Christopher asked about setting up recurring giving. Sent him instructions for online portal.',
+    createdAt: getDateString(0),
+    createdBy: 'Finance Team'
+  },
+  {
+    id: '11',
+    personId: '23',
+    type: 'prayer',
+    content: 'Michelle\'s mother Dorothy diagnosed with stage 3 cancer. Added to prayer chain. Need to call Michelle today.',
+    createdAt: getDateString(0),
+    createdBy: 'Prayer Team'
+  },
+  {
+    id: '12',
+    personId: '15',
+    type: 'note',
+    content: 'Ashley connected with Kevin at young adults. She\'s a grad student, interested in service opportunities.',
+    createdAt: getDateString(-1),
+    createdBy: 'Kevin Martinez'
+  },
+  {
+    id: '13',
+    personId: '11',
+    type: 'email',
+    content: 'Sent 1-year membership anniversary email to Rachel. She\'s been such a blessing in children\'s ministry!',
+    createdAt: getDateString(0),
+    createdBy: 'AI Agent'
+  },
+  {
+    id: '14',
+    personId: '26',
+    type: 'call',
+    content: 'Follow-up call with Mark Thompson. Family settling in well. Interested in men\'s group and potentially serving on tech team.',
+    createdAt: getDateString(-3),
+    createdBy: 'Pastor John'
+  },
+  {
+    id: '15',
+    personId: '2',
+    type: 'note',
+    content: 'James brought his coworker Marcus to church! Great to see him inviting others.',
+    createdAt: getDateString(-1),
+    createdBy: 'Welcome Team'
+  },
+  {
+    id: '16',
+    personId: '4',
+    type: 'note',
+    content: 'Robert leading Tuesday men\'s group study on James. Great discussion on faith and works.',
+    createdAt: getDateString(-2),
+    createdBy: 'Pastor John'
+  },
+  {
+    id: '17',
+    personId: '16',
+    type: 'email',
+    content: 'Invited Brian to next membership class on Jan 15. He\'s ready to make it official.',
+    createdAt: getDateString(-1),
+    createdBy: 'Membership Coordinator'
+  },
+  {
+    id: '18',
+    personId: '25',
+    type: 'note',
+    content: 'Patricia shared testimony of answered prayer at women\'s group. Very encouraging to the group.',
+    createdAt: getDateString(-4),
+    createdBy: 'Amanda Foster'
+  },
+  {
+    id: '19',
+    personId: '3',
+    type: 'text',
+    content: 'Maria texted asking about volunteer opportunities. Interested in hospitality team.',
+    createdAt: getDateString(0),
+    createdBy: 'Volunteer Coordinator'
+  },
+  {
+    id: '20',
+    personId: '8',
+    type: 'call',
+    content: 'Finance committee call with Michael. Q4 giving strong, planning Q1 budget review.',
+    createdAt: getDateString(-5),
+    createdBy: 'Pastor John'
   }
 ];
 
@@ -748,12 +968,20 @@ export const SAMPLE_GIVING: Giving[] = [
   { id: '30', personId: '6', amount: 100, fund: 'offering', date: getDateString(0), method: 'cash', isRecurring: false },
 ];
 
+// Helper to get event dates relative to today
+const getEventDate = (daysFromNow: number, time: string): string => {
+  const date = new Date(today);
+  date.setDate(date.getDate() + daysFromNow);
+  return `${date.toISOString().split('T')[0]}T${time}`;
+};
+
 export const SAMPLE_EVENTS: CalendarEvent[] = [
+  // Weekly recurring events
   {
     id: '1',
     title: 'Sunday Service',
-    startDate: '2025-01-05T10:00:00',
-    endDate: '2025-01-05T11:30:00',
+    startDate: getEventDate(0, '10:00:00'),
+    endDate: getEventDate(0, '11:30:00'),
     allDay: false,
     location: 'Main Sanctuary',
     category: 'service'
@@ -761,29 +989,120 @@ export const SAMPLE_EVENTS: CalendarEvent[] = [
   {
     id: '2',
     title: 'Men of Faith',
-    startDate: '2025-01-07T19:00:00',
-    endDate: '2025-01-07T20:30:00',
+    startDate: getEventDate(1, '19:00:00'),
+    endDate: getEventDate(1, '20:30:00'),
     allDay: false,
     location: 'Room 201',
     category: 'small-group'
   },
   {
     id: '3',
+    title: 'Women of Grace Bible Study',
+    startDate: getEventDate(2, '09:30:00'),
+    endDate: getEventDate(2, '11:00:00'),
+    allDay: false,
+    location: 'Fellowship Hall',
+    category: 'small-group'
+  },
+  {
+    id: '4',
+    title: 'Young Adults',
+    startDate: getEventDate(3, '19:30:00'),
+    endDate: getEventDate(3, '21:00:00'),
+    allDay: false,
+    location: 'Coffee House',
+    category: 'small-group'
+  },
+  {
+    id: '5',
+    title: 'Worship Team Practice',
+    startDate: getEventDate(3, '18:00:00'),
+    endDate: getEventDate(3, '20:00:00'),
+    allDay: false,
+    location: 'Sanctuary',
+    category: 'meeting'
+  },
+  // Upcoming special events
+  {
+    id: '6',
+    title: 'Newcomers Lunch',
+    startDate: getEventDate(0, '12:00:00'),
+    endDate: getEventDate(0, '13:30:00'),
+    allDay: false,
+    location: 'Fellowship Hall',
+    category: 'event'
+  },
+  {
+    id: '7',
     title: 'Elder Meeting',
-    startDate: '2025-01-08T18:00:00',
-    endDate: '2025-01-08T19:30:00',
+    startDate: getEventDate(4, '18:00:00'),
+    endDate: getEventDate(4, '19:30:00'),
     allDay: false,
     location: 'Conference Room',
     category: 'meeting'
   },
   {
-    id: '4',
-    title: 'Young Adults',
-    startDate: '2025-01-09T19:30:00',
-    endDate: '2025-01-09T21:00:00',
+    id: '8',
+    title: 'Finance Committee',
+    startDate: getEventDate(5, '17:00:00'),
+    endDate: getEventDate(5, '18:00:00'),
     allDay: false,
-    location: 'Coffee House',
-    category: 'small-group'
+    location: 'Conference Room',
+    category: 'meeting'
+  },
+  {
+    id: '9',
+    title: 'Membership Class',
+    startDate: getEventDate(7, '09:00:00'),
+    endDate: getEventDate(7, '12:00:00'),
+    allDay: false,
+    location: 'Room 101',
+    category: 'event'
+  },
+  {
+    id: '10',
+    title: 'Prayer Night',
+    startDate: getEventDate(2, '19:00:00'),
+    endDate: getEventDate(2, '20:30:00'),
+    allDay: false,
+    location: 'Chapel',
+    category: 'service'
+  },
+  {
+    id: '11',
+    title: 'Community Outreach',
+    startDate: getEventDate(6, '09:00:00'),
+    endDate: getEventDate(6, '13:00:00'),
+    allDay: false,
+    location: 'Downtown Center',
+    category: 'event'
+  },
+  {
+    id: '12',
+    title: 'Kids Ministry Training',
+    startDate: getEventDate(5, '10:00:00'),
+    endDate: getEventDate(5, '12:00:00'),
+    allDay: false,
+    location: 'Kids Wing',
+    category: 'meeting'
+  },
+  {
+    id: '13',
+    title: 'Missions Committee',
+    startDate: getEventDate(8, '18:30:00'),
+    endDate: getEventDate(8, '20:00:00'),
+    allDay: false,
+    location: 'Conference Room',
+    category: 'meeting'
+  },
+  {
+    id: '14',
+    title: 'Next Sunday Service',
+    startDate: getEventDate(7, '10:00:00'),
+    endDate: getEventDate(7, '11:30:00'),
+    allDay: false,
+    location: 'Main Sanctuary',
+    category: 'service'
   }
 ];
 
