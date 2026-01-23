@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Users,
   UserPlus,
@@ -11,6 +11,8 @@ import {
   TrendingUp,
   Cake,
   Heart,
+  LayoutDashboard,
+  Church,
 } from 'lucide-react';
 import { Person, Task, Giving, Interaction, PrayerRequest } from '../types';
 import { PRIORITY_COLORS } from '../constants';
@@ -18,6 +20,7 @@ import { DashboardCharts } from './DashboardCharts';
 import { BirthdayWidget } from './BirthdayWidget';
 import { GivingWidget } from './GivingWidget';
 import { ActivityFeed } from './ActivityFeed';
+import { SundayPrep } from './SundayPrep';
 
 interface DashboardProps {
   people: Person[];
@@ -30,7 +33,11 @@ interface DashboardProps {
   onViewGiving?: () => void;
 }
 
+type DashboardTab = 'overview' | 'sunday-prep';
+
 export function Dashboard({ people, tasks, giving = [], interactions = [], prayers = [], onViewPerson, onViewTasks, onViewGiving }: DashboardProps) {
+  const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
+
   // Memoize filtered arrays to prevent recalculation on every render
   const { visitors, inactive, pendingTasks } = useMemo(() => ({
     visitors: people.filter(p => p.status === 'visitor'),
@@ -88,22 +95,56 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
       {/* Hero Header with Gradient */}
       <div className="mb-6 relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-6">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiIHN0cm9rZS13aWR0aD0iMiIvPjwvZz48L3N2Zz4=')] opacity-30" />
-        <div className="relative flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="text-yellow-300" size={20} />
-              <span className="text-white/80 text-sm font-medium">Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}!</span>
+        <div className="relative">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="text-yellow-300" size={20} />
+                <span className="text-white/80 text-sm font-medium">Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}!</span>
+              </div>
+              <h1 className="text-2xl font-bold text-white">Welcome to Grace CRM</h1>
+              <p className="text-white/80 mt-1">Here's what needs your attention today.</p>
             </div>
-            <h1 className="text-2xl font-bold text-white">Welcome to Grace CRM</h1>
-            <p className="text-white/80 mt-1">Here's what needs your attention today.</p>
+            <div className="hidden md:flex items-center gap-3">
+              <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                <Heart className="text-white" size={32} />
+              </div>
+            </div>
           </div>
-          <div className="hidden md:flex items-center gap-3">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-              <Heart className="text-white" size={32} />
-            </div>
+
+          {/* Tabs */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                activeTab === 'overview'
+                  ? 'bg-white text-purple-700 shadow-lg'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              <LayoutDashboard size={16} />
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('sunday-prep')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                activeTab === 'sunday-prep'
+                  ? 'bg-white text-purple-700 shadow-lg'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              <Church size={16} />
+              Sunday Prep
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Tab Content */}
+      {activeTab === 'sunday-prep' ? (
+        <SundayPrep people={people} prayers={prayers} onViewPerson={onViewPerson} />
+      ) : (
+        <>
 
       {/* Stats Grid - Colorful Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -320,6 +361,8 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
         </div>
         <BirthdayWidget people={people} onViewPerson={onViewPerson} />
       </div>
+      </>
+      )}
     </div>
   );
 }
