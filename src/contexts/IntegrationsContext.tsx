@@ -2,10 +2,10 @@
  * Integrations Context
  *
  * Provides access to all CRM integration services (email, SMS, payments).
- * Loads credentials from database so each church can have their own keys.
+ * Credentials are configured via Vercel environment variables for stability and security.
  */
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import {
   emailService,
   smsService,
@@ -17,8 +17,6 @@ import {
   CreatePaymentParams,
   PaymentResult,
 } from '../lib/services';
-import { useChurchSettings, IntegrationCredentials } from '../hooks/useChurchSettings';
-import { useAuthContext } from './AuthContext';
 
 export interface IntegrationStatus {
   email: boolean;
@@ -30,10 +28,6 @@ interface IntegrationsContextType {
   // Status
   status: IntegrationStatus;
   isLoading: boolean;
-
-  // Configuration - save to database
-  saveIntegrations: (config: Partial<IntegrationCredentials>) => Promise<boolean>;
-  clearIntegration: (integration: 'email' | 'sms' | 'payments' | 'auth') => Promise<boolean>;
 
   // Email methods
   sendEmail: (params: SendEmailParams) => Promise<EmailResult>;
@@ -83,55 +77,58 @@ export function useIntegrations() {
 }
 
 export function IntegrationsProvider({ children }: { children: React.ReactNode }) {
-  const { churchId } = useAuthContext();
-  const { settings, isLoading, saveIntegrations: saveToDb, clearIntegration: clearFromDb } = useChurchSettings(churchId);
+  const configured = useRef(false);
   const [status, setStatus] = useState<IntegrationStatus>({
     email: false,
     sms: false,
     payments: false,
   });
 
-  // Configure services when settings change
+  // Configure services once from environment variables
   useEffect(() => {
-    const { integrations } = settings;
-    const envStripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+    // Prevent re-configuration on re-renders
+    if (configured.current) return;
+    configured.current = true;
 
-    // Configure Email - uses backend API proxy (no API key needed in frontend)
-    // Just configure the from address and name
-    emailService.configure({
-      fromEmail: integrations.emailFromAddress || import.meta.env.VITE_EMAIL_FROM_ADDRESS || 'noreply@grace-crm.com',
-      fromName: integrations.emailFromName || import.meta.env.VITE_EMAIL_FROM_NAME || 'Grace CRM',
-    });
+    // Read environment variables
+    const emailFromAddress = import.meta.env.VITE_EMAIL_FROM_ADDRESS;
+    const emailFromName = import.meta.env.VITE_EMAIL_FROM_NAME;
+    const resendApiKey = import.meta.env.VITE_RESEND_API_KEY;
+    const twilioAccountSid = import.meta.env.VITE_TWILIO_ACCOUNT_SID;
+    const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 
-    // Configure SMS - uses backend API proxy (no credentials needed in frontend)
-    smsService.configure({});
+    // Configure Email - backend API handles the actual sending
+    // Email is considered configured if we have a from address or the API key is set
+    const emailConfigured = !!(emailFromAddress || resendApiKey);
+    if (emailConfigured) {
+      emailService.configure({
+        fromEmail: emailFromAddress || 'noreply@grace-crm.com',
+        fromName: emailFromName || 'Grace CRM',
+      });
+    }
+
+    // Configure SMS - backend API handles credentials
+    // SMS is considered configured if Twilio account SID is set
+    const smsConfigured = !!twilioAccountSid;
+    if (smsConfigured) {
+      smsService.configure({});
+    }
 
     // Configure Payments - only publishable key needed in frontend
-    const stripeKey = integrations.stripePublishableKey || envStripeKey;
-    if (stripeKey) {
+    const paymentsConfigured = !!stripeKey;
+    if (paymentsConfigured) {
       paymentService.configure({
         publishableKey: stripeKey,
       });
     }
 
-    // Update status
+    // Update status based on env vars
     setStatus({
-      email: emailService.isConfigured(),
-      sms: smsService.isConfigured(),
-      payments: paymentService.isConfigured(),
+      email: emailConfigured,
+      sms: smsConfigured,
+      payments: paymentsConfigured,
     });
-  }, [settings]);
-
-  // Save integrations to database and reconfigure services
-  const saveIntegrations = useCallback(async (config: Partial<IntegrationCredentials>): Promise<boolean> => {
-    const success = await saveToDb(config);
-    return success;
-  }, [saveToDb]);
-
-  // Clear an integration
-  const clearIntegration = useCallback(async (integration: 'email' | 'sms' | 'payments' | 'auth'): Promise<boolean> => {
-    return clearFromDb(integration);
-  }, [clearFromDb]);
+  }, []);
 
   // Email methods
   const sendEmail = useCallback(async (params: SendEmailParams) => {
@@ -198,9 +195,7 @@ export function IntegrationsProvider({ children }: { children: React.ReactNode }
 
   const value: IntegrationsContextType = {
     status,
-    isLoading,
-    saveIntegrations,
-    clearIntegration,
+    isLoading: false, // No async loading - configured from env vars immediately
     sendEmail,
     sendWelcomeEmail,
     sendBirthdayEmail,
