@@ -8,22 +8,25 @@ import {
   Clock,
   ArrowRight,
 } from 'lucide-react';
-import { Person, Task, Giving } from '../types';
+import { Person, Task, Giving, Interaction, PrayerRequest } from '../types';
 import { PRIORITY_COLORS } from '../constants';
 import { DashboardCharts } from './DashboardCharts';
 import { BirthdayWidget } from './BirthdayWidget';
 import { GivingWidget } from './GivingWidget';
+import { ActivityFeed } from './ActivityFeed';
 
 interface DashboardProps {
   people: Person[];
   tasks: Task[];
   giving?: Giving[];
+  interactions?: Interaction[];
+  prayers?: PrayerRequest[];
   onViewPerson: (id: string) => void;
   onViewTasks: () => void;
   onViewGiving?: () => void;
 }
 
-export function Dashboard({ people, tasks, giving = [], onViewPerson, onViewTasks, onViewGiving }: DashboardProps) {
+export function Dashboard({ people, tasks, giving = [], interactions = [], prayers = [], onViewPerson, onViewTasks, onViewGiving }: DashboardProps) {
   // Memoize filtered arrays to prevent recalculation on every render
   const { visitors, inactive, pendingTasks } = useMemo(() => ({
     visitors: people.filter(p => p.status === 'visitor'),
@@ -99,7 +102,7 @@ export function Dashboard({ people, tasks, giving = [], onViewPerson, onViewTask
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Recent Visitors */}
         <div className="bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-dark-700 p-5">
           <div className="flex items-center justify-between mb-4">
@@ -189,6 +192,17 @@ export function Dashboard({ people, tasks, giving = [], onViewPerson, onViewTask
             </div>
           )}
         </div>
+
+        {/* Activity Feed */}
+        <ActivityFeed
+          people={people}
+          tasks={tasks}
+          interactions={interactions}
+          prayers={prayers}
+          giving={giving}
+          onViewPerson={onViewPerson}
+          limit={8}
+        />
       </div>
 
       {/* Giving Widget */}

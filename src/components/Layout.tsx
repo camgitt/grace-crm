@@ -13,22 +13,12 @@ import {
   Sun,
   Menu,
   Search,
-  TrendingUp,
-  UserCheck,
-  ClipboardList,
   PanelLeftClose,
   PanelLeft,
   ChevronRight,
-  Tag,
   FileText,
-  Cake,
   X,
-  Bot,
-  QrCode,
-  Contact,
-  Baby,
-  FormInput,
-  Smartphone,
+  Sparkles,
 } from 'lucide-react';
 import { View } from '../types';
 import { useTheme } from '../ThemeContext';
@@ -40,26 +30,17 @@ interface LayoutProps {
   onOpenSearch?: () => void;
 }
 
+// Simplified navigation - core features only
 const navItems: { view: View; label: string; icon: ReactNode }[] = [
   { view: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-  { view: 'pipeline', label: 'Pipeline', icon: <TrendingUp size={18} /> },
   { view: 'people', label: 'People', icon: <Users size={18} /> },
   { view: 'tasks', label: 'Follow-Ups', icon: <CheckSquare size={18} /> },
-  { view: 'attendance', label: 'Attendance', icon: <UserCheck size={18} /> },
-  { view: 'child-checkin', label: 'Child Check-In', icon: <Baby size={18} /> },
   { view: 'calendar', label: 'Calendar', icon: <Calendar size={18} /> },
-  { view: 'birthdays', label: 'Birthdays', icon: <Cake size={18} /> },
-  { view: 'volunteers', label: 'Volunteers', icon: <ClipboardList size={18} /> },
   { view: 'groups', label: 'Groups', icon: <Users2 size={18} /> },
   { view: 'prayer', label: 'Prayer', icon: <Heart size={18} /> },
   { view: 'giving', label: 'Giving', icon: <DollarSign size={18} /> },
-  { view: 'agents', label: 'AI Agents', icon: <Bot size={18} /> },
-  { view: 'tags', label: 'Tags', icon: <Tag size={18} /> },
+  { view: 'agents', label: 'AI Assistant', icon: <Sparkles size={18} /> },
   { view: 'reports', label: 'Reports', icon: <FileText size={18} /> },
-  { view: 'directory', label: 'Directory', icon: <Contact size={18} /> },
-  { view: 'connect-card', label: 'Connect Card', icon: <QrCode size={18} /> },
-  { view: 'forms', label: 'Forms', icon: <FormInput size={18} /> },
-  { view: 'member-portal', label: 'Member Portal', icon: <Smartphone size={18} /> },
 ];
 
 // View labels for breadcrumbs
@@ -84,7 +65,7 @@ const viewLabels: Record<View, string> = {
   'charity-baskets': 'Charity Baskets',
   'donation-tracker': 'Donation Tracker',
   'member-stats': 'Member Stats',
-  agents: 'AI Agents',
+  agents: 'AI Assistant',
   tags: 'Tags',
   reports: 'Reports',
   settings: 'Settings',
@@ -141,10 +122,20 @@ export function Layout({ currentView, setView, children, onOpenSearch }: LayoutP
 
   // Breadcrumb paths
   const getBreadcrumbs = () => {
-    if (currentView === 'person') {
+    // Sub-pages under People
+    const peopleSubViews = ['person', 'pipeline', 'directory', 'tags'];
+    if (peopleSubViews.includes(currentView)) {
       return [
         { label: 'People', view: 'people' as View },
-        { label: 'Profile', view: currentView },
+        { label: viewLabels[currentView], view: currentView },
+      ];
+    }
+    // Sub-pages under Calendar
+    const calendarSubViews = ['birthdays', 'attendance', 'volunteers', 'child-checkin'];
+    if (calendarSubViews.includes(currentView)) {
+      return [
+        { label: 'Calendar', view: 'calendar' as View },
+        { label: viewLabels[currentView], view: currentView },
       ];
     }
     // Sub-pages under Giving
@@ -217,9 +208,14 @@ export function Layout({ currentView, setView, children, onOpenSearch }: LayoutP
         {/* Navigation */}
         <nav className={`flex-1 px-3 py-2 space-y-0.5 overflow-y-auto ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
           {navItems.map((item) => {
+            const givingViews = ['online-giving', 'batch-entry', 'pledges', 'campaigns', 'statements', 'charity-baskets', 'donation-tracker', 'member-stats'];
+            const calendarViews = ['birthdays', 'attendance', 'volunteers', 'child-checkin'];
+            const peopleViews = ['person', 'pipeline', 'directory', 'tags'];
+
             const isActive = currentView === item.view ||
-              (item.view === 'giving' && ['online-giving', 'batch-entry', 'pledges', 'campaigns', 'statements', 'charity-baskets', 'donation-tracker', 'member-stats'].includes(currentView)) ||
-              (item.view === 'people' && currentView === 'person');
+              (item.view === 'giving' && givingViews.includes(currentView)) ||
+              (item.view === 'calendar' && calendarViews.includes(currentView)) ||
+              (item.view === 'people' && peopleViews.includes(currentView));
 
             return (
               <button
