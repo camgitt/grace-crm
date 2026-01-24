@@ -11,8 +11,7 @@ import {
   Check,
   X,
   ExternalLink,
-  Eye,
-  EyeOff,
+  Settings as SettingsIcon,
 } from 'lucide-react';
 import { useIntegrations } from '../contexts/IntegrationsContext';
 
@@ -23,7 +22,8 @@ interface IntegrationCardProps {
   iconBg: string;
   isConfigured: boolean;
   setupUrl: string;
-  onConfigure: () => void;
+  envVars: string[];
+  onShowInfo: () => void;
 }
 
 function IntegrationCard({
@@ -33,7 +33,8 @@ function IntegrationCard({
   iconBg,
   isConfigured,
   setupUrl,
-  onConfigure,
+  envVars,
+  onShowInfo,
 }: IntegrationCardProps) {
   return (
     <div className="bg-white dark:bg-dark-850 rounded-2xl border border-gray-200 dark:border-dark-700 p-6">
@@ -54,19 +55,27 @@ function IntegrationCard({
               Connected
             </span>
           ) : (
-            <span className="flex items-center gap-1 text-sm text-gray-500 dark:text-dark-400 bg-gray-100 dark:bg-dark-800 px-2 py-1 rounded-full">
+            <span className="flex items-center gap-1 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 rounded-full">
               <X size={14} />
               Not configured
             </span>
           )}
         </div>
       </div>
+      {!isConfigured && (
+        <div className="mt-3 p-2 bg-gray-50 dark:bg-dark-800 rounded-lg">
+          <p className="text-xs text-gray-500 dark:text-dark-400">
+            Set in Vercel: {envVars.join(', ')}
+          </p>
+        </div>
+      )}
       <div className="mt-4 flex gap-2">
         <button
-          onClick={onConfigure}
-          className="flex-1 px-4 py-2 text-sm font-medium bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-500/20"
+          onClick={onShowInfo}
+          className="flex-1 px-4 py-2 text-sm font-medium bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-500/20 flex items-center justify-center gap-1"
         >
-          {isConfigured ? 'Update Settings' : 'Configure'}
+          <SettingsIcon size={14} />
+          {isConfigured ? 'View Info' : 'Setup Guide'}
         </button>
         <a
           href={setupUrl}
@@ -81,14 +90,14 @@ function IntegrationCard({
   );
 }
 
-interface ConfigModalProps {
+interface InfoModalProps {
   title: string;
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
 }
 
-function ConfigModal({ title, isOpen, onClose, children }: ConfigModalProps) {
+function InfoModal({ title, isOpen, onClose, children }: InfoModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -111,104 +120,14 @@ function ConfigModal({ title, isOpen, onClose, children }: ConfigModalProps) {
   );
 }
 
-function PasswordInput({
-  label,
-  value,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-}) {
-  const [show, setShow] = useState(false);
-
-  return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">
-        {label}
-      </label>
-      <div className="relative">
-        <input
-          type={show ? 'text' : 'password'}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="w-full px-4 py-2.5 pr-10 border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
-        <button
-          type="button"
-          onClick={() => setShow(!show)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-        >
-          {show ? <EyeOff size={16} /> : <Eye size={16} />}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export function Settings() {
-  const { status, saveIntegrations } = useIntegrations();
+  const { status } = useIntegrations();
 
-  // Modal states
-  const [showEmailConfig, setShowEmailConfig] = useState(false);
-  const [showSmsConfig, setShowSmsConfig] = useState(false);
-  const [showPaymentConfig, setShowPaymentConfig] = useState(false);
-  const [showAuthConfig, setShowAuthConfig] = useState(false);
-
-  // Form states
-  const [emailConfig, setEmailConfig] = useState({
-    resendApiKey: '',
-    emailFromAddress: '',
-    emailFromName: '',
-  });
-
-  const [smsConfig, setSmsConfig] = useState({
-    twilioAccountSid: '',
-    twilioAuthToken: '',
-    twilioPhoneNumber: '',
-  });
-
-  const [paymentConfig, setPaymentConfig] = useState({
-    stripePublishableKey: '',
-  });
-
-  const [saving, setSaving] = useState(false);
-
-  const handleSaveEmailConfig = async () => {
-    setSaving(true);
-    const success = await saveIntegrations(emailConfig);
-    setSaving(false);
-    if (success) {
-      setShowEmailConfig(false);
-      // Clear form for security
-      setEmailConfig({ resendApiKey: '', emailFromAddress: '', emailFromName: '' });
-    }
-  };
-
-  const handleSaveSmsConfig = async () => {
-    setSaving(true);
-    const success = await saveIntegrations(smsConfig);
-    setSaving(false);
-    if (success) {
-      setShowSmsConfig(false);
-      // Clear form for security
-      setSmsConfig({ twilioAccountSid: '', twilioAuthToken: '', twilioPhoneNumber: '' });
-    }
-  };
-
-  const handleSavePaymentConfig = async () => {
-    setSaving(true);
-    const success = await saveIntegrations(paymentConfig);
-    setSaving(false);
-    if (success) {
-      setShowPaymentConfig(false);
-      // Clear form for security
-      setPaymentConfig({ stripePublishableKey: '' });
-    }
-  };
+  // Modal states for info dialogs
+  const [showEmailInfo, setShowEmailInfo] = useState(false);
+  const [showSmsInfo, setShowSmsInfo] = useState(false);
+  const [showPaymentInfo, setShowPaymentInfo] = useState(false);
+  const [showAuthInfo, setShowAuthInfo] = useState(false);
 
   return (
     <div className="p-8">
@@ -219,9 +138,12 @@ export function Settings() {
 
       {/* Integrations Section */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-100 mb-4">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-100 mb-2">
           Integrations
         </h2>
+        <p className="text-sm text-gray-500 dark:text-dark-400 mb-4">
+          Integrations are configured via environment variables in Vercel for security and stability.
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <IntegrationCard
             title="Email (Resend)"
@@ -230,7 +152,8 @@ export function Settings() {
             iconBg="bg-blue-100 dark:bg-blue-500/10"
             isConfigured={status.email}
             setupUrl="https://resend.com/docs"
-            onConfigure={() => setShowEmailConfig(true)}
+            envVars={['VITE_RESEND_API_KEY', 'VITE_EMAIL_FROM_ADDRESS']}
+            onShowInfo={() => setShowEmailInfo(true)}
           />
 
           <IntegrationCard
@@ -240,7 +163,8 @@ export function Settings() {
             iconBg="bg-green-100 dark:bg-green-500/10"
             isConfigured={status.sms}
             setupUrl="https://www.twilio.com/docs"
-            onConfigure={() => setShowSmsConfig(true)}
+            envVars={['VITE_TWILIO_ACCOUNT_SID', 'VITE_TWILIO_AUTH_TOKEN']}
+            onShowInfo={() => setShowSmsInfo(true)}
           />
 
           <IntegrationCard
@@ -250,7 +174,8 @@ export function Settings() {
             iconBg="bg-purple-100 dark:bg-purple-500/10"
             isConfigured={status.payments}
             setupUrl="https://stripe.com/docs"
-            onConfigure={() => setShowPaymentConfig(true)}
+            envVars={['VITE_STRIPE_PUBLISHABLE_KEY']}
+            onShowInfo={() => setShowPaymentInfo(true)}
           />
 
           <IntegrationCard
@@ -260,7 +185,8 @@ export function Settings() {
             iconBg="bg-amber-100 dark:bg-amber-500/10"
             isConfigured={!!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
             setupUrl="https://clerk.com/docs"
-            onConfigure={() => setShowAuthConfig(true)}
+            envVars={['VITE_CLERK_PUBLISHABLE_KEY']}
+            onShowInfo={() => setShowAuthInfo(true)}
           />
         </div>
       </div>
@@ -400,140 +326,170 @@ export function Settings() {
         </div>
       </div>
 
-      {/* Email Config Modal */}
-      <ConfigModal
-        title="Configure Email (Resend)"
-        isOpen={showEmailConfig}
-        onClose={() => setShowEmailConfig(false)}
+      {/* Email Info Modal */}
+      <InfoModal
+        title="Email Integration (Resend)"
+        isOpen={showEmailInfo}
+        onClose={() => setShowEmailInfo(false)}
       >
         <div className="space-y-4">
-          <PasswordInput
-            label="Resend API Key"
-            value={emailConfig.resendApiKey}
-            onChange={(v) => setEmailConfig({ ...emailConfig, resendApiKey: v })}
-            placeholder="re_..."
-          />
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">
-              From Email Address
-            </label>
-            <input
-              type="email"
-              value={emailConfig.emailFromAddress}
-              onChange={(e) => setEmailConfig({ ...emailConfig, emailFromAddress: e.target.value })}
-              placeholder="noreply@yourdomain.com"
-              className="w-full px-4 py-2.5 border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">
-              From Name
-            </label>
-            <input
-              type="text"
-              value={emailConfig.emailFromName}
-              onChange={(e) => setEmailConfig({ ...emailConfig, emailFromName: e.target.value })}
-              placeholder="Grace Community Church"
-              className="w-full px-4 py-2.5 border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          <button
-            onClick={handleSaveEmailConfig}
-            disabled={saving || !emailConfig.resendApiKey}
-            className="w-full px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {saving ? 'Saving...' : 'Save Configuration'}
-          </button>
-        </div>
-      </ConfigModal>
-
-      {/* SMS Config Modal */}
-      <ConfigModal
-        title="Configure SMS (Twilio)"
-        isOpen={showSmsConfig}
-        onClose={() => setShowSmsConfig(false)}
-      >
-        <div className="space-y-4">
-          <PasswordInput
-            label="Account SID"
-            value={smsConfig.twilioAccountSid}
-            onChange={(v) => setSmsConfig({ ...smsConfig, twilioAccountSid: v })}
-            placeholder="AC..."
-          />
-          <PasswordInput
-            label="Auth Token"
-            value={smsConfig.twilioAuthToken}
-            onChange={(v) => setSmsConfig({ ...smsConfig, twilioAuthToken: v })}
-            placeholder="Your auth token"
-          />
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-dark-300 mb-1">
-              Twilio Phone Number
-            </label>
-            <input
-              type="tel"
-              value={smsConfig.twilioPhoneNumber}
-              onChange={(e) => setSmsConfig({ ...smsConfig, twilioPhoneNumber: e.target.value })}
-              placeholder="+1234567890"
-              className="w-full px-4 py-2.5 border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          <button
-            onClick={handleSaveSmsConfig}
-            disabled={saving || !smsConfig.twilioAccountSid || !smsConfig.twilioAuthToken || !smsConfig.twilioPhoneNumber}
-            className="w-full px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {saving ? 'Saving...' : 'Save Configuration'}
-          </button>
-        </div>
-      </ConfigModal>
-
-      {/* Payment Config Modal */}
-      <ConfigModal
-        title="Configure Payments (Stripe)"
-        isOpen={showPaymentConfig}
-        onClose={() => setShowPaymentConfig(false)}
-      >
-        <div className="space-y-4">
-          <PasswordInput
-            label="Stripe Publishable Key"
-            value={paymentConfig.stripePublishableKey}
-            onChange={(v) => setPaymentConfig({ ...paymentConfig, stripePublishableKey: v })}
-            placeholder="pk_test_..."
-          />
-          <p className="text-xs text-gray-500 dark:text-dark-400">
-            Note: For production use, you'll also need to set up a backend server to handle Stripe webhooks and secret key operations securely.
-          </p>
-          <button
-            onClick={handleSavePaymentConfig}
-            disabled={saving || !paymentConfig.stripePublishableKey}
-            className="w-full px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {saving ? 'Saving...' : 'Save Configuration'}
-          </button>
-        </div>
-      </ConfigModal>
-
-      {/* Auth Config Modal */}
-      <ConfigModal
-        title="Configure Authentication (Clerk)"
-        isOpen={showAuthConfig}
-        onClose={() => setShowAuthConfig(false)}
-      >
-        <div className="space-y-4">
-          <div className="p-4 bg-amber-50 dark:bg-amber-500/10 rounded-xl">
-            <p className="text-sm text-amber-800 dark:text-amber-400">
-              Clerk authentication requires setting the <code className="bg-amber-100 dark:bg-amber-500/20 px-1 rounded">VITE_CLERK_PUBLISHABLE_KEY</code> environment variable.
-            </p>
+          {status.email ? (
+            <div className="p-4 bg-green-50 dark:bg-green-500/10 rounded-xl">
+              <p className="text-sm text-green-800 dark:text-green-400 flex items-center gap-2">
+                <Check size={16} />
+                Email integration is configured and ready to use.
+              </p>
+            </div>
+          ) : (
+            <div className="p-4 bg-amber-50 dark:bg-amber-500/10 rounded-xl">
+              <p className="text-sm text-amber-800 dark:text-amber-400">
+                Email integration requires environment variables to be set in Vercel.
+              </p>
+            </div>
+          )}
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-gray-700 dark:text-dark-300">Required Environment Variables:</p>
+            <div className="bg-gray-50 dark:bg-dark-800 p-3 rounded-lg font-mono text-xs space-y-1">
+              <p className="text-gray-600 dark:text-dark-300">VITE_RESEND_API_KEY=re_xxx</p>
+              <p className="text-gray-600 dark:text-dark-300">VITE_EMAIL_FROM_ADDRESS=noreply@yourdomain.com</p>
+              <p className="text-gray-600 dark:text-dark-300">VITE_EMAIL_FROM_NAME=Your Church Name</p>
+            </div>
           </div>
           <div className="space-y-2">
-            <p className="text-sm text-gray-600 dark:text-dark-300">To set up Clerk:</p>
+            <p className="text-sm text-gray-600 dark:text-dark-300">To configure in Vercel:</p>
+            <ol className="text-sm text-gray-600 dark:text-dark-300 list-decimal list-inside space-y-1">
+              <li>Get your API key from resend.com</li>
+              <li>Go to your Vercel project settings</li>
+              <li>Navigate to Environment Variables</li>
+              <li>Add the variables above</li>
+              <li>Redeploy your application</li>
+            </ol>
+          </div>
+        </div>
+      </InfoModal>
+
+      {/* SMS Info Modal */}
+      <InfoModal
+        title="SMS Integration (Twilio)"
+        isOpen={showSmsInfo}
+        onClose={() => setShowSmsInfo(false)}
+      >
+        <div className="space-y-4">
+          {status.sms ? (
+            <div className="p-4 bg-green-50 dark:bg-green-500/10 rounded-xl">
+              <p className="text-sm text-green-800 dark:text-green-400 flex items-center gap-2">
+                <Check size={16} />
+                SMS integration is configured and ready to use.
+              </p>
+            </div>
+          ) : (
+            <div className="p-4 bg-amber-50 dark:bg-amber-500/10 rounded-xl">
+              <p className="text-sm text-amber-800 dark:text-amber-400">
+                SMS integration requires environment variables to be set in Vercel.
+              </p>
+            </div>
+          )}
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-gray-700 dark:text-dark-300">Required Environment Variables:</p>
+            <div className="bg-gray-50 dark:bg-dark-800 p-3 rounded-lg font-mono text-xs space-y-1">
+              <p className="text-gray-600 dark:text-dark-300">VITE_TWILIO_ACCOUNT_SID=ACxxx</p>
+              <p className="text-gray-600 dark:text-dark-300">VITE_TWILIO_AUTH_TOKEN=your-auth-token</p>
+              <p className="text-gray-600 dark:text-dark-300">VITE_TWILIO_PHONE_NUMBER=+1234567890</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-gray-600 dark:text-dark-300">To configure in Vercel:</p>
+            <ol className="text-sm text-gray-600 dark:text-dark-300 list-decimal list-inside space-y-1">
+              <li>Get your credentials from console.twilio.com</li>
+              <li>Go to your Vercel project settings</li>
+              <li>Navigate to Environment Variables</li>
+              <li>Add the variables above</li>
+              <li>Redeploy your application</li>
+            </ol>
+          </div>
+        </div>
+      </InfoModal>
+
+      {/* Payment Info Modal */}
+      <InfoModal
+        title="Payments Integration (Stripe)"
+        isOpen={showPaymentInfo}
+        onClose={() => setShowPaymentInfo(false)}
+      >
+        <div className="space-y-4">
+          {status.payments ? (
+            <div className="p-4 bg-green-50 dark:bg-green-500/10 rounded-xl">
+              <p className="text-sm text-green-800 dark:text-green-400 flex items-center gap-2">
+                <Check size={16} />
+                Payments integration is configured and ready to use.
+              </p>
+            </div>
+          ) : (
+            <div className="p-4 bg-amber-50 dark:bg-amber-500/10 rounded-xl">
+              <p className="text-sm text-amber-800 dark:text-amber-400">
+                Payments integration requires environment variables to be set in Vercel.
+              </p>
+            </div>
+          )}
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-gray-700 dark:text-dark-300">Required Environment Variables:</p>
+            <div className="bg-gray-50 dark:bg-dark-800 p-3 rounded-lg font-mono text-xs space-y-1">
+              <p className="text-gray-600 dark:text-dark-300">VITE_STRIPE_PUBLISHABLE_KEY=pk_test_xxx</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-gray-600 dark:text-dark-300">To configure in Vercel:</p>
+            <ol className="text-sm text-gray-600 dark:text-dark-300 list-decimal list-inside space-y-1">
+              <li>Get your publishable key from dashboard.stripe.com</li>
+              <li>Go to your Vercel project settings</li>
+              <li>Navigate to Environment Variables</li>
+              <li>Add the variable above</li>
+              <li>Redeploy your application</li>
+            </ol>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-dark-400">
+            Note: The Stripe secret key should only be used on the backend for security.
+          </p>
+        </div>
+      </InfoModal>
+
+      {/* Auth Info Modal */}
+      <InfoModal
+        title="Authentication (Clerk)"
+        isOpen={showAuthInfo}
+        onClose={() => setShowAuthInfo(false)}
+      >
+        <div className="space-y-4">
+          {import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ? (
+            <div className="p-4 bg-green-50 dark:bg-green-500/10 rounded-xl">
+              <p className="text-sm text-green-800 dark:text-green-400 flex items-center gap-2">
+                <Check size={16} />
+                Authentication is configured and ready to use.
+              </p>
+            </div>
+          ) : (
+            <div className="p-4 bg-amber-50 dark:bg-amber-500/10 rounded-xl">
+              <p className="text-sm text-amber-800 dark:text-amber-400">
+                Authentication requires environment variables to be set in Vercel.
+              </p>
+            </div>
+          )}
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-gray-700 dark:text-dark-300">Required Environment Variables:</p>
+            <div className="bg-gray-50 dark:bg-dark-800 p-3 rounded-lg font-mono text-xs space-y-1">
+              <p className="text-gray-600 dark:text-dark-300">VITE_CLERK_PUBLISHABLE_KEY=pk_test_xxx</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-gray-600 dark:text-dark-300">To configure in Vercel:</p>
             <ol className="text-sm text-gray-600 dark:text-dark-300 list-decimal list-inside space-y-1">
               <li>Create an account at clerk.com</li>
               <li>Create a new application</li>
               <li>Copy your publishable key</li>
-              <li>Add it to your .env.local file</li>
-              <li>Restart the development server</li>
+              <li>Go to your Vercel project settings</li>
+              <li>Navigate to Environment Variables</li>
+              <li>Add the variable above</li>
+              <li>Redeploy your application</li>
             </ol>
           </div>
           <a
@@ -545,7 +501,7 @@ export function Settings() {
             View Clerk Setup Guide
           </a>
         </div>
-      </ConfigModal>
+      </InfoModal>
     </div>
   );
 }

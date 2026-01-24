@@ -184,3 +184,66 @@ Format as a numbered list.`,
     maxTokens: 400,
   });
 }
+
+/**
+ * Generate a custom message based on user description
+ */
+export async function generateCustomMessage(
+  description: string
+): Promise<AIGenerateResult> {
+  return generateAIText({
+    prompt: `Write a message for a church based on this description: "${description}"
+
+Keep it warm, professional, and appropriate for church communication.
+Keep it under 150 words unless more detail is clearly needed.`,
+    maxTokens: 400,
+  });
+}
+
+// ============================================
+// AI Service Singleton for component usage
+// ============================================
+
+interface AIMessage {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
+export const aiService = {
+  isConfigured(): boolean {
+    // Check if we can reach the API - assume configured if env var would be set
+    // The actual check happens server-side
+    return true;
+  },
+
+  async generateWelcomeMessage(name: string, churchName: string): Promise<AIMessage> {
+    const result = await generateWelcomeMessage(name, churchName);
+    return { success: result.success, message: result.text, error: result.error };
+  },
+
+  async generateBirthdayMessage(name: string, churchName: string): Promise<AIMessage> {
+    const result = await generateBirthdayGreeting(name, churchName);
+    return { success: result.success, message: result.text, error: result.error };
+  },
+
+  async generateDonationThankYou(name: string, amount: string, churchName: string): Promise<AIMessage> {
+    const result = await generateDonationThankYou(name, parseFloat(amount) || 100, 'General', churchName, false);
+    return { success: result.success, message: result.text, error: result.error };
+  },
+
+  async generatePrayerSummary(requests: Array<{ name: string; request: string; date: string }>): Promise<AIMessage> {
+    const result = await summarizePrayerRequests(requests.map(r => ({ name: r.name, request: r.request })));
+    return { success: result.success, message: result.text, error: result.error };
+  },
+
+  async generateFollowUpTalkingPoints(name: string, context: string): Promise<AIMessage> {
+    const result = await generateFollowUpTalkingPoints(name, 'recently', context);
+    return { success: result.success, message: result.text, error: result.error };
+  },
+
+  async generateCustomMessage(description: string): Promise<AIMessage> {
+    const result = await generateCustomMessage(description);
+    return { success: result.success, message: result.text, error: result.error };
+  },
+};

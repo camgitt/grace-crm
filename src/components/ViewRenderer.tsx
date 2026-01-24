@@ -24,7 +24,7 @@ const BirthdayCalendar = lazy(() => import('./BirthdayCalendar').then(m => ({ de
 const CharityBaskets = lazy(() => import('./CharityBaskets').then(m => ({ default: m.CharityBaskets })));
 const MemberDonationStats = lazy(() => import('./MemberDonationStats').then(m => ({ default: m.MemberDonationStats })));
 const DonationTracker = lazy(() => import('./DonationTracker').then(m => ({ default: m.DonationTracker })));
-const AgentDashboard = lazy(() => import('./AgentDashboard').then(m => ({ default: m.AgentDashboard })));
+const AIAssistant = lazy(() => import('./AIAssistant').then(m => ({ default: m.AIAssistant })));
 const ConnectCard = lazy(() => import('./ConnectCard').then(m => ({ default: m.ConnectCard })));
 const MemberDirectory = lazy(() => import('./MemberDirectory').then(m => ({ default: m.MemberDirectory })));
 const ChildCheckIn = lazy(() => import('./ChildCheckIn').then(m => ({ default: m.ChildCheckIn })));
@@ -116,7 +116,7 @@ interface ViewRendererProps {
 export function ViewRenderer(props: ViewRendererProps) {
   const { view, setView, churchId, people, tasks, interactions, giving, groups, prayers, events,
     attendanceRecords, rsvps, volunteerAssignments, selectedPerson, handlers,
-    collectionMgmt, charityBasketMgmt, agents } = props;
+    collectionMgmt, charityBasketMgmt } = props;
 
   // Core views (not lazy loaded for instant response)
   switch (view) {
@@ -126,6 +126,8 @@ export function ViewRenderer(props: ViewRendererProps) {
           people={people}
           tasks={tasks}
           giving={giving}
+          interactions={interactions}
+          prayers={prayers}
           onViewPerson={handlers.viewPerson}
           onViewTasks={() => setView('tasks')}
           onViewGiving={() => setView('giving')}
@@ -298,21 +300,7 @@ export function ViewRenderer(props: ViewRendererProps) {
         return <BirthdayCalendar people={people} onViewPerson={handlers.viewPerson} />;
 
       case 'agents':
-        return (
-          <div className="p-6 max-w-7xl mx-auto">
-            <AgentDashboard
-              lifeEventConfig={agents.lifeEventConfig}
-              donationConfig={agents.donationConfig}
-              newMemberConfig={agents.newMemberConfig}
-              upcomingLifeEvents={agents.upcomingLifeEvents}
-              recentLogs={agents.logs}
-              stats={agents.stats}
-              onToggleAgent={agents.toggleAgent}
-              onUpdateConfig={agents.updateConfig}
-              onRunAgent={agents.runAgent}
-            />
-          </div>
-        );
+        return <AIAssistant />;
 
       case 'settings':
         return <Settings />;

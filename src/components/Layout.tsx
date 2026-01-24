@@ -13,22 +13,12 @@ import {
   Sun,
   Menu,
   Search,
-  TrendingUp,
-  UserCheck,
-  ClipboardList,
   PanelLeftClose,
   PanelLeft,
   ChevronRight,
-  Tag,
   FileText,
-  Cake,
   X,
-  Bot,
-  QrCode,
-  Contact,
-  Baby,
-  FormInput,
-  Smartphone,
+  Sparkles,
 } from 'lucide-react';
 import { View } from '../types';
 import { useTheme } from '../ThemeContext';
@@ -40,26 +30,17 @@ interface LayoutProps {
   onOpenSearch?: () => void;
 }
 
+// Simplified navigation - core features
 const navItems: { view: View; label: string; icon: ReactNode }[] = [
   { view: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-  { view: 'pipeline', label: 'Pipeline', icon: <TrendingUp size={18} /> },
   { view: 'people', label: 'People', icon: <Users size={18} /> },
   { view: 'tasks', label: 'Follow-Ups', icon: <CheckSquare size={18} /> },
-  { view: 'attendance', label: 'Attendance', icon: <UserCheck size={18} /> },
-  { view: 'child-checkin', label: 'Child Check-In', icon: <Baby size={18} /> },
   { view: 'calendar', label: 'Calendar', icon: <Calendar size={18} /> },
-  { view: 'birthdays', label: 'Birthdays', icon: <Cake size={18} /> },
-  { view: 'volunteers', label: 'Volunteers', icon: <ClipboardList size={18} /> },
   { view: 'groups', label: 'Groups', icon: <Users2 size={18} /> },
   { view: 'prayer', label: 'Prayer', icon: <Heart size={18} /> },
   { view: 'giving', label: 'Giving', icon: <DollarSign size={18} /> },
-  { view: 'agents', label: 'AI Agents', icon: <Bot size={18} /> },
-  { view: 'tags', label: 'Tags', icon: <Tag size={18} /> },
+  { view: 'agents', label: 'AI Assistant', icon: <Sparkles size={18} /> },
   { view: 'reports', label: 'Reports', icon: <FileText size={18} /> },
-  { view: 'directory', label: 'Directory', icon: <Contact size={18} /> },
-  { view: 'connect-card', label: 'Connect Card', icon: <QrCode size={18} /> },
-  { view: 'forms', label: 'Forms', icon: <FormInput size={18} /> },
-  { view: 'member-portal', label: 'Member Portal', icon: <Smartphone size={18} /> },
 ];
 
 // View labels for breadcrumbs
@@ -84,7 +65,7 @@ const viewLabels: Record<View, string> = {
   'charity-baskets': 'Charity Baskets',
   'donation-tracker': 'Donation Tracker',
   'member-stats': 'Member Stats',
-  agents: 'AI Agents',
+  agents: 'AI Assistant',
   tags: 'Tags',
   reports: 'Reports',
   settings: 'Settings',
@@ -141,10 +122,20 @@ export function Layout({ currentView, setView, children, onOpenSearch }: LayoutP
 
   // Breadcrumb paths
   const getBreadcrumbs = () => {
-    if (currentView === 'person') {
+    // Sub-pages under People
+    const peopleSubViews = ['person', 'pipeline', 'directory', 'tags'];
+    if (peopleSubViews.includes(currentView)) {
       return [
         { label: 'People', view: 'people' as View },
-        { label: 'Profile', view: currentView },
+        { label: viewLabels[currentView], view: currentView },
+      ];
+    }
+    // Sub-pages under Calendar
+    const calendarSubViews = ['birthdays', 'attendance', 'volunteers', 'child-checkin'];
+    if (calendarSubViews.includes(currentView)) {
+      return [
+        { label: 'Calendar', view: 'calendar' as View },
+        { label: viewLabels[currentView], view: currentView },
       ];
     }
     // Sub-pages under Giving
@@ -179,12 +170,15 @@ export function Layout({ currentView, setView, children, onOpenSearch }: LayoutP
         {/* Logo */}
         <div className={`flex items-center h-14 border-b border-gray-200/50 dark:border-white/5 ${sidebarCollapsed ? 'lg:justify-center lg:px-0 px-4' : 'px-4'}`}>
           <div className={`flex items-center ${sidebarCollapsed ? 'lg:justify-center' : 'gap-2.5'}`}>
-            <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-violet-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+            <div className="w-8 h-8 bg-slate-800 dark:bg-slate-700 rounded-lg flex items-center justify-center flex-shrink-0">
               <span className="text-white font-semibold text-sm">G</span>
             </div>
-            <span className={`font-semibold text-gray-900 dark:text-gray-100 tracking-tight ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
-              Grace
-            </span>
+            <div className={sidebarCollapsed ? 'lg:hidden' : ''}>
+              <span className="font-semibold text-slate-900 dark:text-white">
+                Grace
+              </span>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 -mt-0.5">Church CRM</p>
+            </div>
           </div>
           {/* Mobile close button */}
           <button
@@ -215,33 +209,38 @@ export function Layout({ currentView, setView, children, onOpenSearch }: LayoutP
         )}
 
         {/* Navigation */}
-        <nav className={`flex-1 px-3 py-2 space-y-0.5 overflow-y-auto ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
+        <nav className={`flex-1 px-3 py-3 space-y-0.5 overflow-y-auto ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
           {navItems.map((item) => {
+            const givingViews = ['online-giving', 'batch-entry', 'pledges', 'campaigns', 'statements', 'charity-baskets', 'donation-tracker', 'member-stats'];
+            const calendarViews = ['birthdays', 'attendance', 'volunteers', 'child-checkin'];
+            const peopleViews = ['person', 'pipeline', 'directory', 'tags'];
+
             const isActive = currentView === item.view ||
-              (item.view === 'giving' && ['online-giving', 'batch-entry', 'pledges', 'campaigns', 'statements', 'charity-baskets', 'donation-tracker', 'member-stats'].includes(currentView)) ||
-              (item.view === 'people' && currentView === 'person');
+              (item.view === 'giving' && givingViews.includes(currentView)) ||
+              (item.view === 'calendar' && calendarViews.includes(currentView)) ||
+              (item.view === 'people' && peopleViews.includes(currentView));
 
             return (
               <button
                 key={item.view}
                 onClick={() => handleNavClick(item.view)}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sm transition-all duration-200 group relative ${
+                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors group relative ${
                   sidebarCollapsed ? 'lg:justify-center' : ''
                 } ${
                   isActive
-                    ? 'bg-violet-50/80 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 font-medium shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/80 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-gray-200'
+                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-medium'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
                 title={sidebarCollapsed ? item.label : undefined}
               >
-                <span className={isActive ? 'text-violet-600 dark:text-violet-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400'}>
+                <span className={`${isActive ? 'text-slate-700 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500'}`}>
                   {item.icon}
                 </span>
                 <span className={sidebarCollapsed ? 'lg:hidden' : ''}>{item.label}</span>
 
                 {/* Tooltip for collapsed state */}
                 {sidebarCollapsed && (
-                  <span className="hidden lg:group-hover:flex absolute left-full ml-2 px-2.5 py-1.5 bg-gray-900/95 dark:bg-gray-800/95 text-white text-xs rounded-lg whitespace-nowrap z-50 shadow-lg backdrop-blur-sm font-medium">
+                  <span className="hidden lg:group-hover:flex absolute left-full ml-2 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-700 text-white text-xs rounded-lg whitespace-nowrap z-50 shadow-lg">
                     {item.label}
                   </span>
                 )}
