@@ -38,12 +38,14 @@ interface DashboardProps {
   onViewPerson: (id: string) => void;
   onViewTasks: () => void;
   onViewGiving?: () => void;
+  onViewPeople?: () => void;
+  onViewVisitors?: () => void;
 }
 
 type DashboardTab = 'overview' | 'sunday-prep' | 'tasks';
 type TaskViewMode = 'list' | 'kanban';
 
-export function Dashboard({ people, tasks, giving = [], interactions = [], prayers = [], onViewPerson, onViewTasks, onViewGiving }: DashboardProps) {
+export function Dashboard({ people, tasks, giving = [], interactions = [], prayers = [], onViewPerson, onViewTasks, onViewGiving, onViewPeople, onViewVisitors }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   const [taskViewMode, setTaskViewMode] = useState<TaskViewMode>('kanban');
 
@@ -262,6 +264,7 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
           changeLabel="vs last month"
           sparklineData={peopleSparkline}
           accentColor="blue"
+          onClick={onViewPeople}
         />
         <StatCard
           label="New Visitors"
@@ -271,6 +274,7 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
           changeLabel="this week"
           sparklineData={visitorsSparkline}
           accentColor="amber"
+          onClick={onViewVisitors}
         />
         <StatCard
           label="Need Attention"
@@ -279,6 +283,7 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
           change={inactive.length > 0 ? -8 : 0}
           changeLabel="improving"
           accentColor="rose"
+          onClick={onViewPeople}
         />
         <StatCard
           label="Tasks Done"
@@ -288,6 +293,7 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
           changeLabel="this week"
           sparklineData={tasksSparkline}
           accentColor="emerald"
+          onClick={onViewTasks}
         />
       </div>
 

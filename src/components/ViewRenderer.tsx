@@ -131,6 +131,8 @@ export function ViewRenderer(props: ViewRendererProps) {
           onViewPerson={handlers.viewPerson}
           onViewTasks={() => setView('tasks')}
           onViewGiving={() => setView('giving')}
+          onViewPeople={() => setView('people')}
+          onViewVisitors={() => setView('pipeline')}
         />
       );
 
