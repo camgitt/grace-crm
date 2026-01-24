@@ -408,6 +408,296 @@ export const SAMPLE_PEOPLE: Person[] = [
     smallGroups: [],
     familyId: 'fam-1',
     notes: 'Lisa & Mark\'s son, age 5. In preschool class.'
+  },
+
+  // === EXPANDED MOCK DATA (50 people total) ===
+
+  // More active members
+  {
+    id: '29',
+    firstName: 'Catherine',
+    lastName: 'Brooks',
+    email: 'catherine.brooks@email.com',
+    phone: '(555) 111-2233',
+    status: 'member',
+    joinDate: '2022-03-15',
+    birthDate: '1978-05-20',
+    tags: ['hospitality', 'greeter'],
+    smallGroups: ['3'],
+    notes: 'Always first to volunteer for events.'
+  },
+  {
+    id: '30',
+    firstName: 'William',
+    lastName: 'Scott',
+    email: 'will.scott@email.com',
+    phone: '(555) 222-3344',
+    status: 'member',
+    joinDate: '2021-07-10',
+    birthDate: '1982-09-12',
+    tags: ['parking-team', 'mens-group'],
+    smallGroups: ['1'],
+    notes: 'Former military. Great leader.'
+  },
+  {
+    id: '31',
+    firstName: 'Jessica',
+    lastName: 'Rivera',
+    email: 'jessica.r@email.com',
+    phone: '(555) 333-4455',
+    status: 'regular',
+    firstVisit: '2024-06-20',
+    birthDate: '1994-12-03',
+    tags: ['young-adult', 'creative'],
+    smallGroups: ['2'],
+    notes: 'Photographer. Offers to help with church events.'
+  },
+  {
+    id: '32',
+    firstName: 'Jonathan',
+    lastName: 'Hughes',
+    email: 'jon.hughes@email.com',
+    phone: '(555) 444-5566',
+    status: 'leader',
+    joinDate: '2019-01-20',
+    birthDate: '1975-02-28',
+    tags: ['elder', 'teaching'],
+    smallGroups: ['1'],
+    notes: 'Teaches adult Sunday school class.'
+  },
+  {
+    id: '33',
+    firstName: 'Samantha',
+    lastName: 'Price',
+    email: 'sam.price@email.com',
+    phone: '(555) 555-6677',
+    status: 'member',
+    joinDate: '2023-04-08',
+    birthDate: getBirthDateForUpcoming(7),
+    tags: ['worship-team', 'musician'],
+    smallGroups: ['3'],
+    notes: 'Plays keyboard. Music teacher.'
+  },
+  {
+    id: '34',
+    firstName: 'Benjamin',
+    lastName: 'Morris',
+    email: 'ben.morris@email.com',
+    phone: '(555) 666-7788',
+    status: 'member',
+    joinDate: '2020-11-01',
+    birthDate: '1988-07-15',
+    tags: ['tech-team', 'streaming'],
+    smallGroups: ['2'],
+    notes: 'Runs live stream production.'
+  },
+  {
+    id: '35',
+    firstName: 'Hannah',
+    lastName: 'Nelson',
+    email: 'hannah.n@email.com',
+    phone: '(555) 777-8899',
+    status: 'visitor',
+    firstVisit: getDateString(-7),
+    birthDate: '1996-04-25',
+    tags: ['first-time', 'young-adult'],
+    smallGroups: [],
+    notes: 'Found us online. Looking for community.'
+  },
+  {
+    id: '36',
+    firstName: 'Alexander',
+    lastName: 'King',
+    email: 'alex.king@email.com',
+    phone: '(555) 888-9900',
+    status: 'inactive',
+    joinDate: '2019-08-15',
+    birthDate: '1980-10-08',
+    tags: [],
+    smallGroups: [],
+    notes: 'Moved to different part of city. Should follow up.'
+  },
+  {
+    id: '37',
+    firstName: 'Olivia',
+    lastName: 'Green',
+    email: 'olivia.green@email.com',
+    phone: '(555) 999-0011',
+    status: 'member',
+    joinDate: '2022-09-25',
+    birthDate: '1991-01-17',
+    tags: ['childrens-ministry', 'nursery'],
+    smallGroups: ['3'],
+    notes: 'Nursery volunteer. Very patient with kids.'
+  },
+  {
+    id: '38',
+    firstName: 'Ethan',
+    lastName: 'Walker',
+    email: 'ethan.walker@email.com',
+    phone: '(555) 000-1122',
+    status: 'regular',
+    firstVisit: '2024-09-01',
+    birthDate: '1999-06-30',
+    tags: ['college-student'],
+    smallGroups: ['2'],
+    notes: 'Engineering student at local university.'
+  },
+  {
+    id: '39',
+    firstName: 'Mia',
+    lastName: 'Adams',
+    email: 'mia.adams@email.com',
+    phone: '(555) 112-2334',
+    status: 'member',
+    joinDate: '2021-12-12',
+    birthDate: '1987-03-09',
+    tags: ['prayer-team', 'intercessor'],
+    smallGroups: ['3'],
+    notes: 'Leads prayer ministry. Very discerning.'
+  },
+  {
+    id: '40',
+    firstName: 'Jacob',
+    lastName: 'Campbell',
+    email: 'jacob.c@email.com',
+    phone: '(555) 223-3445',
+    status: 'visitor',
+    firstVisit: getDateString(-14),
+    birthDate: '1985-08-22',
+    tags: ['second-time'],
+    smallGroups: [],
+    notes: 'Came back for second visit. Interested in mens group.'
+  },
+  {
+    id: '41',
+    firstName: 'Sophia',
+    lastName: 'Mitchell',
+    email: 'sophia.m@email.com',
+    phone: '(555) 334-4556',
+    status: 'member',
+    joinDate: '2023-02-14',
+    birthDate: '1993-11-05',
+    tags: ['womens-ministry', 'events-team'],
+    smallGroups: ['3'],
+    notes: 'Great event planner. Organized last retreat.'
+  },
+  {
+    id: '42',
+    firstName: 'Lucas',
+    lastName: 'Parker',
+    email: 'lucas.parker@email.com',
+    phone: '(555) 445-5667',
+    status: 'leader',
+    joinDate: '2018-05-20',
+    birthDate: '1972-09-14',
+    tags: ['elder', 'finance-team'],
+    smallGroups: ['1'],
+    notes: 'CPA. Oversees church finances.'
+  },
+  {
+    id: '43',
+    firstName: 'Isabella',
+    lastName: 'Evans',
+    email: 'isabella.e@email.com',
+    phone: '(555) 556-6778',
+    status: 'member',
+    joinDate: '2022-06-30',
+    birthDate: '1990-02-19',
+    tags: ['worship-team', 'vocals'],
+    smallGroups: ['3'],
+    notes: 'Soprano vocalist. Sings every other Sunday.'
+  },
+  {
+    id: '44',
+    firstName: 'Mason',
+    lastName: 'Turner',
+    email: 'mason.t@email.com',
+    phone: '(555) 667-7889',
+    status: 'regular',
+    firstVisit: '2024-07-15',
+    birthDate: '1998-12-28',
+    tags: ['young-adult'],
+    smallGroups: ['2'],
+    notes: 'Just moved to area for new job.'
+  },
+  {
+    id: '45',
+    firstName: 'Ava',
+    lastName: 'Phillips',
+    email: 'ava.phillips@email.com',
+    phone: '(555) 778-8990',
+    status: 'member',
+    joinDate: '2020-02-28',
+    birthDate: '1983-07-04',
+    tags: ['missions-team', 'outreach'],
+    smallGroups: ['3'],
+    notes: 'Passionate about local outreach. Leads food pantry.'
+  },
+  {
+    id: '46',
+    firstName: 'Logan',
+    lastName: 'Collins',
+    email: 'logan.c@email.com',
+    phone: '(555) 889-9001',
+    status: 'inactive',
+    joinDate: '2021-03-10',
+    birthDate: '1995-05-16',
+    tags: [],
+    smallGroups: [],
+    notes: 'Work schedule conflicts. Wants to return.'
+  },
+  {
+    id: '47',
+    firstName: 'Charlotte',
+    lastName: 'Stewart',
+    email: 'charlotte.s@email.com',
+    phone: '(555) 990-0112',
+    status: 'member',
+    joinDate: '2019-10-05',
+    birthDate: '1976-04-11',
+    tags: ['womens-ministry', 'counselor'],
+    smallGroups: ['3'],
+    notes: 'Licensed counselor. Provides pastoral care support.'
+  },
+  {
+    id: '48',
+    firstName: 'Aiden',
+    lastName: 'Sanchez',
+    email: 'aiden.sanchez@email.com',
+    phone: '(555) 001-1223',
+    status: 'visitor',
+    firstVisit: getDateString(-2),
+    birthDate: '1992-10-31',
+    tags: ['first-time'],
+    smallGroups: [],
+    notes: 'Came with coworker. Seemed engaged during service.'
+  },
+  {
+    id: '49',
+    firstName: 'Emma',
+    lastName: 'Ramirez',
+    email: 'emma.ramirez@email.com',
+    phone: '(555) 112-2345',
+    status: 'member',
+    joinDate: '2022-08-20',
+    birthDate: '1989-06-08',
+    tags: ['hospitality', 'coffee-team'],
+    smallGroups: ['3'],
+    notes: 'Runs coffee ministry. Always has a smile.'
+  },
+  {
+    id: '50',
+    firstName: 'Noah',
+    lastName: 'Bennett',
+    email: 'noah.bennett@email.com',
+    phone: '(555) 223-3456',
+    status: 'member',
+    joinDate: '2023-01-08',
+    birthDate: '1984-01-25',
+    tags: ['security-team', 'usher'],
+    smallGroups: ['1'],
+    notes: 'Background in security. Helps with safety protocols.'
   }
 ];
 
@@ -599,6 +889,160 @@ export const SAMPLE_TASKS: Task[] = [
     priority: 'low',
     category: 'admin',
     createdAt: getDateString(0)
+  },
+
+  // === ADDITIONAL TASKS FOR EXPANDED MOCK DATA ===
+  {
+    id: '17',
+    personId: '35',
+    title: 'Follow up with Hannah Nelson',
+    description: 'First-time visitor from last week. Found us online.',
+    dueDate: getDateString(1),
+    completed: false,
+    priority: 'high',
+    category: 'follow-up',
+    createdAt: getDateString(-7)
+  },
+  {
+    id: '18',
+    personId: '40',
+    title: 'Connect Jacob Campbell with mens group',
+    description: 'Second-time visitor interested in mens group.',
+    dueDate: getDateString(2),
+    completed: false,
+    priority: 'high',
+    category: 'follow-up',
+    createdAt: getDateString(-14)
+  },
+  {
+    id: '19',
+    personId: '36',
+    title: 'Reach out to Alexander King',
+    description: 'Moved to different part of city. Check if he found new church.',
+    dueDate: getDateString(3),
+    completed: false,
+    priority: 'medium',
+    category: 'care',
+    createdAt: getDateString(-30)
+  },
+  {
+    id: '20',
+    personId: '46',
+    title: 'Check in with Logan Collins',
+    description: 'Work schedule conflicts. See if evening services help.',
+    dueDate: getDateString(4),
+    completed: false,
+    priority: 'medium',
+    category: 'care',
+    createdAt: getDateString(-21)
+  },
+  {
+    id: '21',
+    personId: '48',
+    title: 'Follow up with Aiden Sanchez',
+    description: 'First-time visitor from 2 days ago. Came with coworker.',
+    dueDate: getDateString(1),
+    completed: false,
+    priority: 'high',
+    category: 'follow-up',
+    createdAt: getDateString(-2)
+  },
+  {
+    id: '22',
+    personId: '31',
+    title: 'Discuss photography with Jessica Rivera',
+    description: 'Offered to help with church event photos.',
+    dueDate: getDateString(5),
+    completed: false,
+    priority: 'low',
+    category: 'outreach',
+    createdAt: getDateString(-10)
+  },
+  {
+    id: '23',
+    personId: '33',
+    title: 'Birthday celebration for Samantha Price',
+    description: 'Birthday in 7 days. Coordinates with worship team.',
+    dueDate: getDateString(7),
+    completed: false,
+    priority: 'low',
+    category: 'care',
+    createdAt: getDateString(0)
+  },
+  {
+    id: '24',
+    personId: '38',
+    title: 'Invite Ethan Walker to young adults',
+    description: 'Engineering student new to area. Connect with Kevin.',
+    dueDate: getDateString(2),
+    completed: false,
+    priority: 'medium',
+    category: 'follow-up',
+    createdAt: getDateString(-7)
+  },
+  {
+    id: '25',
+    personId: '44',
+    title: 'Welcome Mason Turner',
+    description: 'Just moved for new job. Needs community.',
+    dueDate: getDateString(3),
+    completed: false,
+    priority: 'medium',
+    category: 'follow-up',
+    createdAt: getDateString(-14)
+  },
+  {
+    id: '26',
+    title: 'Prepare volunteer appreciation event',
+    description: 'Plan thank you event for all ministry volunteers.',
+    dueDate: getDateString(14),
+    completed: false,
+    priority: 'medium',
+    category: 'admin',
+    createdAt: getDateString(-7)
+  },
+  {
+    id: '27',
+    personId: '45',
+    title: 'Food pantry supply check with Ava',
+    description: 'Monthly inventory and restocking coordination.',
+    dueDate: getDateString(6),
+    completed: false,
+    priority: 'medium',
+    category: 'outreach',
+    createdAt: getDateString(-3)
+  },
+  {
+    id: '28',
+    personId: '47',
+    title: 'Schedule counselor training with Charlotte',
+    description: 'Organize pastoral care volunteer training.',
+    dueDate: getDateString(10),
+    completed: false,
+    priority: 'low',
+    category: 'admin',
+    createdAt: getDateString(-5)
+  },
+  {
+    id: '29',
+    title: 'Update security protocols',
+    description: 'Review with Noah Bennett and safety team.',
+    dueDate: getDateString(8),
+    completed: false,
+    priority: 'medium',
+    category: 'admin',
+    createdAt: getDateString(-2)
+  },
+  {
+    id: '30',
+    personId: '34',
+    title: 'Live stream equipment check',
+    description: 'Ben Morris to review and test all equipment.',
+    dueDate: getDateString(4),
+    completed: true,
+    priority: 'high',
+    category: 'admin',
+    createdAt: getDateString(-10)
   }
 ];
 
@@ -611,7 +1055,7 @@ export const SAMPLE_GROUPS: SmallGroup[] = [
     meetingDay: 'Tuesday',
     meetingTime: '7:00 PM',
     location: 'Room 201',
-    members: ['2', '4', '8', '12', '16', '18'],
+    members: ['2', '4', '8', '12', '16', '18', '30', '32', '42', '50'],
     isActive: true
   },
   {
@@ -622,7 +1066,7 @@ export const SAMPLE_GROUPS: SmallGroup[] = [
     meetingDay: 'Thursday',
     meetingTime: '7:30 PM',
     location: 'Coffee House',
-    members: ['3', '6', '10', '17'],
+    members: ['3', '6', '10', '17', '31', '34', '38', '44'],
     isActive: true
   },
   {
@@ -633,7 +1077,7 @@ export const SAMPLE_GROUPS: SmallGroup[] = [
     meetingDay: 'Wednesday',
     meetingTime: '9:30 AM',
     location: 'Fellowship Hall',
-    members: ['9', '11', '19', '21', '25'],
+    members: ['9', '11', '19', '21', '25', '29', '33', '37', '39', '41', '43', '45', '47', '49'],
     isActive: true
   }
 ];
@@ -746,6 +1190,28 @@ export const SAMPLE_GIVING: Giving[] = [
   { id: '28', personId: '4', amount: 500, fund: 'tithe', date: getDateString(0), method: 'check', isRecurring: false },
   { id: '29', personId: '8', amount: 150, fund: 'tithe', date: getDateString(0), method: 'online', isRecurring: true },
   { id: '30', personId: '6', amount: 100, fund: 'offering', date: getDateString(0), method: 'cash', isRecurring: false },
+
+  // === EXPANDED GIVING DATA ===
+  { id: '31', personId: '29', amount: 175, fund: 'tithe', date: getDateString(-7), method: 'online', isRecurring: true },
+  { id: '32', personId: '30', amount: 225, fund: 'tithe', date: getDateString(-7), method: 'check', isRecurring: false },
+  { id: '33', personId: '32', amount: 400, fund: 'tithe', date: getDateString(-3), method: 'online', isRecurring: true },
+  { id: '34', personId: '33', amount: 100, fund: 'tithe', date: getDateString(-5), method: 'online', isRecurring: true },
+  { id: '35', personId: '34', amount: 150, fund: 'tithe', date: getDateString(-2), method: 'card', isRecurring: false },
+  { id: '36', personId: '37', amount: 300, fund: 'offering', date: getDateString(-1), method: 'cash', isRecurring: false },
+  { id: '37', personId: '39', amount: 250, fund: 'tithe', date: getDateString(-4), method: 'online', isRecurring: true },
+  { id: '38', personId: '41', amount: 175, fund: 'tithe', date: getDateString(-6), method: 'online', isRecurring: true },
+  { id: '39', personId: '42', amount: 500, fund: 'tithe', date: getDateString(0), method: 'bank', isRecurring: true },
+  { id: '40', personId: '42', amount: 200, fund: 'building', date: getDateString(-10), method: 'check', isRecurring: false },
+  { id: '41', personId: '43', amount: 125, fund: 'tithe', date: getDateString(-3), method: 'online', isRecurring: true },
+  { id: '42', personId: '45', amount: 200, fund: 'benevolence', date: getDateString(-8), method: 'check', isRecurring: false },
+  { id: '43', personId: '45', amount: 175, fund: 'tithe', date: getDateString(-1), method: 'online', isRecurring: true },
+  { id: '44', personId: '47', amount: 300, fund: 'tithe', date: getDateString(-2), method: 'online', isRecurring: true },
+  { id: '45', personId: '49', amount: 150, fund: 'tithe', date: getDateString(-5), method: 'online', isRecurring: true },
+  { id: '46', personId: '50', amount: 200, fund: 'tithe', date: getDateString(-3), method: 'check', isRecurring: false },
+  { id: '47', personId: '31', amount: 75, fund: 'offering', date: getDateString(-9), method: 'card', isRecurring: false },
+  { id: '48', personId: '38', amount: 50, fund: 'offering', date: getDateString(-11), method: 'cash', isRecurring: false },
+  { id: '49', personId: '44', amount: 100, fund: 'tithe', date: getDateString(-4), method: 'online', isRecurring: false },
+  { id: '50', personId: '29', amount: 175, fund: 'tithe', date: getDateString(0), method: 'online', isRecurring: true },
 ];
 
 export const SAMPLE_EVENTS: CalendarEvent[] = [
