@@ -15,6 +15,7 @@ interface PeopleListProps {
   onBulkUpdateStatus?: (ids: string[], status: MemberStatus) => void;
   onBulkAddTag?: (ids: string[], tag: string) => void;
   onImportCSV?: (people: Partial<Person>[]) => void;
+  initialStatusFilter?: MemberStatus;
 }
 
 const statusLabels: Record<MemberStatus, string> = {
@@ -31,11 +32,12 @@ export function PeopleList({
   onAddPerson,
   onBulkUpdateStatus,
   onBulkAddTag,
-  onImportCSV
+  onImportCSV,
+  initialStatusFilter
 }: PeopleListProps) {
   const toast = useToast();
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<MemberStatus | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<MemberStatus | 'all'>(initialStatusFilter || 'all');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showBulkActions, setShowBulkActions] = useState(false);

@@ -40,12 +40,13 @@ interface DashboardProps {
   onViewGiving?: () => void;
   onViewPeople?: () => void;
   onViewVisitors?: () => void;
+  onViewInactive?: () => void;
 }
 
 type DashboardTab = 'overview' | 'sunday-prep' | 'tasks';
 type TaskViewMode = 'list' | 'kanban';
 
-export function Dashboard({ people, tasks, giving = [], interactions = [], prayers = [], onViewPerson, onViewTasks, onViewGiving, onViewPeople, onViewVisitors }: DashboardProps) {
+export function Dashboard({ people, tasks, giving = [], interactions = [], prayers = [], onViewPerson, onViewTasks, onViewGiving, onViewPeople, onViewVisitors, onViewInactive }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   const [taskViewMode, setTaskViewMode] = useState<TaskViewMode>('kanban');
 
@@ -283,7 +284,7 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
           change={inactive.length > 0 ? -8 : 0}
           changeLabel="improving"
           accentColor="rose"
-          onClick={onViewPeople}
+          onClick={onViewInactive}
         />
         <StatCard
           label="Tasks Done"

@@ -3,7 +3,7 @@ import { Dashboard } from './Dashboard';
 import { PeopleList } from './PeopleList';
 import { PersonProfile } from './PersonProfile';
 import { Tasks } from './Tasks';
-import type { View, Person, Task, Interaction, SmallGroup, PrayerRequest, CalendarEvent, Giving, Attendance } from '../types';
+import type { View, Person, Task, Interaction, SmallGroup, PrayerRequest, CalendarEvent, Giving, Attendance, MemberStatus } from '../types';
 
 // Lazy load less frequently used views for code splitting
 const Calendar = lazy(() => import('./Calendar').then(m => ({ default: m.Calendar })));
@@ -111,12 +111,14 @@ interface ViewRendererProps {
     updateConfig: (agentId: string, config: any) => void;
     runAgent: (agentId: string) => Promise<any>;
   };
+  peopleStatusFilter?: MemberStatus;
+  setPeopleStatusFilter?: (filter: MemberStatus | undefined) => void;
 }
 
 export function ViewRenderer(props: ViewRendererProps) {
   const { view, setView, churchId, people, tasks, interactions, giving, groups, prayers, events,
     attendanceRecords, rsvps, volunteerAssignments, selectedPerson, handlers,
-    collectionMgmt, charityBasketMgmt } = props;
+    collectionMgmt, charityBasketMgmt, peopleStatusFilter, setPeopleStatusFilter } = props;
 
   // Core views (not lazy loaded for instant response)
   switch (view) {
@@ -131,8 +133,9 @@ export function ViewRenderer(props: ViewRendererProps) {
           onViewPerson={handlers.viewPerson}
           onViewTasks={() => setView('tasks')}
           onViewGiving={() => setView('giving')}
-          onViewPeople={() => setView('people')}
+          onViewPeople={() => { setPeopleStatusFilter?.(undefined); setView('people'); }}
           onViewVisitors={() => setView('pipeline')}
+          onViewInactive={() => { setPeopleStatusFilter?.('inactive'); setView('people'); }}
         />
       );
 
@@ -145,6 +148,7 @@ export function ViewRenderer(props: ViewRendererProps) {
           onBulkUpdateStatus={handlers.bulkUpdateStatus}
           onBulkAddTag={handlers.bulkAddTag}
           onImportCSV={handlers.importCSV}
+          initialStatusFilter={peopleStatusFilter}
         />
       );
 

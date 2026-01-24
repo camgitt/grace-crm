@@ -25,12 +25,13 @@ import {
   toEventLegacy,
   toGivingLegacy,
 } from './utils/typeConverters';
-import type { View } from './types';
+import type { View, MemberStatus } from './types';
 
 function App() {
   const { churchId } = useAuthContext();
   const [view, setView] = useState<View>('dashboard');
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
+  const [peopleStatusFilter, setPeopleStatusFilter] = useState<MemberStatus | undefined>(undefined);
 
   // Use Supabase data hook
   const {
@@ -206,6 +207,8 @@ function App() {
           collectionMgmt={collectionMgmt}
           charityBasketMgmt={charityBasketMgmt}
           agents={agents}
+          peopleStatusFilter={peopleStatusFilter}
+          setPeopleStatusFilter={setPeopleStatusFilter}
         />
       </Layout>
 
