@@ -1,5 +1,21 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
+interface NewsAPIErrorResponse {
+  message?: string;
+}
+
+interface NewsAPIArticle {
+  title: string;
+  description: string;
+  source: { name: string };
+  url: string;
+  publishedAt: string;
+}
+
+interface NewsAPIResponse {
+  articles: NewsAPIArticle[];
+}
+
 const NEWS_API_KEY = process.env.NEWS_API_KEY;
 const NEWS_API_BASE = 'https://newsapi.org/v2';
 
@@ -58,25 +74,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const response = await fetch(`${NEWS_API_BASE}/top-headlines?${params}`);
 
     if (!response.ok) {
-      const error = await response.json();
-      console.error('NewsAPI error:', error);
+      const errorData = await response.json() as NewsAPIErrorResponse;
+      console.error('NewsAPI error:', errorData);
       return res.status(response.status).json({
-        error: error.message || 'Failed to fetch news'
+        error: errorData.message || 'Failed to fetch news'
       });
     }
 
-    const data = await response.json();
+    const data = await response.json() as NewsAPIResponse;
 
     // Transform and filter articles
     const articles = data.articles
-      .filter((a: { title: string }) => a.title && a.title !== '[Removed]')
-      .map((article: {
-        title: string;
-        description: string;
-        source: { name: string };
-        url: string;
-        publishedAt: string
-      }, index: number) => ({
+      .filter((a) => a.title && a.title !== '[Removed]')
+      .map((article, index) => ({
         id: `news-${Date.now()}-${index}`,
         headline: article.title,
         description: article.description || '',
