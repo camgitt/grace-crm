@@ -32,6 +32,8 @@ const ChildCheckIn = lazy(() => import('./ChildCheckIn').then(m => ({ default: m
 const FormBuilder = lazy(() => import('./FormBuilder').then(m => ({ default: m.FormBuilder })));
 const MemberPortal = lazy(() => import('./member/MemberPortal').then(m => ({ default: m.MemberPortal })));
 const SundayPrep = lazy(() => import('./SundayPrep').then(m => ({ default: m.SundayPrep })));
+const Families = lazy(() => import('./Families').then(m => ({ default: m.Families })));
+const SkillsTalents = lazy(() => import('./SkillsTalents').then(m => ({ default: m.SkillsTalents })));
 
 // Loading fallback component
 function ViewLoader() {
@@ -217,6 +219,12 @@ export function ViewRenderer(props: ViewRendererProps) {
 
       case 'groups':
         return <Groups groups={groups} people={people} />;
+
+      case 'families':
+        return <Families people={people} onViewPerson={handlers.viewPerson} />;
+
+      case 'skills':
+        return <SkillsTalents people={people} onViewPerson={handlers.viewPerson} />;
 
       case 'prayer':
         return <Prayer prayers={prayers} people={people} onMarkAnswered={handlers.markPrayerAnswered} />;
