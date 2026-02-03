@@ -107,38 +107,47 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-2">
+          <div className="flex gap-2" role="tablist" aria-label="Dashboard views">
             <button
               onClick={() => setActiveTab('overview')}
+              role="tab"
+              aria-selected={activeTab === 'overview'}
+              aria-controls="dashboard-overview"
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'overview'
-                  ? 'bg-white text-slate-800 shadow-md'
+                  ? 'bg-white dark:bg-dark-700 text-slate-800 dark:text-white shadow-md'
                   : 'bg-white/10 text-white/90 hover:bg-white/20 border border-white/10'
               }`}
             >
-              <LayoutDashboard size={16} />
+              <LayoutDashboard size={16} aria-hidden="true" />
               Overview
             </button>
             <button
               onClick={() => setActiveTab('tasks')}
+              role="tab"
+              aria-selected={activeTab === 'tasks'}
+              aria-controls="dashboard-tasks"
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'tasks'
-                  ? 'bg-white text-slate-800 shadow-md'
+                  ? 'bg-white dark:bg-dark-700 text-slate-800 dark:text-white shadow-md'
                   : 'bg-white/10 text-white/90 hover:bg-white/20 border border-white/10'
               }`}
             >
-              <ListTodo size={16} />
+              <ListTodo size={16} aria-hidden="true" />
               Tasks
             </button>
             <button
               onClick={() => setActiveTab('sunday-prep')}
+              role="tab"
+              aria-selected={activeTab === 'sunday-prep'}
+              aria-controls="dashboard-sunday-prep"
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'sunday-prep'
-                  ? 'bg-white text-slate-800 shadow-md'
+                  ? 'bg-white dark:bg-dark-700 text-slate-800 dark:text-white shadow-md'
                   : 'bg-white/10 text-white/90 hover:bg-white/20 border border-white/10'
               }`}
             >
-              <Church size={16} />
+              <Church size={16} aria-hidden="true" />
               Sunday Prep
             </button>
           </div>
@@ -161,27 +170,33 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
                 <p className="text-sm text-gray-500 dark:text-gray-400">{tasks.length} total tasks, {pendingTasks.length} pending</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 bg-gray-100 dark:bg-dark-800 rounded-lg p-1">
+            <div className="flex items-center gap-2 bg-gray-100 dark:bg-dark-800 rounded-lg p-1" role="tablist" aria-label="Task view options">
               <button
                 onClick={() => setTaskViewMode('kanban')}
+                role="tab"
+                aria-selected={taskViewMode === 'kanban'}
+                aria-label="View tasks as kanban board"
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                   taskViewMode === 'kanban'
                     ? 'bg-white dark:bg-dark-700 text-gray-900 dark:text-white shadow-sm'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
-                <LayoutGrid size={14} />
+                <LayoutGrid size={14} aria-hidden="true" />
                 Board
               </button>
               <button
                 onClick={() => setTaskViewMode('list')}
+                role="tab"
+                aria-selected={taskViewMode === 'list'}
+                aria-label="View tasks as list"
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                   taskViewMode === 'list'
                     ? 'bg-white dark:bg-dark-700 text-gray-900 dark:text-white shadow-sm'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
-                <List size={14} />
+                <List size={14} aria-hidden="true" />
                 List
               </button>
             </div>
@@ -346,10 +361,11 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
                     <button
                       key={person.id}
                       onClick={() => onViewPerson(person.id)}
+                      aria-label={`View ${person.firstName} ${person.lastName}'s profile`}
                       className="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-750 transition-colors group"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-amber-100 dark:bg-amber-500/10 rounded-full flex items-center justify-center text-amber-700 dark:text-amber-400 text-xs font-medium">
+                        <div className="w-8 h-8 bg-amber-100 dark:bg-amber-500/10 rounded-full flex items-center justify-center text-amber-700 dark:text-amber-400 text-xs font-medium" aria-hidden="true">
                           {person.firstName[0]}{person.lastName[0]}
                         </div>
                         <div className="text-left">
@@ -359,7 +375,7 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
                           </p>
                         </div>
                       </div>
-                      <ChevronRight size={16} className="text-gray-300 dark:text-dark-600 group-hover:text-gray-400 dark:group-hover:text-dark-500" />
+                      <ChevronRight size={16} className="text-gray-300 dark:text-dark-600 group-hover:text-gray-400 dark:group-hover:text-dark-500" aria-hidden="true" />
                     </button>
                   ))}
                 </div>
@@ -383,10 +399,11 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
               </div>
               <button
                 onClick={onViewTasks}
+                aria-label="View all tasks"
                 className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium flex items-center gap-1"
               >
                 View all
-                <ArrowRight size={12} />
+                <ArrowRight size={12} aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -516,10 +533,11 @@ export function Dashboard({ people, tasks, giving = [], interactions = [], praye
                   <button
                     key={person.id}
                     onClick={() => onViewPerson(person.id)}
+                    aria-label={`View ${person.firstName} ${person.lastName}'s profile`}
                     className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white dark:bg-dark-800 rounded-lg text-xs font-medium text-gray-700 dark:text-dark-300 hover:bg-rose-100 dark:hover:bg-dark-750 border border-gray-200 dark:border-dark-600 transition-colors"
                   >
                     {person.firstName} {person.lastName}
-                    <ChevronRight size={12} />
+                    <ChevronRight size={12} aria-hidden="true" />
                   </button>
                 ))}
               </div>
