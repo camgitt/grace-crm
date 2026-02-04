@@ -102,6 +102,8 @@ export type EventCategory =
   | 'holiday'      // Church holidays
   | 'wedding'      // Weddings & rehearsals
   | 'funeral'      // Funerals & memorials
+  | 'obituary'     // Obituary announcements
+  | 'ceremony'     // General ceremonies (ordinations, confirmations, etc.)
   | 'baptism'      // Baptisms
   | 'dedication'   // Baby dedications
   | 'counseling'   // Counseling appointments
@@ -133,7 +135,7 @@ export interface CalendarEvent {
   isPrivate?: boolean;
 }
 
-export type View = 'dashboard' | 'feed' | 'people' | 'person' | 'tasks' | 'calendar' | 'groups' | 'prayer' | 'giving' | 'settings' | 'pipeline' | 'attendance' | 'volunteers' | 'tags' | 'reports' | 'birthdays' | 'online-giving' | 'batch-entry' | 'pledges' | 'campaigns' | 'statements' | 'charity-baskets' | 'donation-tracker' | 'member-stats' | 'agents' | 'connect-card' | 'directory' | 'child-checkin' | 'forms' | 'member-portal' | 'member-directory' | 'member-giving' | 'member-events' | 'member-checkin' | 'sunday-prep' | 'families' | 'skills' | 'email-templates' | 'event-registration' | 'reminders' | 'planning-center-import' | 'qr-checkin' | 'follow-up-automation';
+export type View = 'dashboard' | 'feed' | 'people' | 'person' | 'tasks' | 'calendar' | 'groups' | 'prayer' | 'giving' | 'settings' | 'pipeline' | 'attendance' | 'volunteers' | 'tags' | 'reports' | 'birthdays' | 'online-giving' | 'batch-entry' | 'pledges' | 'campaigns' | 'statements' | 'charity-baskets' | 'donation-tracker' | 'member-stats' | 'agents' | 'connect-card' | 'directory' | 'child-checkin' | 'forms' | 'member-portal' | 'member-directory' | 'member-giving' | 'member-events' | 'member-checkin' | 'sunday-prep' | 'families' | 'skills' | 'email-templates' | 'event-registration' | 'reminders' | 'planning-center-import' | 'qr-checkin' | 'follow-up-automation' | 'wedding-services' | 'funeral-services' | 'estate-planning';
 
 // Family/Household type for grouping
 export interface Family {
@@ -148,7 +150,7 @@ export interface Family {
 }
 
 // Member Portal Tab
-export type MemberPortalTab = 'home' | 'directory' | 'giving' | 'events' | 'checkin';
+export type MemberPortalTab = 'home' | 'directory' | 'giving' | 'events' | 'checkin' | 'shop' | 'legacy';
 
 // ============================================
 // COLLECTION & DONATION MANAGEMENT TYPES
