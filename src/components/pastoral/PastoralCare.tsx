@@ -14,6 +14,7 @@ import type {
   CareConversation,
   CareMessage,
   ConversationPriority,
+  View,
 } from '../../types';
 import { LeaderProfileCard } from './LeaderProfileCard';
 import { HelpIntakeForm } from './HelpIntakeForm';
@@ -23,7 +24,7 @@ import { sampleLeaderProfiles, samplePersonas, matchLeaderToCategory } from '../
 type PastoralSubView = 'leaders' | 'intake' | 'chat' | 'conversations';
 
 interface PastoralCareProps {
-  setView?: (view: string) => void;
+  setView?: (view: View) => void;
 }
 
 export function PastoralCare(_props: PastoralCareProps) {
