@@ -41,6 +41,7 @@ const AutomatedReminders = lazy(() => import('./AutomatedReminders').then(m => (
 const PlanningCenterImport = lazy(() => import('./PlanningCenterImport').then(m => ({ default: m.PlanningCenterImport })));
 const QRCheckIn = lazy(() => import('./QRCheckIn').then(m => ({ default: m.QRCheckIn })));
 const FollowUpAutomation = lazy(() => import('./FollowUpAutomation').then(m => ({ default: m.FollowUpAutomation })));
+const PastoralCare = lazy(() => import('./pastoral/PastoralCare').then(m => ({ default: m.PastoralCare })));
 
 // Loading fallback component
 function ViewLoader() {
@@ -518,6 +519,12 @@ export function ViewRenderer(props: ViewRendererProps) {
             onBack={() => setView('settings')}
           />
         );
+
+      case 'pastoral-care':
+      case 'help-intake':
+      case 'conversations':
+      case 'care-chat':
+        return <PastoralCare setView={setView} />;
 
       default:
         return null;

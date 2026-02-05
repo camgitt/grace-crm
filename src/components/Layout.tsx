@@ -21,6 +21,7 @@ import {
   Globe,
   Home,
   Briefcase,
+  Heart,
 } from 'lucide-react';
 import { View } from '../types';
 import { useTheme } from '../ThemeContext';
@@ -43,6 +44,7 @@ const navItems: { view: View; label: string; icon: ReactNode }[] = [
   { view: 'groups', label: 'Groups', icon: <Users2 size={18} /> },
   { view: 'calendar', label: 'Calendar / Events', icon: <Calendar size={18} /> },
   { view: 'giving', label: 'Giving', icon: <DollarSign size={18} /> },
+  { view: 'pastoral-care', label: 'Pastoral Care', icon: <Heart size={18} /> },
   { view: 'reports', label: 'Reports', icon: <FileText size={18} /> },
 ];
 
@@ -91,6 +93,10 @@ const viewLabels: Record<View, string> = {
   'planning-center-import': 'Planning Center Import',
   'qr-checkin': 'QR Check-In',
   'follow-up-automation': 'Follow-up Automation',
+  'pastoral-care': 'Pastoral Care',
+  'help-intake': 'Ask for Help',
+  'conversations': 'Conversations',
+  'care-chat': 'Care Chat',
 };
 
 export function Layout({ currentView, setView, children, onOpenSearch, isDemo = false }: LayoutProps) {
@@ -146,6 +152,14 @@ export function Layout({ currentView, setView, children, onOpenSearch, isDemo = 
     if (givingSubViews.includes(currentView)) {
       return [
         { label: 'Giving', view: 'giving' as View },
+        { label: viewLabels[currentView], view: currentView },
+      ];
+    }
+    // Sub-pages under Pastoral Care
+    const pastoralSubViews = ['help-intake', 'conversations', 'care-chat'];
+    if (pastoralSubViews.includes(currentView)) {
+      return [
+        { label: 'Pastoral Care', view: 'pastoral-care' as View },
         { label: viewLabels[currentView], view: currentView },
       ];
     }
@@ -213,7 +227,8 @@ export function Layout({ currentView, setView, children, onOpenSearch, isDemo = 
           {navItems.map((item) => {
             const isActive = currentView === item.view ||
               (item.view === 'giving' && ['online-giving', 'batch-entry', 'pledges', 'campaigns', 'statements', 'charity-baskets', 'donation-tracker', 'member-stats'].includes(currentView)) ||
-              (item.view === 'people' && currentView === 'person');
+              (item.view === 'people' && currentView === 'person') ||
+              (item.view === 'pastoral-care' && ['help-intake', 'conversations', 'care-chat'].includes(currentView));
 
             return (
               <button

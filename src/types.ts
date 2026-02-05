@@ -133,7 +133,7 @@ export interface CalendarEvent {
   isPrivate?: boolean;
 }
 
-export type View = 'dashboard' | 'feed' | 'people' | 'person' | 'tasks' | 'calendar' | 'groups' | 'prayer' | 'giving' | 'settings' | 'pipeline' | 'attendance' | 'volunteers' | 'tags' | 'reports' | 'birthdays' | 'online-giving' | 'batch-entry' | 'pledges' | 'campaigns' | 'statements' | 'charity-baskets' | 'donation-tracker' | 'member-stats' | 'agents' | 'connect-card' | 'directory' | 'child-checkin' | 'forms' | 'member-portal' | 'member-directory' | 'member-giving' | 'member-events' | 'member-checkin' | 'sunday-prep' | 'families' | 'skills' | 'email-templates' | 'event-registration' | 'reminders' | 'planning-center-import' | 'qr-checkin' | 'follow-up-automation';
+export type View = 'dashboard' | 'feed' | 'people' | 'person' | 'tasks' | 'calendar' | 'groups' | 'prayer' | 'giving' | 'settings' | 'pipeline' | 'attendance' | 'volunteers' | 'tags' | 'reports' | 'birthdays' | 'online-giving' | 'batch-entry' | 'pledges' | 'campaigns' | 'statements' | 'charity-baskets' | 'donation-tracker' | 'member-stats' | 'agents' | 'connect-card' | 'directory' | 'child-checkin' | 'forms' | 'member-portal' | 'member-directory' | 'member-giving' | 'member-events' | 'member-checkin' | 'sunday-prep' | 'families' | 'skills' | 'email-templates' | 'event-registration' | 'reminders' | 'planning-center-import' | 'qr-checkin' | 'follow-up-automation' | 'pastoral-care' | 'help-intake' | 'conversations' | 'care-chat';
 
 // Family/Household type for grouping
 export interface Family {
@@ -359,4 +359,112 @@ export interface DonationGoal {
   isPublic: boolean;
   status: 'active' | 'completed' | 'cancelled';
   createdAt: string;
+}
+
+// ============================================
+// PASTORAL CARE / AI CHARACTER TYPES
+// ============================================
+
+export type HelpCategory =
+  | 'marriage'
+  | 'addiction'
+  | 'grief'
+  | 'faith-questions'
+  | 'crisis'
+  | 'financial'
+  | 'anxiety-depression'
+  | 'parenting'
+  | 'general';
+
+export type ConversationStatus = 'active' | 'waiting' | 'escalated' | 'resolved' | 'archived';
+export type ConversationPriority = 'low' | 'medium' | 'high' | 'crisis';
+export type MessageSender = 'user' | 'ai' | 'leader';
+
+export interface PersonaTone {
+  warmth: number;      // 1-10
+  formality: number;   // 1-10
+  directness: number;  // 1-10
+  humor: number;       // 1-10
+  faithLevel: number;  // 1-10
+}
+
+export interface LeaderProfile {
+  id: string;
+  personId?: string;
+  displayName: string;
+  title: string;
+  bio: string;
+  photo?: string;
+  expertiseAreas: HelpCategory[];
+  isOnline: boolean;
+  lastSeenAt?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface AIPersona {
+  id: string;
+  leaderId: string;
+  name: string;
+  tone: PersonaTone;
+  systemPrompt: string;
+  boundaries: string[];
+  sampleResponses: { scenario: string; response: string }[];
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface HelpRequest {
+  id: string;
+  category: HelpCategory;
+  description?: string;
+  isAnonymous: boolean;
+  anonymousId?: string;
+  personId?: string;
+  assignedLeaderId?: string;
+  assignedPersonaId?: string;
+  conversationId?: string;
+  status: 'pending' | 'active' | 'resolved' | 'cancelled';
+  priority: ConversationPriority;
+  createdAt: string;
+}
+
+export interface CareConversation {
+  id: string;
+  helpRequestId: string;
+  personaId: string;
+  leaderId: string;
+  status: ConversationStatus;
+  priority: ConversationPriority;
+  category: HelpCategory;
+  isAnonymous: boolean;
+  anonymousId?: string;
+  messages: CareMessage[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CareMessage {
+  id: string;
+  conversationId: string;
+  sender: MessageSender;
+  senderName: string;
+  content: string;
+  timestamp: string;
+  flagged?: boolean;
+  flagReason?: string;
+}
+
+export interface HelpCategoryInfo {
+  id: HelpCategory;
+  label: string;
+  description: string;
+  icon: string;
+  color: string;
+}
+
+export interface CrisisProtocol {
+  keywords: string[];
+  immediateResponse: string;
+  resources: { name: string; phone?: string; description: string }[];
 }
