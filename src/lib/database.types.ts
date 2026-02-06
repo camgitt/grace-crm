@@ -230,6 +230,147 @@ export interface PrayerRequestInsert {
   is_answered?: boolean;
 }
 
+// ============================================
+// PASTORAL CARE TYPES
+// ============================================
+export type PastoralHelpCategory = 'marriage' | 'addiction' | 'grief' | 'faith-questions' | 'crisis' | 'financial' | 'anxiety-depression' | 'parenting' | 'general';
+export type PastoralConversationStatus = 'active' | 'waiting' | 'escalated' | 'resolved' | 'archived';
+export type PastoralConversationPriority = 'low' | 'medium' | 'high' | 'crisis';
+export type PastoralMessageSender = 'user' | 'ai' | 'leader';
+export type PastoralCrisisSeverity = 'low' | 'high';
+
+export interface PastoralLeader {
+  id: string;
+  church_id: string;
+  person_id: string | null;
+  display_name: string;
+  title: string | null;
+  bio: string | null;
+  photo: string | null;
+  expertise_areas: string[];
+  is_online: boolean;
+  last_seen_at: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PastoralPersona {
+  id: string;
+  church_id: string;
+  leader_id: string;
+  name: string;
+  tone: {
+    warmth: number;
+    formality: number;
+    directness: number;
+    humor: number;
+    faithLevel: number;
+  };
+  system_prompt: string;
+  boundaries: string[];
+  sample_responses: { scenario: string; response: string }[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PastoralConversation {
+  id: string;
+  church_id: string;
+  persona_id: string | null;
+  leader_id: string | null;
+  category: PastoralHelpCategory;
+  description: string | null;
+  status: PastoralConversationStatus;
+  priority: PastoralConversationPriority;
+  is_anonymous: boolean;
+  anonymous_id: string | null;
+  person_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PastoralMessage {
+  id: string;
+  conversation_id: string;
+  sender: PastoralMessageSender;
+  sender_name: string;
+  content: string;
+  flagged: boolean;
+  flag_reason: string | null;
+  created_at: string;
+}
+
+export interface PastoralCrisisEvent {
+  id: string;
+  church_id: string;
+  conversation_id: string;
+  message_id: string | null;
+  severity: PastoralCrisisSeverity;
+  matched_keywords: string[];
+  resolved: boolean;
+  resolved_by: string | null;
+  resolved_at: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface PastoralAnonymousSession {
+  id: string;
+  church_id: string;
+  anonymous_id: string;
+  session_token: string;
+  created_at: string;
+  last_active_at: string;
+  expires_at: string;
+}
+
+export interface PastoralLeaderInsert {
+  church_id: string;
+  display_name: string;
+  person_id?: string | null;
+  title?: string | null;
+  bio?: string | null;
+  photo?: string | null;
+  expertise_areas?: string[];
+  is_online?: boolean;
+  is_active?: boolean;
+}
+
+export interface PastoralPersonaInsert {
+  church_id: string;
+  leader_id: string;
+  name: string;
+  system_prompt: string;
+  tone?: Record<string, number>;
+  boundaries?: string[];
+  sample_responses?: { scenario: string; response: string }[];
+  is_active?: boolean;
+}
+
+export interface PastoralConversationInsert {
+  church_id: string;
+  persona_id?: string | null;
+  leader_id?: string | null;
+  category: PastoralHelpCategory;
+  description?: string | null;
+  status?: PastoralConversationStatus;
+  priority?: PastoralConversationPriority;
+  is_anonymous?: boolean;
+  anonymous_id?: string | null;
+  person_id?: string | null;
+}
+
+export interface PastoralMessageInsert {
+  conversation_id: string;
+  sender: PastoralMessageSender;
+  sender_name: string;
+  content: string;
+  flagged?: boolean;
+  flag_reason?: string | null;
+}
+
 // Database schema type for Supabase client
 export interface Database {
   public: {
@@ -288,6 +429,36 @@ export interface Database {
         Row: Giving;
         Insert: Partial<Giving> & { church_id: string; amount: number; date: string };
         Update: Partial<Giving>;
+      };
+      pastoral_leaders: {
+        Row: PastoralLeader;
+        Insert: PastoralLeaderInsert;
+        Update: Partial<PastoralLeader>;
+      };
+      pastoral_personas: {
+        Row: PastoralPersona;
+        Insert: PastoralPersonaInsert;
+        Update: Partial<PastoralPersona>;
+      };
+      pastoral_conversations: {
+        Row: PastoralConversation;
+        Insert: PastoralConversationInsert;
+        Update: Partial<PastoralConversation>;
+      };
+      pastoral_messages: {
+        Row: PastoralMessage;
+        Insert: PastoralMessageInsert;
+        Update: Partial<PastoralMessage>;
+      };
+      pastoral_crisis_events: {
+        Row: PastoralCrisisEvent;
+        Insert: Partial<PastoralCrisisEvent> & { church_id: string; conversation_id: string; severity: PastoralCrisisSeverity };
+        Update: Partial<PastoralCrisisEvent>;
+      };
+      pastoral_anonymous_sessions: {
+        Row: PastoralAnonymousSession;
+        Insert: Partial<PastoralAnonymousSession> & { church_id: string; anonymous_id: string; session_token: string };
+        Update: Partial<PastoralAnonymousSession>;
       };
     };
   };

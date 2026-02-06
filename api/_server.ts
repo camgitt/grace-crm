@@ -32,6 +32,7 @@ import emailRoutes from './_routes/email';
 import smsRoutes from './_routes/sms';
 import agentRoutes from './_routes/agents';
 import aiRoutes from './_routes/ai';
+import pastoralRoutes from './_routes/pastoral';
 import { initWebhookRoutes } from './_routes/webhooks';
 
 // Import middleware
@@ -80,6 +81,9 @@ app.use('/api/agents', requireAuth, agentRoutes);
 
 // AI routes - optional auth (rate limited separately)
 app.use('/api/ai', optionalAuth, aiRoutes);
+
+// Pastoral care routes - optional auth (anonymous users need access)
+app.use('/api/pastoral', optionalAuth, pastoralRoutes);
 
 // Webhooks - no auth (verified by signature)
 app.use('/webhooks', initWebhookRoutes(stripe, supabase));

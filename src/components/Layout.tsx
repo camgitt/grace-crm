@@ -97,6 +97,8 @@ const viewLabels: Record<View, string> = {
   'help-intake': 'Ask for Help',
   'conversations': 'Conversations',
   'care-chat': 'Care Chat',
+  'care-dashboard': 'Staff Dashboard',
+  'anonymous-help': 'Anonymous Help',
 };
 
 export function Layout({ currentView, setView, children, onOpenSearch, isDemo = false }: LayoutProps) {
@@ -156,7 +158,7 @@ export function Layout({ currentView, setView, children, onOpenSearch, isDemo = 
       ];
     }
     // Sub-pages under Pastoral Care
-    const pastoralSubViews = ['help-intake', 'conversations', 'care-chat'];
+    const pastoralSubViews = ['help-intake', 'conversations', 'care-chat', 'care-dashboard', 'anonymous-help'];
     if (pastoralSubViews.includes(currentView)) {
       return [
         { label: 'Pastoral Care', view: 'pastoral-care' as View },
@@ -228,7 +230,7 @@ export function Layout({ currentView, setView, children, onOpenSearch, isDemo = 
             const isActive = currentView === item.view ||
               (item.view === 'giving' && ['online-giving', 'batch-entry', 'pledges', 'campaigns', 'statements', 'charity-baskets', 'donation-tracker', 'member-stats'].includes(currentView)) ||
               (item.view === 'people' && currentView === 'person') ||
-              (item.view === 'pastoral-care' && ['help-intake', 'conversations', 'care-chat'].includes(currentView));
+              (item.view === 'pastoral-care' && ['help-intake', 'conversations', 'care-chat', 'care-dashboard', 'anonymous-help'].includes(currentView));
 
             return (
               <button

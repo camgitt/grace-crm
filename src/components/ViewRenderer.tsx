@@ -42,6 +42,8 @@ const PlanningCenterImport = lazy(() => import('./PlanningCenterImport').then(m 
 const QRCheckIn = lazy(() => import('./QRCheckIn').then(m => ({ default: m.QRCheckIn })));
 const FollowUpAutomation = lazy(() => import('./FollowUpAutomation').then(m => ({ default: m.FollowUpAutomation })));
 const PastoralCare = lazy(() => import('./pastoral/PastoralCare').then(m => ({ default: m.PastoralCare })));
+const CareStaffDashboard = lazy(() => import('./pastoral/CareStaffDashboard').then(m => ({ default: m.CareStaffDashboard })));
+const AnonymousHelpPortal = lazy(() => import('./pastoral/AnonymousHelpPortal').then(m => ({ default: m.AnonymousHelpPortal })));
 
 // Loading fallback component
 function ViewLoader() {
@@ -524,7 +526,13 @@ export function ViewRenderer(props: ViewRendererProps) {
       case 'help-intake':
       case 'conversations':
       case 'care-chat':
-        return <PastoralCare setView={setView} />;
+        return <PastoralCare setView={setView} churchId={churchId} />;
+
+      case 'care-dashboard':
+        return <CareStaffDashboard setView={setView} churchId={churchId} />;
+
+      case 'anonymous-help':
+        return <AnonymousHelpPortal setView={setView} churchId={churchId} />;
 
       default:
         return null;

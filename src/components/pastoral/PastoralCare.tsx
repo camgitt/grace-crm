@@ -6,176 +6,129 @@ import {
   Users,
   AlertCircle,
   Clock,
+  Shield,
 } from 'lucide-react';
 import type {
   HelpCategory,
-  LeaderProfile,
-  AIPersona,
-  CareConversation,
-  CareMessage,
-  ConversationPriority,
   View,
 } from '../../types';
 import { LeaderProfileCard } from './LeaderProfileCard';
 import { HelpIntakeForm } from './HelpIntakeForm';
 import { CharacterChat } from './CharacterChat';
-import { sampleLeaderProfiles, samplePersonas, matchLeaderToCategory } from '../../data/pastoralCareData';
+import { usePastoralCareData } from '../../hooks/usePastoralCareData';
 
 type PastoralSubView = 'leaders' | 'intake' | 'chat' | 'conversations';
 
 interface PastoralCareProps {
   setView?: (view: View) => void;
+  churchId?: string;
 }
 
-export function PastoralCare(_props: PastoralCareProps) {
+export function PastoralCare({ setView, churchId }: PastoralCareProps) {
   const [subView, setSubView] = useState<PastoralSubView>('leaders');
-  const [leaders] = useState<LeaderProfile[]>(sampleLeaderProfiles);
-  const [personas] = useState<AIPersona[]>(samplePersonas);
-  const [conversations, setConversations] = useState<CareConversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
 
+  const {
+    conversations,
+    stats,
+    getLeaderProfiles,
+    getAIPersonas,
+    createConversation,
+    addMessage,
+    requestLiveConnect,
+    logCrisisEvent,
+    updateConversationPriority,
+  } = usePastoralCareData(churchId);
+
+  const leaders = getLeaderProfiles();
+  const personas = getAIPersonas();
+
   const activeConversation = conversations.find(c => c.id === activeConversationId);
-  const activePersona = activeConversation ? personas.find(p => p.id === activeConversation.personaId) : null;
-  const activeLeader = activeConversation ? leaders.find(l => l.id === activeConversation.leaderId) : null;
+  const activePersona = activeConversation ? personas.find(p => p.id === activeConversation.persona_id) : null;
+  const activeLeader = activeConversation ? leaders.find(l => l.id === activeConversation.leader_id) : null;
 
-  // Stats
-  const activeCount = conversations.filter(c => c.status === 'active').length;
-  const crisisCount = conversations.filter(c => c.priority === 'crisis').length;
-  const resolvedCount = conversations.filter(c => c.status === 'resolved').length;
+  // Convert DB conversation to the CareConversation shape CharacterChat expects
+  const activeConversationForChat = activeConversation ? {
+    id: activeConversation.id,
+    helpRequestId: activeConversation.id,
+    personaId: activeConversation.persona_id || '',
+    leaderId: activeConversation.leader_id || '',
+    status: activeConversation.status as 'active' | 'waiting' | 'escalated' | 'resolved' | 'archived',
+    priority: activeConversation.priority as 'low' | 'medium' | 'high' | 'crisis',
+    category: activeConversation.category as HelpCategory,
+    isAnonymous: activeConversation.is_anonymous,
+    anonymousId: activeConversation.anonymous_id || undefined,
+    messages: activeConversation.messages.map(m => ({
+      id: m.id,
+      conversationId: m.conversation_id,
+      sender: m.sender as 'user' | 'ai' | 'leader',
+      senderName: m.sender_name,
+      content: m.content,
+      timestamp: m.created_at,
+      flagged: m.flagged,
+      flagReason: m.flag_reason || undefined,
+    })),
+    createdAt: activeConversation.created_at,
+    updatedAt: activeConversation.updated_at,
+  } : null;
 
-  const handleStartChat = useCallback((leaderId: string) => {
-    const leader = leaders.find(l => l.id === leaderId);
-    const persona = personas.find(p => p.leaderId === leaderId && p.isActive);
-    if (!leader || !persona) return;
+  const handleStartChat = useCallback(async (leaderId: string) => {
+    const conv = await createConversation('general', '', false, leaderId);
+    if (conv) {
+      setActiveConversationId(conv.id);
+      setSubView('chat');
+    }
+  }, [createConversation]);
 
-    const newConversation: CareConversation = {
-      id: `conv-${Date.now()}`,
-      helpRequestId: `req-${Date.now()}`,
-      personaId: persona.id,
-      leaderId: leader.id,
-      status: 'active',
-      priority: 'medium',
-      category: 'general',
-      isAnonymous: false,
-      messages: [
-        {
-          id: `msg-${Date.now()}`,
-          conversationId: `conv-${Date.now()}`,
-          sender: 'ai',
-          senderName: persona.name,
-          content: `Hi, I'm ${persona.name} — an AI assistant trained on ${leader.displayName}'s approach to pastoral care. I'm here to listen and help. Whatever you're going through, this is a safe space.\n\nWhat's on your mind?`,
-          timestamp: new Date().toISOString(),
-        },
-      ],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+  const handleIntakeSubmit = useCallback(async (category: HelpCategory, description: string, isAnonymous: boolean) => {
+    const conv = await createConversation(category, description, isAnonymous);
+    if (conv) {
+      setActiveConversationId(conv.id);
+      setSubView('chat');
+    }
+  }, [createConversation]);
 
-    setConversations(prev => [...prev, newConversation]);
-    setActiveConversationId(newConversation.id);
-    setSubView('chat');
-  }, [leaders, personas]);
+  const handleSendMessage = useCallback(async (conversationId: string, userContent: string, aiResponse: string, crisisDetected: boolean) => {
+    const conv = conversations.find(c => c.id === conversationId);
+    const persona = conv ? personas.find(p => p.id === conv.persona_id) : null;
 
-  const handleIntakeSubmit = useCallback((category: HelpCategory, description: string, isAnonymous: boolean) => {
-    const match = matchLeaderToCategory(category, leaders, personas);
-    if (!match) return;
+    // Add user message
+    await addMessage(
+      conversationId,
+      'user',
+      conv?.is_anonymous ? (conv.anonymous_id || 'Anonymous') : 'You',
+      userContent
+    );
 
-    const convId = `conv-${Date.now()}`;
-    const introMessage = description
-      ? `Hi, I'm ${match.persona.name}. I see you'd like to talk about ${getCategoryLabel(category)}. Thank you for sharing that — "${description.slice(0, 100)}${description.length > 100 ? '...' : ''}"\n\nI'm here to listen. Let's start wherever feels right for you.`
-      : `Hi, I'm ${match.persona.name}. I see you'd like to talk about ${getCategoryLabel(category)}.\n\nI'm here to listen and help however I can. What's on your mind?`;
+    // Add AI response
+    const aiMsg = await addMessage(
+      conversationId,
+      'ai',
+      persona?.name || 'AI Assistant',
+      aiResponse,
+      crisisDetected,
+      crisisDetected ? 'Crisis keywords detected' : null
+    );
 
-    const newConversation: CareConversation = {
-      id: convId,
-      helpRequestId: `req-${Date.now()}`,
-      personaId: match.persona.id,
-      leaderId: match.leader.id,
-      status: 'active',
-      priority: category === 'crisis' ? 'crisis' : 'medium',
-      category,
-      isAnonymous,
-      anonymousId: isAnonymous ? `Helper-${Math.random().toString(36).slice(2, 6).toUpperCase()}` : undefined,
-      messages: [
-        {
-          id: `msg-${Date.now()}`,
-          conversationId: convId,
-          sender: 'ai',
-          senderName: match.persona.name,
-          content: introMessage,
-          timestamp: new Date().toISOString(),
-        },
-      ],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    // Log crisis event if detected
+    if (crisisDetected && aiMsg) {
+      await logCrisisEvent(conversationId, aiMsg.id, 'high', []);
+      await updateConversationPriority(conversationId, 'crisis');
+    }
+  }, [conversations, personas, addMessage, logCrisisEvent, updateConversationPriority]);
 
-    setConversations(prev => [...prev, newConversation]);
-    setActiveConversationId(convId);
-    setSubView('chat');
-  }, [leaders, personas]);
+  const handleRequestConnect = useCallback(async (leaderId: string) => {
+    if (activeConversationId) {
+      await requestLiveConnect(activeConversationId, leaderId);
+    }
+  }, [activeConversationId, requestLiveConnect]);
 
-  const handleSendMessage = useCallback((conversationId: string, userContent: string, aiResponse: string, crisisDetected: boolean) => {
-    const now = new Date().toISOString();
-    setConversations(prev => prev.map(conv => {
-      if (conv.id !== conversationId) return conv;
-
-      const persona = personas.find(p => p.id === conv.personaId);
-
-      const userMsg: CareMessage = {
-        id: `msg-${Date.now()}-user`,
-        conversationId,
-        sender: 'user',
-        senderName: conv.isAnonymous ? (conv.anonymousId || 'Anonymous') : 'You',
-        content: userContent,
-        timestamp: now,
-      };
-
-      const aiMsg: CareMessage = {
-        id: `msg-${Date.now()}-ai`,
-        conversationId,
-        sender: 'ai',
-        senderName: persona?.name || 'AI Assistant',
-        content: aiResponse,
-        timestamp: new Date(Date.now() + 100).toISOString(),
-        flagged: crisisDetected,
-        flagReason: crisisDetected ? 'Crisis keywords detected' : undefined,
-      };
-
-      return {
-        ...conv,
-        messages: [...conv.messages, userMsg, aiMsg],
-        priority: crisisDetected ? 'crisis' as ConversationPriority : conv.priority,
-        updatedAt: now,
-      };
-    }));
-  }, [personas]);
-
-  const handleRequestConnect = useCallback((leaderId: string) => {
-    const leader = leaders.find(l => l.id === leaderId);
-    if (!leader || !activeConversationId) return;
-
-    const now = new Date().toISOString();
-    const systemMsg: CareMessage = {
-      id: `msg-${Date.now()}-system`,
-      conversationId: activeConversationId,
-      sender: 'ai',
-      senderName: 'System',
-      content: leader.isOnline
-        ? `Great news — ${leader.displayName} is available right now! I've notified them about your conversation. They may join shortly. In the meantime, I'm still here if you'd like to keep talking.`
-        : `${leader.displayName} is currently offline. I've sent them a notification, and they'll reach out as soon as they're available. Would you like to continue our conversation in the meantime?`,
-      timestamp: now,
-    };
-
-    setConversations(prev => prev.map(conv => {
-      if (conv.id !== activeConversationId) return conv;
-      return {
-        ...conv,
-        messages: [...conv.messages, systemMsg],
-        status: 'waiting' as const,
-        updatedAt: now,
-      };
-    }));
-  }, [leaders, activeConversationId]);
+  // Navigate to staff dashboard
+  const handleOpenStaffDashboard = useCallback(() => {
+    if (setView) {
+      setView('care-dashboard' as View);
+    }
+  }, [setView]);
 
   // Render sub-views
   if (subView === 'intake') {
@@ -187,10 +140,10 @@ export function PastoralCare(_props: PastoralCareProps) {
     );
   }
 
-  if (subView === 'chat' && activeConversation && activePersona && activeLeader) {
+  if (subView === 'chat' && activeConversationForChat && activePersona && activeLeader) {
     return (
       <CharacterChat
-        conversation={activeConversation}
+        conversation={activeConversationForChat}
         persona={activePersona}
         leader={activeLeader}
         onSendMessage={handleSendMessage}
@@ -214,8 +167,8 @@ export function PastoralCare(_props: PastoralCareProps) {
           <p className="text-gray-500 dark:text-dark-400">No conversations yet.</p>
         ) : (
           <div className="space-y-2">
-            {conversations.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).map(conv => {
-              const persona = personas.find(p => p.id === conv.personaId);
+            {conversations.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()).map(conv => {
+              const persona = personas.find(p => p.id === conv.persona_id);
               const priorityColors: Record<string, string> = {
                 crisis: 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400',
                 high: 'bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400',
@@ -238,7 +191,7 @@ export function PastoralCare(_props: PastoralCareProps) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-medium text-sm text-gray-900 dark:text-dark-100 truncate">
-                        {conv.isAnonymous ? conv.anonymousId : 'Conversation'}
+                        {conv.is_anonymous ? conv.anonymous_id : 'Conversation'}
                       </span>
                       <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${priorityColors[conv.priority]}`}>
                         {conv.priority}
@@ -253,10 +206,10 @@ export function PastoralCare(_props: PastoralCareProps) {
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-xs text-gray-400 dark:text-dark-500">
-                      {new Date(conv.updatedAt).toLocaleDateString()}
+                      {new Date(conv.updated_at).toLocaleDateString()}
                     </p>
                     <p className="text-[10px] text-gray-400 dark:text-dark-500">
-                      {new Date(conv.updatedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                      {new Date(conv.updated_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                     </p>
                   </div>
                 </button>
@@ -284,14 +237,21 @@ export function PastoralCare(_props: PastoralCareProps) {
         </div>
         <div className="flex gap-2">
           <button
+            onClick={handleOpenStaffDashboard}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 dark:text-dark-300 bg-white dark:bg-dark-850 border border-gray-200 dark:border-dark-700 rounded-xl hover:bg-gray-50 dark:hover:bg-dark-800 transition-colors"
+          >
+            <Shield size={14} />
+            Staff Dashboard
+          </button>
+          <button
             onClick={() => setSubView('conversations')}
             className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 dark:text-dark-300 bg-white dark:bg-dark-850 border border-gray-200 dark:border-dark-700 rounded-xl hover:bg-gray-50 dark:hover:bg-dark-800 transition-colors"
           >
             <MessageSquare size={14} />
             Conversations
-            {activeCount > 0 && (
+            {stats.activeCount > 0 && (
               <span className="bg-violet-100 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 text-xs px-1.5 py-0.5 rounded-full font-medium">
-                {activeCount}
+                {stats.activeCount}
               </span>
             )}
           </button>
@@ -305,14 +265,14 @@ export function PastoralCare(_props: PastoralCareProps) {
             <MessageSquare size={14} className="text-emerald-500" />
             <span className="text-xs text-gray-500 dark:text-dark-400">Active</span>
           </div>
-          <p className="text-xl font-bold text-gray-900 dark:text-dark-100">{activeCount}</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-dark-100">{stats.activeCount}</p>
         </div>
         <div className="bg-white dark:bg-dark-850 rounded-xl border border-gray-200/60 dark:border-white/5 p-4">
           <div className="flex items-center gap-2 mb-1">
             <AlertCircle size={14} className="text-red-500" />
             <span className="text-xs text-gray-500 dark:text-dark-400">Crisis</span>
           </div>
-          <p className="text-xl font-bold text-gray-900 dark:text-dark-100">{crisisCount}</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-dark-100">{stats.crisisCount}</p>
         </div>
         <div className="bg-white dark:bg-dark-850 rounded-xl border border-gray-200/60 dark:border-white/5 p-4">
           <div className="flex items-center gap-2 mb-1">
@@ -326,7 +286,7 @@ export function PastoralCare(_props: PastoralCareProps) {
             <Clock size={14} className="text-blue-500" />
             <span className="text-xs text-gray-500 dark:text-dark-400">Resolved</span>
           </div>
-          <p className="text-xl font-bold text-gray-900 dark:text-dark-100">{resolvedCount}</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-dark-100">{stats.resolvedCount}</p>
         </div>
       </div>
 
