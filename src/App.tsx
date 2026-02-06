@@ -84,7 +84,7 @@ function App() {
   const modals = useModals();
   const collectionMgmt = useCollectionManagement(giving);
   const charityBasketMgmt = useCharityBaskets();
-  const pastoralCare = usePastoralCare();
+  const pastoralCare = usePastoralCare(churchId);
   const { settings: churchSettings } = useChurchSettings(churchId);
 
   // App handlers

@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import type {
   LeaderProfile,
   HelpRequest,
@@ -11,7 +12,106 @@ import type {
 } from '../types';
 import { detectCrisis } from '../utils/crisisDetection';
 
-// Demo leader profiles
+// ========================================
+// Database Row Converters
+// ========================================
+
+type DbRow = Record<string, unknown>;
+
+function dbToLeader(row: DbRow): LeaderProfile {
+  return {
+    id: row.id as string,
+    personId: row.person_id as string | undefined,
+    displayName: row.display_name as string,
+    title: (row.title as string) || '',
+    bio: (row.bio as string) || '',
+    photo: row.photo_url as string | undefined,
+    expertiseAreas: (row.expertise_areas as HelpCategory[]) || [],
+    isAvailable: row.is_available as boolean,
+    isActive: row.is_active as boolean,
+    createdAt: row.created_at as string,
+  };
+}
+
+function dbToPersona(row: DbRow): AIPersona {
+  return {
+    id: row.id as string,
+    leaderId: row.leader_id as string,
+    name: row.name as string,
+    systemPrompt: (row.system_prompt as string) || '',
+    tone: (row.tone as AIPersona['tone']) || { warmth: 7, formality: 4, directness: 5, faithLevel: 6 },
+    boundaries: (row.boundaries as string[]) || [],
+    isActive: row.is_active as boolean,
+  };
+}
+
+function dbToHelpRequest(row: DbRow): HelpRequest {
+  return {
+    id: row.id as string,
+    category: row.category as HelpCategory,
+    description: row.description as string | undefined,
+    isAnonymous: row.is_anonymous as boolean,
+    anonymousId: row.anonymous_id as string | undefined,
+    personId: row.person_id as string | undefined,
+    assignedLeaderId: row.assigned_leader_id as string | undefined,
+    conversationId: row.conversation_id as string | undefined,
+    status: row.status as HelpRequest['status'],
+    priority: row.priority as ConversationPriority,
+    createdAt: row.created_at as string,
+    resolvedAt: row.resolved_at as string | undefined,
+  };
+}
+
+function dbToMessage(row: DbRow): PastoralMessage {
+  return {
+    id: row.id as string,
+    conversationId: row.conversation_id as string,
+    sender: row.sender as PastoralMessage['sender'],
+    senderName: row.sender_name as string,
+    content: row.content as string,
+    timestamp: row.created_at as string,
+    aiConfidence: row.ai_confidence != null ? Number(row.ai_confidence) : undefined,
+    flagged: (row.flagged as boolean) || false,
+    flagReason: row.flag_reason as string | undefined,
+  };
+}
+
+function dbToConversation(row: DbRow, messages: PastoralMessage[]): PastoralConversation {
+  return {
+    id: row.id as string,
+    helpRequestId: row.help_request_id as string,
+    personaId: row.persona_id as string | undefined,
+    leaderId: row.leader_id as string | undefined,
+    status: row.status as PastoralConversation['status'],
+    priority: row.priority as ConversationPriority,
+    category: row.category as HelpCategory,
+    isAnonymous: row.is_anonymous as boolean,
+    personId: row.person_id as string | undefined,
+    messages,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+    resolvedAt: row.resolved_at as string | undefined,
+  };
+}
+
+function dbToCrisisAlert(row: DbRow): CrisisAlert {
+  return {
+    id: row.id as string,
+    conversationId: row.conversation_id as string,
+    triggerType: row.trigger_type as CrisisAlert['triggerType'],
+    triggerDetail: row.trigger_detail as string,
+    severity: row.severity as CrisisAlert['severity'],
+    status: row.status as CrisisAlert['status'],
+    createdAt: row.created_at as string,
+    acknowledgedAt: row.acknowledged_at as string | undefined,
+    resolvedAt: row.resolved_at as string | undefined,
+  };
+}
+
+// ========================================
+// Demo Data (fallback when Supabase unavailable)
+// ========================================
+
 const INITIAL_LEADERS: LeaderProfile[] = [
   {
     id: 'leader-1',
@@ -63,7 +163,6 @@ const INITIAL_LEADERS: LeaderProfile[] = [
   },
 ];
 
-// Default AI personas matching leaders
 const INITIAL_PERSONAS: AIPersona[] = [
   {
     id: 'persona-1',
@@ -152,6 +251,10 @@ const AI_RESPONSES: Record<HelpCategory, string[]> = {
   ],
 };
 
+// ========================================
+// Helper Functions
+// ========================================
+
 function generateAnonymousId(): string {
   const words = ['Helper', 'Friend', 'Seeker', 'Guest', 'Visitor'];
   const word = words[Math.floor(Math.random() * words.length)];
@@ -173,43 +276,144 @@ function getPriority(category: HelpCategory): ConversationPriority {
   return 'medium';
 }
 
-export function usePastoralCare() {
-  const [leaders, setLeaders] = useState<LeaderProfile[]>(INITIAL_LEADERS);
-  const [personas, setPersonas] = useState<AIPersona[]>(INITIAL_PERSONAS);
+// ========================================
+// Hook
+// ========================================
+
+export function usePastoralCare(churchId?: string) {
+  const [leaders, setLeaders] = useState<LeaderProfile[]>([]);
+  const [personas, setPersonas] = useState<AIPersona[]>([]);
   const [helpRequests, setHelpRequests] = useState<HelpRequest[]>([]);
   const [conversations, setConversations] = useState<PastoralConversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [crisisAlerts, setCrisisAlerts] = useState<CrisisAlert[]>([]);
 
+  const isDemo = !isSupabaseConfigured();
+
+  // Load data from Supabase or use demo data
+  useEffect(() => {
+    async function loadData() {
+      if (!supabase || isDemo) {
+        setLeaders(INITIAL_LEADERS);
+        setPersonas(INITIAL_PERSONAS);
+        return;
+      }
+
+      try {
+        const [leadersRes, personasRes, requestsRes, convsRes, msgsRes, alertsRes] = await Promise.all([
+          supabase.from('leader_profiles').select('*').order('created_at'),
+          supabase.from('ai_personas').select('*').order('created_at'),
+          supabase.from('help_requests').select('*').order('created_at', { ascending: false }),
+          supabase.from('pastoral_conversations').select('*').order('created_at', { ascending: false }),
+          supabase.from('pastoral_messages').select('*').order('created_at'),
+          supabase.from('crisis_alerts').select('*').order('created_at', { ascending: false }),
+        ]);
+
+        if (leadersRes.error) throw leadersRes.error;
+        if (personasRes.error) throw personasRes.error;
+        if (requestsRes.error) throw requestsRes.error;
+        if (convsRes.error) throw convsRes.error;
+        if (msgsRes.error) throw msgsRes.error;
+        if (alertsRes.error) throw alertsRes.error;
+
+        const allMessages = (msgsRes.data || []).map((r: DbRow) => dbToMessage(r));
+
+        setLeaders((leadersRes.data || []).map((r: DbRow) => dbToLeader(r)));
+        setPersonas((personasRes.data || []).map((r: DbRow) => dbToPersona(r)));
+        setHelpRequests((requestsRes.data || []).map((r: DbRow) => dbToHelpRequest(r)));
+        setConversations((convsRes.data || []).map((row: DbRow) =>
+          dbToConversation(row, allMessages.filter((m: PastoralMessage) => m.conversationId === (row.id as string)))
+        ));
+        setCrisisAlerts((alertsRes.data || []).map((r: DbRow) => dbToCrisisAlert(r)));
+      } catch (err) {
+        console.error('Error loading pastoral care data, falling back to demo:', err);
+        setLeaders(INITIAL_LEADERS);
+        setPersonas(INITIAL_PERSONAS);
+      }
+    }
+
+    loadData();
+  }, [isDemo]);
+
   // ---- Leader Management ----
 
-  const addLeader = useCallback((leader: Omit<LeaderProfile, 'id' | 'createdAt'>) => {
-    const newLeader: LeaderProfile = {
-      ...leader,
-      id: `leader-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-    };
-    setLeaders(prev => [...prev, newLeader]);
-  }, []);
+  const addLeader = useCallback(async (leader: Omit<LeaderProfile, 'id' | 'createdAt'>) => {
+    if (isDemo || !supabase) {
+      const newLeader: LeaderProfile = {
+        ...leader,
+        id: `leader-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      };
+      setLeaders(prev => [...prev, newLeader]);
+      return;
+    }
 
-  const updateLeader = useCallback((id: string, updates: Partial<LeaderProfile>) => {
+    const { data, error } = await supabase
+      .from('leader_profiles')
+      .insert({
+        church_id: churchId,
+        person_id: leader.personId || null,
+        display_name: leader.displayName,
+        title: leader.title || null,
+        bio: leader.bio || null,
+        photo_url: leader.photo || null,
+        expertise_areas: leader.expertiseAreas,
+        is_available: leader.isAvailable,
+        is_active: leader.isActive,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding leader:', error);
+      const newLeader: LeaderProfile = { ...leader, id: `leader-${Date.now()}`, createdAt: new Date().toISOString() };
+      setLeaders(prev => [...prev, newLeader]);
+      return;
+    }
+
+    setLeaders(prev => [...prev, dbToLeader(data)]);
+  }, [isDemo, churchId]);
+
+  const updateLeader = useCallback(async (id: string, updates: Partial<LeaderProfile>) => {
     setLeaders(prev => prev.map(l => l.id === id ? { ...l, ...updates } : l));
-  }, []);
 
-  const removeLeader = useCallback((id: string) => {
+    if (isDemo || !supabase) return;
+
+    const dbUpdates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (updates.displayName !== undefined) dbUpdates.display_name = updates.displayName;
+    if (updates.title !== undefined) dbUpdates.title = updates.title;
+    if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
+    if (updates.photo !== undefined) dbUpdates.photo_url = updates.photo;
+    if (updates.expertiseAreas !== undefined) dbUpdates.expertise_areas = updates.expertiseAreas;
+    if (updates.isAvailable !== undefined) dbUpdates.is_available = updates.isAvailable;
+    if (updates.isActive !== undefined) dbUpdates.is_active = updates.isActive;
+    if (updates.personId !== undefined) dbUpdates.person_id = updates.personId;
+
+    const { error } = await supabase.from('leader_profiles').update(dbUpdates).eq('id', id);
+    if (error) console.error('Error updating leader:', error);
+  }, [isDemo]);
+
+  const removeLeader = useCallback(async (id: string) => {
     setLeaders(prev => prev.filter(l => l.id !== id));
     setPersonas(prev => prev.filter(p => p.leaderId !== id));
-  }, []);
+
+    if (isDemo || !supabase) return;
+
+    const { error } = await supabase.from('leader_profiles').delete().eq('id', id);
+    if (error) console.error('Error removing leader:', error);
+  }, [isDemo]);
 
   // ---- Persona Management ----
 
-  const updatePersona = useCallback((leaderId: string, updates: Partial<AIPersona>) => {
+  const updatePersona = useCallback(async (leaderId: string, updates: Partial<AIPersona>) => {
+    let existingId: string | null = null;
+
     setPersonas(prev => {
       const existing = prev.find(p => p.leaderId === leaderId);
       if (existing) {
+        existingId = existing.id;
         return prev.map(p => p.leaderId === leaderId ? { ...p, ...updates } : p);
       }
-      // Create new persona if none exists
       return [...prev, {
         id: `persona-${Date.now()}`,
         leaderId,
@@ -221,137 +425,313 @@ export function usePastoralCare() {
         ...updates,
       }];
     });
-  }, []);
+
+    if (isDemo || !supabase) return;
+
+    if (existingId) {
+      const dbUpdates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      if (updates.name !== undefined) dbUpdates.name = updates.name;
+      if (updates.systemPrompt !== undefined) dbUpdates.system_prompt = updates.systemPrompt;
+      if (updates.tone !== undefined) dbUpdates.tone = updates.tone;
+      if (updates.boundaries !== undefined) dbUpdates.boundaries = updates.boundaries;
+      if (updates.isActive !== undefined) dbUpdates.is_active = updates.isActive;
+
+      const { error } = await supabase.from('ai_personas').update(dbUpdates).eq('id', existingId);
+      if (error) console.error('Error updating persona:', error);
+    } else {
+      const { error } = await supabase.from('ai_personas').insert({
+        church_id: churchId,
+        leader_id: leaderId,
+        name: updates.name || 'AI Assistant',
+        system_prompt: updates.systemPrompt || '',
+        tone: updates.tone || { warmth: 7, formality: 4, directness: 5, faithLevel: 6 },
+        boundaries: updates.boundaries || [],
+        is_active: updates.isActive ?? true,
+      });
+      if (error) console.error('Error creating persona:', error);
+    }
+  }, [isDemo, churchId]);
 
   // ---- Crisis Alerts ----
 
-  const acknowledgeCrisisAlert = useCallback((alertId: string) => {
+  const acknowledgeCrisisAlert = useCallback(async (alertId: string) => {
+    const now = new Date().toISOString();
     setCrisisAlerts(prev => prev.map(a =>
       a.id === alertId
-        ? { ...a, status: 'acknowledged' as const, acknowledgedAt: new Date().toISOString() }
+        ? { ...a, status: 'acknowledged' as const, acknowledgedAt: now }
         : a
     ));
-  }, []);
 
-  const dismissCrisisAlert = useCallback((alertId: string) => {
+    if (isDemo || !supabase) return;
+
+    const { error } = await supabase.from('crisis_alerts')
+      .update({ status: 'acknowledged', acknowledged_at: now })
+      .eq('id', alertId);
+    if (error) console.error('Error acknowledging crisis alert:', error);
+  }, [isDemo]);
+
+  const dismissCrisisAlert = useCallback(async (alertId: string) => {
+    const now = new Date().toISOString();
     setCrisisAlerts(prev => prev.map(a =>
       a.id === alertId
-        ? { ...a, status: 'resolved' as const, resolvedAt: new Date().toISOString() }
+        ? { ...a, status: 'resolved' as const, resolvedAt: now }
         : a
     ));
-  }, []);
 
-  // ---- Conversations ----
+    if (isDemo || !supabase) return;
 
-  const createHelpRequest = useCallback((request: {
+    const { error } = await supabase.from('crisis_alerts')
+      .update({ status: 'resolved', resolved_at: now })
+      .eq('id', alertId);
+    if (error) console.error('Error dismissing crisis alert:', error);
+  }, [isDemo]);
+
+  // ---- Help Requests & Conversations ----
+
+  const createHelpRequest = useCallback(async (request: {
     category: HelpCategory;
     description?: string;
     isAnonymous: boolean;
   }) => {
     const leader = matchLeader(request.category, leaders);
-    const conversationId = `conv-${Date.now()}`;
+    const persona = leader ? personas.find(p => p.leaderId === leader.id) : undefined;
     const anonymousId = request.isAnonymous ? generateAnonymousId() : undefined;
     const priority = getPriority(request.category);
 
-    const newRequest: HelpRequest = {
-      id: `req-${Date.now()}`,
-      category: request.category,
-      description: request.description,
-      isAnonymous: request.isAnonymous,
-      anonymousId,
-      assignedLeaderId: leader?.id,
-      conversationId,
-      status: 'active',
-      priority,
-      createdAt: new Date().toISOString(),
-    };
-
-    // Check the description for crisis indicators
+    // Check description for crisis indicators
     let effectivePriority = priority;
-    if (request.description) {
-      const crisisResult = detectCrisis(request.description);
-      if (crisisResult.isCrisis) {
-        effectivePriority = crisisResult.severity === 'critical' ? 'crisis' : 'high';
-        newRequest.priority = effectivePriority;
+    let crisisResult = request.description ? detectCrisis(request.description) : null;
+    if (crisisResult?.isCrisis) {
+      effectivePriority = crisisResult.severity === 'critical' ? 'crisis' : 'high';
+    }
 
+    const responses = AI_RESPONSES[request.category];
+
+    if (isDemo || !supabase) {
+      const conversationId = `conv-${Date.now()}`;
+
+      const newRequest: HelpRequest = {
+        id: `req-${Date.now()}`,
+        category: request.category,
+        description: request.description,
+        isAnonymous: request.isAnonymous,
+        anonymousId,
+        assignedLeaderId: leader?.id,
+        conversationId,
+        status: 'active',
+        priority: effectivePriority,
+        createdAt: new Date().toISOString(),
+      };
+
+      const messages: PastoralMessage[] = [];
+      if (request.description) {
+        messages.push({
+          id: `msg-${Date.now() - 1}`,
+          conversationId,
+          sender: 'user',
+          senderName: request.isAnonymous ? anonymousId! : 'You',
+          content: request.description,
+          timestamp: new Date(Date.now() - 1000).toISOString(),
+        });
+      }
+      messages.push({
+        id: `msg-${Date.now()}`,
+        conversationId,
+        sender: 'ai',
+        senderName: leader ? `AI (${leader.displayName}'s Assistant)` : 'AI Care Assistant',
+        content: responses[0],
+        timestamp: new Date().toISOString(),
+        aiConfidence: 0.92,
+      });
+
+      const newConversation: PastoralConversation = {
+        id: conversationId,
+        helpRequestId: newRequest.id,
+        personaId: persona?.id,
+        leaderId: leader?.id,
+        status: 'active',
+        priority: effectivePriority,
+        category: request.category,
+        isAnonymous: request.isAnonymous,
+        personId: undefined,
+        messages,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (crisisResult?.isCrisis) {
         setCrisisAlerts(prev => [...prev, {
           id: `alert-${Date.now()}`,
           conversationId,
-          triggerType: crisisResult.triggerType,
-          triggerDetail: crisisResult.matchedKeywords.slice(0, 3).join(', '),
-          severity: crisisResult.severity,
+          triggerType: crisisResult!.triggerType,
+          triggerDetail: crisisResult!.matchedKeywords.slice(0, 3).join(', '),
+          severity: crisisResult!.severity,
           status: 'active',
           createdAt: new Date().toISOString(),
         }]);
       }
+
+      setHelpRequests(prev => [...prev, newRequest]);
+      setConversations(prev => [...prev, newConversation]);
+      setActiveConversationId(conversationId);
+      return;
     }
 
-    // Build initial AI message
-    const responses = AI_RESPONSES[request.category];
-    const aiMessage: PastoralMessage = {
-      id: `msg-${Date.now()}`,
-      conversationId,
-      sender: 'ai',
-      senderName: leader ? `AI (${leader.displayName}'s Assistant)` : 'AI Care Assistant',
-      content: responses[0],
-      timestamp: new Date().toISOString(),
-      aiConfidence: 0.92,
-    };
+    // Supabase mode
+    try {
+      // 1. Insert help request
+      const { data: reqData, error: reqError } = await supabase
+        .from('help_requests')
+        .insert({
+          church_id: churchId,
+          category: request.category,
+          description: request.description || null,
+          is_anonymous: request.isAnonymous,
+          anonymous_id: anonymousId || null,
+          assigned_leader_id: leader?.id || null,
+          assigned_persona_id: persona?.id || null,
+          status: 'active',
+          priority: effectivePriority,
+          source: 'web',
+        })
+        .select()
+        .single();
 
-    const messages: PastoralMessage[] = [];
+      if (reqError) throw reqError;
 
-    // If user provided a description, add it as their first message
-    if (request.description) {
-      messages.push({
-        id: `msg-${Date.now() - 1}`,
-        conversationId,
-        sender: 'user',
-        senderName: request.isAnonymous ? anonymousId! : 'You',
-        content: request.description,
-        timestamp: new Date(Date.now() - 1000).toISOString(),
+      // 2. Insert conversation
+      const { data: convData, error: convError } = await supabase
+        .from('pastoral_conversations')
+        .insert({
+          church_id: churchId,
+          help_request_id: reqData.id,
+          persona_id: persona?.id || null,
+          leader_id: leader?.id || null,
+          status: 'active',
+          priority: effectivePriority,
+          category: request.category,
+          is_anonymous: request.isAnonymous,
+          anonymous_id: anonymousId || null,
+        })
+        .select()
+        .single();
+
+      if (convError) throw convError;
+
+      // 3. Update help request with conversation_id
+      await supabase.from('help_requests')
+        .update({ conversation_id: convData.id })
+        .eq('id', reqData.id);
+
+      // 4. Insert messages
+      const messagesToInsert: Record<string, unknown>[] = [];
+      if (request.description) {
+        messagesToInsert.push({
+          church_id: churchId,
+          conversation_id: convData.id,
+          sender: 'user',
+          sender_name: request.isAnonymous ? anonymousId : 'You',
+          content: request.description,
+        });
+      }
+      messagesToInsert.push({
+        church_id: churchId,
+        conversation_id: convData.id,
+        sender: 'ai',
+        sender_name: leader ? `AI (${leader.displayName}'s Assistant)` : 'AI Care Assistant',
+        content: responses[0],
+        ai_confidence: 0.92,
       });
+
+      const { data: msgsData, error: msgsError } = await supabase
+        .from('pastoral_messages')
+        .insert(messagesToInsert)
+        .select();
+
+      if (msgsError) throw msgsError;
+
+      // 5. Create crisis alert if needed
+      if (crisisResult?.isCrisis) {
+        const { data: alertData } = await supabase
+          .from('crisis_alerts')
+          .insert({
+            church_id: churchId,
+            conversation_id: convData.id,
+            trigger_type: crisisResult.triggerType,
+            trigger_detail: crisisResult.matchedKeywords.slice(0, 3).join(', '),
+            severity: crisisResult.severity,
+            status: 'active',
+          })
+          .select()
+          .single();
+
+        if (alertData) {
+          setCrisisAlerts(prev => [...prev, dbToCrisisAlert(alertData)]);
+        }
+      }
+
+      // Update local state with DB-generated records
+      const newHelpRequest = dbToHelpRequest({ ...reqData, conversation_id: convData.id });
+      const newMessages = (msgsData || []).map((r: DbRow) => dbToMessage(r));
+      const newConversation = dbToConversation(convData, newMessages);
+
+      setHelpRequests(prev => [...prev, newHelpRequest]);
+      setConversations(prev => [...prev, newConversation]);
+      setActiveConversationId(convData.id as string);
+    } catch (err) {
+      console.error('Error creating help request in Supabase:', err);
+      // Fall back to demo-style local creation
+      const conversationId = `conv-${Date.now()}`;
+      const newRequest: HelpRequest = {
+        id: `req-${Date.now()}`, category: request.category, description: request.description,
+        isAnonymous: request.isAnonymous, anonymousId, assignedLeaderId: leader?.id,
+        conversationId, status: 'active', priority: effectivePriority, createdAt: new Date().toISOString(),
+      };
+      const messages: PastoralMessage[] = [];
+      if (request.description) {
+        messages.push({ id: `msg-${Date.now() - 1}`, conversationId, sender: 'user',
+          senderName: request.isAnonymous ? anonymousId! : 'You', content: request.description,
+          timestamp: new Date(Date.now() - 1000).toISOString() });
+      }
+      messages.push({ id: `msg-${Date.now()}`, conversationId, sender: 'ai',
+        senderName: leader ? `AI (${leader.displayName}'s Assistant)` : 'AI Care Assistant',
+        content: responses[0], timestamp: new Date().toISOString(), aiConfidence: 0.92 });
+      const newConversation: PastoralConversation = {
+        id: conversationId, helpRequestId: newRequest.id, personaId: persona?.id, leaderId: leader?.id,
+        status: 'active', priority: effectivePriority, category: request.category,
+        isAnonymous: request.isAnonymous, personId: undefined, messages,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+      };
+      setHelpRequests(prev => [...prev, newRequest]);
+      setConversations(prev => [...prev, newConversation]);
+      setActiveConversationId(conversationId);
     }
-    messages.push(aiMessage);
+  }, [isDemo, churchId, leaders, personas]);
 
-    const newConversation: PastoralConversation = {
-      id: conversationId,
-      helpRequestId: newRequest.id,
-      personaId: leader?.id,
-      leaderId: leader?.id,
-      status: 'active',
-      priority: effectivePriority,
-      category: request.category,
-      isAnonymous: request.isAnonymous,
-      personId: undefined,
-      messages,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    setHelpRequests(prev => [...prev, newRequest]);
-    setConversations(prev => [...prev, newConversation]);
-    setActiveConversationId(conversationId);
-  }, [leaders]);
-
-  const sendMessage = useCallback((conversationId: string, content: string) => {
-    // Check for crisis in message content
+  const sendMessage = useCallback(async (conversationId: string, content: string) => {
     const crisisResult = detectCrisis(content);
+    const conv = conversations.find(c => c.id === conversationId);
+    if (!conv) return;
 
-    if (crisisResult.isCrisis) {
-      setCrisisAlerts(prev => [...prev, {
-        id: `alert-${Date.now()}`,
-        conversationId,
-        triggerType: crisisResult.triggerType,
-        triggerDetail: crisisResult.matchedKeywords.slice(0, 3).join(', '),
-        severity: crisisResult.severity,
-        status: 'active',
-        createdAt: new Date().toISOString(),
-      }]);
+    const leader = conv.leaderId ? leaders.find(l => l.id === conv.leaderId) : undefined;
+
+    // Determine AI response
+    let aiContent: string;
+    if (crisisResult.isCrisis && crisisResult.suggestedResponse) {
+      aiContent = crisisResult.suggestedResponse;
+    } else {
+      const responses = AI_RESPONSES[conv.category];
+      const responseIndex = Math.min(conv.messages.filter(m => m.sender === 'ai').length, responses.length - 1);
+      aiContent = responses[responseIndex];
     }
 
-    setConversations(prev => prev.map(conv => {
-      if (conv.id !== conversationId) return conv;
+    const newPriority = crisisResult.isCrisis && crisisResult.severity === 'critical'
+      ? 'crisis' as ConversationPriority
+      : crisisResult.isCrisis
+      ? 'high' as ConversationPriority
+      : conv.priority;
 
+    if (isDemo || !supabase) {
       const userMessage: PastoralMessage = {
         id: `msg-${Date.now()}`,
         conversationId,
@@ -363,65 +743,168 @@ export function usePastoralCare() {
         flagReason: crisisResult.isCrisis ? `Crisis detected: ${crisisResult.matchedKeywords.join(', ')}` : undefined,
       };
 
-      // Use crisis response if detected, otherwise use template
-      let aiContent: string;
-      if (crisisResult.isCrisis && crisisResult.suggestedResponse) {
-        aiContent = crisisResult.suggestedResponse;
-      } else {
-        const responses = AI_RESPONSES[conv.category];
-        const responseIndex = Math.min(conv.messages.filter(m => m.sender === 'ai').length, responses.length - 1);
-        aiContent = responses[responseIndex];
-      }
-
       const aiMessage: PastoralMessage = {
         id: `msg-${Date.now() + 1}`,
         conversationId,
         sender: 'ai',
-        senderName: conv.leaderId
-          ? `AI (${leaders.find(l => l.id === conv.leaderId)?.displayName || 'Pastor'}'s Assistant)`
+        senderName: leader
+          ? `AI (${leader.displayName}'s Assistant)`
           : 'AI Care Assistant',
         content: aiContent,
         timestamp: new Date(Date.now() + 1500).toISOString(),
         aiConfidence: crisisResult.isCrisis ? 0.98 : 0.85 + Math.random() * 0.12,
       };
 
-      // Escalate priority if crisis detected
-      const newPriority = crisisResult.isCrisis && crisisResult.severity === 'critical'
-        ? 'crisis' as ConversationPriority
-        : crisisResult.isCrisis
-        ? 'high' as ConversationPriority
-        : conv.priority;
+      if (crisisResult.isCrisis) {
+        setCrisisAlerts(prev => [...prev, {
+          id: `alert-${Date.now()}`,
+          conversationId,
+          triggerType: crisisResult.triggerType,
+          triggerDetail: crisisResult.matchedKeywords.slice(0, 3).join(', '),
+          severity: crisisResult.severity,
+          status: 'active',
+          createdAt: new Date().toISOString(),
+        }]);
+      }
 
-      return {
-        ...conv,
-        messages: [...conv.messages, userMessage, aiMessage],
+      setConversations(prev => prev.map(c => {
+        if (c.id !== conversationId) return c;
+        return {
+          ...c,
+          messages: [...c.messages, userMessage, aiMessage],
+          priority: newPriority,
+          status: crisisResult.severity === 'critical' ? 'escalated' as const : c.status,
+          updatedAt: new Date().toISOString(),
+        };
+      }));
+      return;
+    }
+
+    // Supabase mode
+    try {
+      const aiConfidence = crisisResult.isCrisis ? 0.98 : 0.85 + Math.random() * 0.12;
+
+      const { data: msgsData, error: msgsError } = await supabase
+        .from('pastoral_messages')
+        .insert([
+          {
+            church_id: churchId,
+            conversation_id: conversationId,
+            sender: 'user',
+            sender_name: conv.isAnonymous ? 'Anonymous' : 'You',
+            content,
+            flagged: crisisResult.isCrisis,
+            flag_reason: crisisResult.isCrisis ? `Crisis detected: ${crisisResult.matchedKeywords.join(', ')}` : null,
+          },
+          {
+            church_id: churchId,
+            conversation_id: conversationId,
+            sender: 'ai',
+            sender_name: leader ? `AI (${leader.displayName}'s Assistant)` : 'AI Care Assistant',
+            content: aiContent,
+            ai_confidence: aiConfidence,
+          },
+        ])
+        .select();
+
+      if (msgsError) throw msgsError;
+
+      // Update conversation priority/status
+      const convUpdates: Record<string, unknown> = {
         priority: newPriority,
-        status: crisisResult.severity === 'critical' ? 'escalated' as const : conv.status,
-        updatedAt: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
-    }));
-  }, [leaders]);
+      if (crisisResult.severity === 'critical') {
+        convUpdates.status = 'escalated';
+      }
 
-  const resolveConversation = useCallback((conversationId: string) => {
+      await supabase.from('pastoral_conversations')
+        .update(convUpdates)
+        .eq('id', conversationId);
+
+      // Create crisis alert if needed
+      if (crisisResult.isCrisis) {
+        const { data: alertData } = await supabase
+          .from('crisis_alerts')
+          .insert({
+            church_id: churchId,
+            conversation_id: conversationId,
+            trigger_type: crisisResult.triggerType,
+            trigger_detail: crisisResult.matchedKeywords.slice(0, 3).join(', '),
+            severity: crisisResult.severity,
+            status: 'active',
+          })
+          .select()
+          .single();
+
+        if (alertData) {
+          setCrisisAlerts(prev => [...prev, dbToCrisisAlert(alertData)]);
+        }
+      }
+
+      // Update local state
+      const newMessages = (msgsData || []).map((r: DbRow) => dbToMessage(r));
+      setConversations(prev => prev.map(c => {
+        if (c.id !== conversationId) return c;
+        return {
+          ...c,
+          messages: [...c.messages, ...newMessages],
+          priority: newPriority,
+          status: crisisResult.severity === 'critical' ? 'escalated' as const : c.status,
+          updatedAt: new Date().toISOString(),
+        };
+      }));
+    } catch (err) {
+      console.error('Error sending message:', err);
+    }
+  }, [isDemo, churchId, leaders, conversations]);
+
+  const resolveConversation = useCallback(async (conversationId: string) => {
+    const now = new Date().toISOString();
+
     setConversations(prev => prev.map(conv =>
       conv.id === conversationId
-        ? { ...conv, status: 'resolved' as const, resolvedAt: new Date().toISOString() }
+        ? { ...conv, status: 'resolved' as const, resolvedAt: now }
         : conv
     ));
     setHelpRequests(prev => prev.map(req =>
       req.conversationId === conversationId
-        ? { ...req, status: 'resolved' as const, resolvedAt: new Date().toISOString() }
+        ? { ...req, status: 'resolved' as const, resolvedAt: now }
         : req
     ));
-  }, []);
 
-  const escalateConversation = useCallback((conversationId: string) => {
+    if (isDemo || !supabase) return;
+
+    await supabase.from('pastoral_conversations')
+      .update({ status: 'resolved', resolved_at: now, updated_at: now })
+      .eq('id', conversationId);
+
+    // Also update the help request
+    const req = helpRequests.find(r => r.conversationId === conversationId);
+    if (req) {
+      await supabase.from('help_requests')
+        .update({ status: 'resolved', resolved_at: now })
+        .eq('id', req.id);
+    }
+  }, [isDemo, helpRequests]);
+
+  const escalateConversation = useCallback(async (conversationId: string) => {
+    const now = new Date().toISOString();
+
     setConversations(prev => prev.map(conv =>
       conv.id === conversationId
-        ? { ...conv, status: 'escalated' as const, updatedAt: new Date().toISOString() }
+        ? { ...conv, status: 'escalated' as const, updatedAt: now }
         : conv
     ));
-  }, []);
+
+    if (isDemo || !supabase) return;
+
+    await supabase.from('pastoral_conversations')
+      .update({ status: 'escalated', updated_at: now })
+      .eq('id', conversationId);
+  }, [isDemo]);
+
+  // ---- Derived State ----
 
   const activeConversation = conversations.find(c => c.id === activeConversationId);
   const activeLeader = activeConversation?.leaderId
