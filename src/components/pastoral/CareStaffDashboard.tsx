@@ -67,6 +67,9 @@ export function CareStaffDashboard({ setView, churchId }: CareStaffDashboardProp
     updateConversationStatus,
     updateConversationPriority,
     resolveCrisisEvent,
+    leaderTakeover,
+    leaderSendMessage,
+    scheduleFollowUp,
   } = usePastoralCareData(churchId);
 
   const leaders = getLeaderProfiles();
@@ -284,12 +287,15 @@ export function CareStaffDashboard({ setView, churchId }: CareStaffDashboardProp
               conversation={conv}
               personaName={getPersonaName(conv.persona_id)}
               leaderName={getLeaderName(conv.leader_id)}
+              leaderId={conv.leader_id}
               isExpanded={expandedConv === conv.id}
               onToggle={() => setExpandedConv(expandedConv === conv.id ? null : conv.id)}
-              onStatusChange={(status) => handleStatusChange(conv.id, status as FilterStatus)}
-              onPriorityChange={(priority) => handlePriorityChange(conv.id, priority as FilterPriority)}
+              onStatusChange={(status) => handleStatusChange(conv.id, status)}
+              onPriorityChange={(priority) => handlePriorityChange(conv.id, priority)}
               unresolvedCrisis={unresolvedCrisis.filter(e => e.conversation_id === conv.id)}
               onResolveCrisis={resolveCrisisEvent}
+              onLeaderTakeover={(convId, leadId) => leaderTakeover(convId, leadId)}
+              onSendFollowUp={(convId) => scheduleFollowUp(convId)}
             />
           ))}
         </div>
@@ -328,16 +334,19 @@ function StatCard({ icon, label, value, color, onClick, active }: {
   );
 }
 
-function ConversationRow({ conversation, personaName, leaderName, isExpanded, onToggle, onStatusChange, onPriorityChange, unresolvedCrisis, onResolveCrisis }: {
+function ConversationRow({ conversation, personaName, leaderName, leaderId, isExpanded, onToggle, onStatusChange, onPriorityChange, unresolvedCrisis, onResolveCrisis, onLeaderTakeover, onSendFollowUp }: {
   conversation: ConversationWithMessages;
   personaName: string;
   leaderName: string;
+  leaderId: string | null;
   isExpanded: boolean;
   onToggle: () => void;
   onStatusChange: (status: string) => void;
   onPriorityChange: (priority: string) => void;
   unresolvedCrisis: { id: string; severity: string; matched_keywords: string[] }[];
   onResolveCrisis: (id: string, notes?: string) => Promise<void>;
+  onLeaderTakeover: (convId: string, leaderId: string) => void;
+  onSendFollowUp: (convId: string) => void;
 }) {
   const priCfg = priorityConfig[conversation.priority] || priorityConfig.medium;
   const staCfg = statusConfig[conversation.status] || statusConfig.active;
@@ -435,6 +444,26 @@ function ConversationRow({ conversation, personaName, leaderName, isExpanded, on
                 <option value="crisis">Crisis</option>
               </select>
             </div>
+
+            {/* Leader Actions */}
+            {conversation.status !== 'resolved' && conversation.status !== 'archived' && leaderId && (
+              <div className="flex items-center gap-2 ml-auto">
+                {conversation.status !== 'escalated' && !conversation.messages.some(m => m.sender === 'leader') && (
+                  <button
+                    onClick={() => onLeaderTakeover(conversation.id, leaderId)}
+                    className="text-[10px] px-2.5 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+                  >
+                    Join Conversation
+                  </button>
+                )}
+                <button
+                  onClick={() => onSendFollowUp(conversation.id)}
+                  className="text-[10px] px-2.5 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  Send Follow-up
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Crisis Events */}

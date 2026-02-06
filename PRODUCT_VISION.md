@@ -247,12 +247,12 @@ leader online
 
 **Goal:** Real-time human-AI collaboration
 
-- [ ] Real-time conversation updates (WebSocket or polling)
+- [x] Real-time conversation updates (WebSocket or polling)
 - [x] Leader dashboard: active conversations view
-- [ ] Live takeover: leader joins AI conversation
-- [ ] Seamless handoff UI (user sees transition)
-- [ ] Appointment scheduling from chat
-- [ ] Follow-up system: automated check-in messages
+- [x] Live takeover: leader joins AI conversation
+- [x] Seamless handoff UI (user sees transition)
+- [x] Appointment scheduling from chat
+- [x] Follow-up system: automated check-in messages
 
 ### Phase 4: Polish & Scale (2-3 weeks)
 

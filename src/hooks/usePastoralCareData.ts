@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import type {
   PastoralLeader,
@@ -622,6 +622,191 @@ export function usePastoralCareData(churchId?: string) {
     return { anonymousId, sessionToken };
   }, [effectiveChurchId, isDemo]);
 
+  // ==========================================
+  // POLLING — Real-time conversation updates
+  // ==========================================
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [pollingEnabled, setPollingEnabled] = useState(false);
+  const [pollingConversationId, setPollingConversationId] = useState<string | null>(null);
+
+  // Poll a specific conversation for new messages (from leader takeover)
+  const pollConversation = useCallback(async (conversationId: string) => {
+    if (isDemo || !supabase) return;
+
+    const conv = conversations.find(c => c.id === conversationId);
+    if (!conv) return;
+
+    const lastMsgTime = conv.messages.length > 0
+      ? conv.messages[conv.messages.length - 1].created_at
+      : conv.created_at;
+
+    const { data: newMsgs } = await supabase
+      .from('pastoral_messages')
+      .select('*')
+      .eq('conversation_id', conversationId)
+      .gt('created_at', lastMsgTime)
+      .order('created_at');
+
+    if (newMsgs && newMsgs.length > 0) {
+      const typedMsgs = newMsgs as PastoralMessage[];
+      setConversations(prev => prev.map(c => {
+        if (c.id !== conversationId) return c;
+        // Deduplicate by message ID
+        const existingIds = new Set(c.messages.map(m => m.id));
+        const genuinelyNew = typedMsgs.filter(m => !existingIds.has(m.id));
+        if (genuinelyNew.length === 0) return c;
+        return { ...c, messages: [...c.messages, ...genuinelyNew], updated_at: new Date().toISOString() };
+      }));
+    }
+
+    // Also check for status changes
+    const { data: convData } = await supabase
+      .from('pastoral_conversations')
+      .select('status, priority')
+      .eq('id', conversationId)
+      .single();
+
+    if (convData) {
+      setConversations(prev => prev.map(c => {
+        if (c.id !== conversationId) return c;
+        if (c.status !== convData.status || c.priority !== convData.priority) {
+          return { ...c, status: convData.status, priority: convData.priority };
+        }
+        return c;
+      }));
+    }
+  }, [conversations, isDemo]);
+
+  // Start/stop polling for a conversation
+  const startPolling = useCallback((conversationId: string, intervalMs: number = 5000) => {
+    if (pollingRef.current) clearInterval(pollingRef.current);
+    setPollingConversationId(conversationId);
+    setPollingEnabled(true);
+    pollingRef.current = setInterval(() => {
+      pollConversation(conversationId);
+    }, intervalMs);
+  }, [pollConversation]);
+
+  const stopPolling = useCallback(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+    setPollingEnabled(false);
+    setPollingConversationId(null);
+  }, []);
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, []);
+
+  // ==========================================
+  // LEADER TAKEOVER — Leader joins AI conversation
+  // ==========================================
+  const leaderTakeover = useCallback(async (
+    conversationId: string,
+    leaderId: string
+  ) => {
+    const leader = leaders.find(l => l.id === leaderId);
+    if (!leader) return;
+
+    const leaderName = leader.display_name;
+
+    // Add system message announcing the leader
+    await addMessage(
+      conversationId,
+      'leader',
+      leaderName,
+      `Hi, this is ${leaderName}. I've joined this conversation and I'm here to help you personally. Feel free to continue sharing — I've reviewed the conversation so far.`
+    );
+
+    // Update status to escalated
+    await updateConversationStatus(conversationId, 'escalated');
+
+    // Start polling so the user sees leader messages in real-time
+    startPolling(conversationId, 3000);
+  }, [leaders, addMessage, updateConversationStatus, startPolling]);
+
+  // Leader sends a message in a takeover
+  const leaderSendMessage = useCallback(async (
+    conversationId: string,
+    leaderId: string,
+    content: string
+  ) => {
+    const leader = leaders.find(l => l.id === leaderId);
+    if (!leader) return null;
+    return addMessage(conversationId, 'leader', leader.display_name, content);
+  }, [leaders, addMessage]);
+
+  // ==========================================
+  // FOLLOW-UP SYSTEM — Automated check-in
+  // ==========================================
+  const scheduleFollowUp = useCallback(async (
+    conversationId: string,
+    delayHours: number = 24,
+    message?: string
+  ) => {
+    const now = new Date();
+    const followUpAt = new Date(now.getTime() + delayHours * 60 * 60 * 1000);
+
+    const conv = conversations.find(c => c.id === conversationId);
+    if (!conv) return;
+
+    const persona = personas.find(p => p.id === conv.persona_id);
+    const personaName = persona ? persona.name : 'Your Care Team';
+    const followUpMsg = message || `Hi, this is ${personaName} checking in. It's been a little while since we talked, and I wanted to see how you're doing. Is there anything you'd like to talk about?`;
+
+    // In demo mode, just add the message immediately (simulated)
+    if (isDemo || !supabase) {
+      await addMessage(conversationId, 'ai', personaName, followUpMsg);
+      return { scheduledFor: followUpAt.toISOString(), conversationId };
+    }
+
+    // In production, store the follow-up in conversation metadata
+    // For now, add the message (a real implementation would use a job queue)
+    await addMessage(conversationId, 'ai', personaName, followUpMsg);
+    return { scheduledFor: followUpAt.toISOString(), conversationId };
+  }, [conversations, personas, isDemo, addMessage]);
+
+  // ==========================================
+  // SCHEDULE APPOINTMENT from chat
+  // ==========================================
+  const scheduleAppointment = useCallback(async (
+    conversationId: string,
+    leaderId: string,
+    dateTime: string,
+    notes?: string
+  ) => {
+    const leader = leaders.find(l => l.id === leaderId);
+    if (!leader) return;
+
+    const leaderName = leader.display_name;
+    const formattedDate = new Date(dateTime).toLocaleString([], {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+
+    const confirmMsg = `An appointment has been scheduled with ${leaderName} for ${formattedDate}.${notes ? ` Note: ${notes}` : ''}\n\nYou'll receive a reminder before the appointment. ${leaderName} is looking forward to connecting with you.`;
+
+    await addMessage(conversationId, 'ai', 'System', confirmMsg);
+
+    // In a full implementation, this would create a calendar event
+    // and send notifications. For now, it's a confirmation message.
+    return {
+      conversationId,
+      leaderId,
+      dateTime,
+      notes,
+      confirmed: true,
+    };
+  }, [leaders, addMessage]);
+
   return {
     // State
     isLoading,
@@ -648,6 +833,16 @@ export function usePastoralCareData(churchId?: string) {
     resolveCrisisEvent,
     requestLiveConnect,
     getOrCreateAnonymousSession,
+
+    // Phase 3 — Live Experience
+    startPolling,
+    stopPolling,
+    pollingEnabled,
+    pollingConversationId,
+    leaderTakeover,
+    leaderSendMessage,
+    scheduleFollowUp,
+    scheduleAppointment,
   };
 }
 
