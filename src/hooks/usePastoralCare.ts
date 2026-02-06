@@ -6,7 +6,10 @@ import type {
   PastoralMessage,
   HelpCategory,
   ConversationPriority,
+  AIPersona,
+  CrisisAlert,
 } from '../types';
+import { detectCrisis } from '../utils/crisisDetection';
 
 // Demo leader profiles
 const INITIAL_LEADERS: LeaderProfile[] = [
@@ -57,6 +60,46 @@ const INITIAL_LEADERS: LeaderProfile[] = [
     isAvailable: true,
     isActive: true,
     createdAt: '2025-01-01T00:00:00Z',
+  },
+];
+
+// Default AI personas matching leaders
+const INITIAL_PERSONAS: AIPersona[] = [
+  {
+    id: 'persona-1',
+    leaderId: 'leader-1',
+    name: "Pastor Mike's AI Assistant",
+    systemPrompt: 'You are a compassionate pastoral care assistant representing Pastor Mike Davis, specializing in marriage and family counseling.',
+    tone: { warmth: 8, formality: 4, directness: 6, faithLevel: 7 },
+    boundaries: ['Legal advice', 'Medical diagnosis', 'Medication recommendations'],
+    isActive: true,
+  },
+  {
+    id: 'persona-2',
+    leaderId: 'leader-2',
+    name: "Pastor Sarah's AI Assistant",
+    systemPrompt: 'You are a gentle, empathetic pastoral care assistant representing Pastor Sarah Johnson, specializing in grief counseling and crisis support.',
+    tone: { warmth: 9, formality: 3, directness: 4, faithLevel: 6 },
+    boundaries: ['Suicide risk assessment', 'Psychiatric evaluation', 'Legal counsel'],
+    isActive: true,
+  },
+  {
+    id: 'persona-3',
+    leaderId: 'leader-3',
+    name: "Deacon James's AI Assistant",
+    systemPrompt: 'You are a supportive pastoral care assistant representing Deacon James Williams, specializing in addiction recovery and financial guidance.',
+    tone: { warmth: 7, formality: 5, directness: 7, faithLevel: 8 },
+    boundaries: ['Medical detox advice', 'Legal financial advice', 'Prescriptions'],
+    isActive: true,
+  },
+  {
+    id: 'persona-4',
+    leaderId: 'leader-4',
+    name: "Pastor Rachel's AI Assistant",
+    systemPrompt: 'You are a warm, approachable pastoral care assistant representing Pastor Rachel Kim, specializing in faith exploration and supporting young adults.',
+    tone: { warmth: 8, formality: 3, directness: 5, faithLevel: 5 },
+    boundaries: ['Academic counseling', 'Medical advice'],
+    isActive: true,
   },
 ];
 
@@ -131,10 +174,74 @@ function getPriority(category: HelpCategory): ConversationPriority {
 }
 
 export function usePastoralCare() {
-  const [leaders] = useState<LeaderProfile[]>(INITIAL_LEADERS);
+  const [leaders, setLeaders] = useState<LeaderProfile[]>(INITIAL_LEADERS);
+  const [personas, setPersonas] = useState<AIPersona[]>(INITIAL_PERSONAS);
   const [helpRequests, setHelpRequests] = useState<HelpRequest[]>([]);
   const [conversations, setConversations] = useState<PastoralConversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [crisisAlerts, setCrisisAlerts] = useState<CrisisAlert[]>([]);
+
+  // ---- Leader Management ----
+
+  const addLeader = useCallback((leader: Omit<LeaderProfile, 'id' | 'createdAt'>) => {
+    const newLeader: LeaderProfile = {
+      ...leader,
+      id: `leader-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+    setLeaders(prev => [...prev, newLeader]);
+  }, []);
+
+  const updateLeader = useCallback((id: string, updates: Partial<LeaderProfile>) => {
+    setLeaders(prev => prev.map(l => l.id === id ? { ...l, ...updates } : l));
+  }, []);
+
+  const removeLeader = useCallback((id: string) => {
+    setLeaders(prev => prev.filter(l => l.id !== id));
+    setPersonas(prev => prev.filter(p => p.leaderId !== id));
+  }, []);
+
+  // ---- Persona Management ----
+
+  const updatePersona = useCallback((leaderId: string, updates: Partial<AIPersona>) => {
+    setPersonas(prev => {
+      const existing = prev.find(p => p.leaderId === leaderId);
+      if (existing) {
+        return prev.map(p => p.leaderId === leaderId ? { ...p, ...updates } : p);
+      }
+      // Create new persona if none exists
+      return [...prev, {
+        id: `persona-${Date.now()}`,
+        leaderId,
+        name: 'AI Assistant',
+        systemPrompt: '',
+        tone: { warmth: 7, formality: 4, directness: 5, faithLevel: 6 },
+        boundaries: [],
+        isActive: true,
+        ...updates,
+      }];
+    });
+  }, []);
+
+  // ---- Crisis Alerts ----
+
+  const acknowledgeCrisisAlert = useCallback((alertId: string) => {
+    setCrisisAlerts(prev => prev.map(a =>
+      a.id === alertId
+        ? { ...a, status: 'acknowledged' as const, acknowledgedAt: new Date().toISOString() }
+        : a
+    ));
+  }, []);
+
+  const dismissCrisisAlert = useCallback((alertId: string) => {
+    setCrisisAlerts(prev => prev.map(a =>
+      a.id === alertId
+        ? { ...a, status: 'resolved' as const, resolvedAt: new Date().toISOString() }
+        : a
+    ));
+  }, []);
+
+  // ---- Conversations ----
 
   const createHelpRequest = useCallback((request: {
     category: HelpCategory;
@@ -158,6 +265,26 @@ export function usePastoralCare() {
       priority,
       createdAt: new Date().toISOString(),
     };
+
+    // Check the description for crisis indicators
+    let effectivePriority = priority;
+    if (request.description) {
+      const crisisResult = detectCrisis(request.description);
+      if (crisisResult.isCrisis) {
+        effectivePriority = crisisResult.severity === 'critical' ? 'crisis' : 'high';
+        newRequest.priority = effectivePriority;
+
+        setCrisisAlerts(prev => [...prev, {
+          id: `alert-${Date.now()}`,
+          conversationId,
+          triggerType: crisisResult.triggerType,
+          triggerDetail: crisisResult.matchedKeywords.slice(0, 3).join(', '),
+          severity: crisisResult.severity,
+          status: 'active',
+          createdAt: new Date().toISOString(),
+        }]);
+      }
+    }
 
     // Build initial AI message
     const responses = AI_RESPONSES[request.category];
@@ -192,7 +319,7 @@ export function usePastoralCare() {
       personaId: leader?.id,
       leaderId: leader?.id,
       status: 'active',
-      priority,
+      priority: effectivePriority,
       category: request.category,
       isAnonymous: request.isAnonymous,
       personId: undefined,
@@ -207,6 +334,21 @@ export function usePastoralCare() {
   }, [leaders]);
 
   const sendMessage = useCallback((conversationId: string, content: string) => {
+    // Check for crisis in message content
+    const crisisResult = detectCrisis(content);
+
+    if (crisisResult.isCrisis) {
+      setCrisisAlerts(prev => [...prev, {
+        id: `alert-${Date.now()}`,
+        conversationId,
+        triggerType: crisisResult.triggerType,
+        triggerDetail: crisisResult.matchedKeywords.slice(0, 3).join(', '),
+        severity: crisisResult.severity,
+        status: 'active',
+        createdAt: new Date().toISOString(),
+      }]);
+    }
+
     setConversations(prev => prev.map(conv => {
       if (conv.id !== conversationId) return conv;
 
@@ -217,11 +359,20 @@ export function usePastoralCare() {
         senderName: conv.isAnonymous ? 'Anonymous' : 'You',
         content,
         timestamp: new Date().toISOString(),
+        flagged: crisisResult.isCrisis,
+        flagReason: crisisResult.isCrisis ? `Crisis detected: ${crisisResult.matchedKeywords.join(', ')}` : undefined,
       };
 
-      // Simulate AI response
-      const responses = AI_RESPONSES[conv.category];
-      const responseIndex = Math.min(conv.messages.filter(m => m.sender === 'ai').length, responses.length - 1);
+      // Use crisis response if detected, otherwise use template
+      let aiContent: string;
+      if (crisisResult.isCrisis && crisisResult.suggestedResponse) {
+        aiContent = crisisResult.suggestedResponse;
+      } else {
+        const responses = AI_RESPONSES[conv.category];
+        const responseIndex = Math.min(conv.messages.filter(m => m.sender === 'ai').length, responses.length - 1);
+        aiContent = responses[responseIndex];
+      }
+
       const aiMessage: PastoralMessage = {
         id: `msg-${Date.now() + 1}`,
         conversationId,
@@ -229,14 +380,23 @@ export function usePastoralCare() {
         senderName: conv.leaderId
           ? `AI (${leaders.find(l => l.id === conv.leaderId)?.displayName || 'Pastor'}'s Assistant)`
           : 'AI Care Assistant',
-        content: responses[responseIndex],
+        content: aiContent,
         timestamp: new Date(Date.now() + 1500).toISOString(),
-        aiConfidence: 0.85 + Math.random() * 0.12,
+        aiConfidence: crisisResult.isCrisis ? 0.98 : 0.85 + Math.random() * 0.12,
       };
+
+      // Escalate priority if crisis detected
+      const newPriority = crisisResult.isCrisis && crisisResult.severity === 'critical'
+        ? 'crisis' as ConversationPriority
+        : crisisResult.isCrisis
+        ? 'high' as ConversationPriority
+        : conv.priority;
 
       return {
         ...conv,
         messages: [...conv.messages, userMessage, aiMessage],
+        priority: newPriority,
+        status: crisisResult.severity === 'critical' ? 'escalated' as const : conv.status,
         updatedAt: new Date().toISOString(),
       };
     }));
@@ -270,15 +430,23 @@ export function usePastoralCare() {
 
   return {
     leaders,
+    personas,
     helpRequests,
     conversations,
     activeConversation,
     activeLeader,
     activeConversationId,
+    crisisAlerts,
     setActiveConversationId,
     createHelpRequest,
     sendMessage,
     resolveConversation,
     escalateConversation,
+    addLeader,
+    updateLeader,
+    removeLeader,
+    updatePersona,
+    acknowledgeCrisisAlert,
+    dismissCrisisAlert,
   };
 }

@@ -11,26 +11,38 @@ import {
   ArrowRight,
   BarChart3,
   Shield,
+  Settings,
+  Sparkles,
 } from 'lucide-react';
-import type { LeaderProfile, HelpRequest, PastoralConversation, HelpCategory } from '../../types';
+import type { LeaderProfile, HelpRequest, PastoralConversation, HelpCategory, AIPersona, CrisisAlert } from '../../types';
 import { HelpIntakeForm } from './HelpIntakeForm';
 import { CounselorCard } from './CounselorCard';
 import { ChatWindow } from './ChatWindow';
+import { LeaderManager } from './LeaderManager';
+import { CrisisBanner } from './CrisisBanner';
 
-type DashboardTab = 'overview' | 'conversations' | 'leaders' | 'new-request';
+type DashboardTab = 'overview' | 'conversations' | 'leaders' | 'new-request' | 'manage-leaders';
 
 interface PastoralCareDashboardProps {
   leaders: LeaderProfile[];
+  personas: AIPersona[];
   helpRequests: HelpRequest[];
   conversations: PastoralConversation[];
   activeConversation?: PastoralConversation;
   activeLeader?: LeaderProfile;
   activeConversationId: string | null;
+  crisisAlerts: CrisisAlert[];
   onCreateHelpRequest: (request: { category: HelpCategory; description?: string; isAnonymous: boolean }) => void;
   onSendMessage: (conversationId: string, content: string) => void;
   onResolveConversation: (conversationId: string) => void;
   onEscalateConversation: (conversationId: string) => void;
   onSetActiveConversation: (id: string | null) => void;
+  onAddLeader: (leader: Omit<LeaderProfile, 'id' | 'createdAt'>) => void;
+  onUpdateLeader: (id: string, updates: Partial<LeaderProfile>) => void;
+  onRemoveLeader: (id: string) => void;
+  onUpdatePersona: (leaderId: string, persona: Partial<AIPersona>) => void;
+  onAcknowledgeCrisisAlert: (alertId: string) => void;
+  onDismissCrisisAlert: (alertId: string) => void;
   onBack?: () => void;
   churchName?: string;
 }
@@ -64,16 +76,24 @@ const STATUS_COLORS: Record<string, string> = {
 
 export function PastoralCareDashboard({
   leaders,
+  personas,
   helpRequests,
   conversations,
   activeConversation,
   activeLeader,
   activeConversationId,
+  crisisAlerts,
   onCreateHelpRequest,
   onSendMessage,
   onResolveConversation,
   onEscalateConversation,
   onSetActiveConversation,
+  onAddLeader,
+  onUpdateLeader,
+  onRemoveLeader,
+  onUpdatePersona,
+  onAcknowledgeCrisisAlert,
+  onDismissCrisisAlert,
   onBack,
   churchName,
 }: PastoralCareDashboardProps) {
@@ -109,6 +129,23 @@ export function PastoralCareDashboard({
     );
   }
 
+  // Leader management view
+  if (tab === 'manage-leaders') {
+    return (
+      <div className="p-6">
+        <LeaderManager
+          leaders={leaders}
+          personas={personas}
+          onAddLeader={onAddLeader}
+          onUpdateLeader={onUpdateLeader}
+          onRemoveLeader={onRemoveLeader}
+          onUpdatePersona={onUpdatePersona}
+          onBack={() => setTab('leaders')}
+        />
+      </div>
+    );
+  }
+
   // Stats
   const activeCount = conversations.filter(c => c.status === 'active').length;
   const pendingRequests = helpRequests.filter(r => r.status === 'pending').length;
@@ -123,7 +160,7 @@ export function PastoralCareDashboard({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {onBack && (
-            <button onClick={onBack} className="p-1.5 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg">
+            <button onClick={onBack} className="p-1.5 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg transition-colors">
               <ChevronLeft size={20} className="text-gray-500" />
             </button>
           )}
@@ -132,19 +169,28 @@ export function PastoralCareDashboard({
               <Heart size={22} className="text-violet-600" />
               Pastoral Care
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+              <Sparkles size={12} className="text-violet-400" />
               AI-assisted pastoral support — 24/7 confidential care
             </p>
           </div>
         </div>
         <button
           onClick={() => setTab('new-request')}
-          className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm"
+          className="flex items-center gap-2 px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm hover:shadow-md"
         >
           <Plus size={16} />
           New Help Request
         </button>
       </div>
+
+      {/* Crisis Banner */}
+      <CrisisBanner
+        alerts={crisisAlerts}
+        onAcknowledge={onAcknowledgeCrisisAlert}
+        onDismiss={onDismissCrisisAlert}
+        onViewConversation={(convId) => onSetActiveConversation(convId)}
+      />
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 dark:bg-dark-800 p-1 rounded-xl w-fit">
@@ -169,7 +215,13 @@ export function PastoralCareDashboard({
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <StatCard icon={MessageCircle} label="Active" value={activeCount} color="text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10" />
             <StatCard icon={Clock} label="Waiting" value={waitingCount} color="text-amber-500 bg-amber-50 dark:bg-amber-500/10" />
-            <StatCard icon={AlertTriangle} label="Crisis" value={crisisCount} color="text-red-500 bg-red-50 dark:bg-red-500/10" />
+            <StatCard
+              icon={AlertTriangle}
+              label="Crisis"
+              value={crisisCount}
+              color="text-red-500 bg-red-50 dark:bg-red-500/10"
+              highlight={crisisCount > 0}
+            />
             <StatCard icon={CheckCircle} label="Resolved" value={resolvedCount} color="text-gray-500 bg-gray-50 dark:bg-gray-500/10" />
             <StatCard icon={Users} label="Leaders Online" value={availableLeaders} color="text-violet-500 bg-violet-50 dark:bg-violet-500/10" />
           </div>
@@ -204,7 +256,7 @@ export function PastoralCareDashboard({
                     <button
                       key={conv.id}
                       onClick={() => onSetActiveConversation(conv.id)}
-                      className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors text-left"
+                      className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors text-left group"
                     >
                       <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
                         conv.priority === 'crisis' ? 'bg-red-500 animate-pulse' :
@@ -228,6 +280,7 @@ export function PastoralCareDashboard({
                       <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${STATUS_COLORS[conv.status]}`}>
                         {conv.status}
                       </span>
+                      <ArrowRight size={14} className="text-gray-300 dark:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </button>
                   ))}
                 </div>
@@ -277,14 +330,16 @@ export function PastoralCareDashboard({
           <div className="bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-gray-700/50 p-5">
             <div className="flex items-center gap-2 mb-4">
               <BarChart3 size={16} className="text-gray-400" />
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Quick Stats</h2>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Category Breakdown</h2>
             </div>
             <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
               {Object.entries(CATEGORY_LABELS).map(([cat, label]) => {
                 const count = conversations.filter(c => c.category === cat).length;
                 return (
-                  <div key={cat} className="text-center">
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">{count}</p>
+                  <div key={cat} className="text-center group cursor-default">
+                    <p className={`text-lg font-bold transition-colors ${
+                      count > 0 ? 'text-gray-900 dark:text-white' : 'text-gray-300 dark:text-gray-600'
+                    }`}>{count}</p>
                     <p className="text-[11px] text-gray-500 dark:text-gray-400">{label}</p>
                   </div>
                 );
@@ -315,11 +370,12 @@ export function PastoralCareDashboard({
             conversations.map(conv => {
               const leader = leaders.find(l => l.id === conv.leaderId);
               const lastMessage = conv.messages[conv.messages.length - 1];
+              const hasCrisisFlag = conv.messages.some(m => m.flagged);
               return (
                 <button
                   key={conv.id}
                   onClick={() => onSetActiveConversation(conv.id)}
-                  className="w-full bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-gray-700/50 p-4 hover:shadow-md transition-all text-left"
+                  className="w-full bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-gray-700/50 p-4 hover:shadow-md transition-all text-left group"
                 >
                   <div className="flex items-start gap-3">
                     <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${
@@ -342,6 +398,12 @@ export function PastoralCareDashboard({
                         <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${STATUS_COLORS[conv.status]}`}>
                           {conv.status}
                         </span>
+                        {hasCrisisFlag && (
+                          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-400 flex items-center gap-0.5">
+                            <AlertTriangle size={10} />
+                            Flagged
+                          </span>
+                        )}
                       </div>
                       {lastMessage && (
                         <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
@@ -354,7 +416,7 @@ export function PastoralCareDashboard({
                         <span>{new Date(conv.updatedAt).toLocaleDateString()}</span>
                       </div>
                     </div>
-                    <ArrowRight size={16} className="text-gray-300 dark:text-gray-600 flex-shrink-0 mt-1" />
+                    <ArrowRight size={16} className="text-gray-300 dark:text-gray-600 flex-shrink-0 mt-1 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 </button>
               );
@@ -364,20 +426,31 @@ export function PastoralCareDashboard({
       )}
 
       {tab === 'leaders' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {leaders.filter(l => l.isActive).map(leader => {
-            const leaderConvs = conversations.filter(c => c.leaderId === leader.id && c.status === 'active').length;
-            return (
-              <CounselorCard
-                key={leader.id}
-                leader={leader}
-                onStartChat={() => {
-                  setTab('new-request');
-                }}
-                activeConversations={leaderConvs}
-              />
-            );
-          })}
+        <div className="space-y-4">
+          <div className="flex items-center justify-end">
+            <button
+              onClick={() => setTab('manage-leaders')}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10 rounded-lg transition-colors"
+            >
+              <Settings size={14} />
+              Manage Leaders
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {leaders.filter(l => l.isActive).map(leader => {
+              const leaderConvs = conversations.filter(c => c.leaderId === leader.id && c.status === 'active').length;
+              return (
+                <CounselorCard
+                  key={leader.id}
+                  leader={leader}
+                  onStartChat={() => {
+                    setTab('new-request');
+                  }}
+                  activeConversations={leaderConvs}
+                />
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
@@ -385,18 +458,25 @@ export function PastoralCareDashboard({
 }
 
 // Small stat card helper
-function StatCard({ icon: Icon, label, value, color }: {
+function StatCard({ icon: Icon, label, value, color, highlight }: {
   icon: typeof MessageCircle;
   label: string;
   value: number;
   color: string;
+  highlight?: boolean;
 }) {
   return (
-    <div className="bg-white dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-gray-700/50 p-4">
+    <div className={`bg-white dark:bg-dark-800 rounded-xl border p-4 transition-all ${
+      highlight
+        ? 'border-red-300 dark:border-red-500/30 shadow-sm shadow-red-100 dark:shadow-red-500/5'
+        : 'border-gray-200 dark:border-gray-700/50'
+    }`}>
       <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 ${color}`}>
         <Icon size={16} />
       </div>
-      <p className="text-xl font-bold text-gray-900 dark:text-white">{value}</p>
+      <p className={`text-xl font-bold ${
+        highlight ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'
+      }`}>{value}</p>
       <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
     </div>
   );

@@ -447,4 +447,26 @@ export interface PastoralMessage {
   content: string;
   timestamp: string;
   aiConfidence?: number;
+  flagged?: boolean;
+  flagReason?: string;
+}
+
+export interface CrisisAlert {
+  id: string;
+  conversationId: string;
+  triggerType: 'keyword' | 'sentiment' | 'manual' | 'auto-detect';
+  triggerDetail: string;
+  severity: 'medium' | 'high' | 'critical';
+  status: 'active' | 'acknowledged' | 'resolved' | 'false-positive';
+  createdAt: string;
+  acknowledgedAt?: string;
+  resolvedAt?: string;
+}
+
+export interface CrisisDetectionResult {
+  isCrisis: boolean;
+  severity: 'medium' | 'high' | 'critical';
+  triggerType: 'keyword' | 'sentiment' | 'auto-detect';
+  matchedKeywords: string[];
+  suggestedResponse?: string;
 }

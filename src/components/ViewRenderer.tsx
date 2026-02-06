@@ -5,7 +5,7 @@ import { PeopleList } from './PeopleList';
 import { PersonProfile } from './PersonProfile';
 import { Tasks } from './Tasks';
 import { useChurchSettings } from '../hooks/useChurchSettings';
-import type { View, Person, Task, Interaction, SmallGroup, PrayerRequest, CalendarEvent, Giving, Attendance, Campaign, Pledge, DonationBatch, GivingStatement, CharityBasket, BasketItem, BatchItem, LeaderProfile, HelpRequest, PastoralConversation, HelpCategory } from '../types';
+import type { View, Person, Task, Interaction, SmallGroup, PrayerRequest, CalendarEvent, Giving, Attendance, Campaign, Pledge, DonationBatch, GivingStatement, CharityBasket, BasketItem, BatchItem, LeaderProfile, HelpRequest, PastoralConversation, HelpCategory, AIPersona, CrisisAlert } from '../types';
 import type { AgentConfig, LifeEventConfig, DonationProcessingConfig, NewMemberConfig, LifeEvent, AgentLog, AgentStats } from '../lib/agents/types';
 
 // Lazy load less frequently used views for code splitting
@@ -142,16 +142,24 @@ interface ViewRendererProps {
   };
   pastoralCare: {
     leaders: LeaderProfile[];
+    personas: AIPersona[];
     helpRequests: HelpRequest[];
     conversations: PastoralConversation[];
     activeConversation?: PastoralConversation;
     activeLeader?: LeaderProfile;
     activeConversationId: string | null;
+    crisisAlerts: CrisisAlert[];
     createHelpRequest: (request: { category: HelpCategory; description?: string; isAnonymous: boolean }) => void;
     sendMessage: (conversationId: string, content: string) => void;
     resolveConversation: (conversationId: string) => void;
     escalateConversation: (conversationId: string) => void;
     setActiveConversationId: (id: string | null) => void;
+    addLeader: (leader: Omit<LeaderProfile, 'id' | 'createdAt'>) => void;
+    updateLeader: (id: string, updates: Partial<LeaderProfile>) => void;
+    removeLeader: (id: string) => void;
+    updatePersona: (leaderId: string, persona: Partial<AIPersona>) => void;
+    acknowledgeCrisisAlert: (alertId: string) => void;
+    dismissCrisisAlert: (alertId: string) => void;
   };
 }
 
@@ -538,16 +546,24 @@ export function ViewRenderer(props: ViewRendererProps) {
         return (
           <PastoralCareDashboard
             leaders={pastoralCare.leaders}
+            personas={pastoralCare.personas}
             helpRequests={pastoralCare.helpRequests}
             conversations={pastoralCare.conversations}
             activeConversation={pastoralCare.activeConversation}
             activeLeader={pastoralCare.activeLeader}
             activeConversationId={pastoralCare.activeConversationId}
+            crisisAlerts={pastoralCare.crisisAlerts}
             onCreateHelpRequest={pastoralCare.createHelpRequest}
             onSendMessage={pastoralCare.sendMessage}
             onResolveConversation={pastoralCare.resolveConversation}
             onEscalateConversation={pastoralCare.escalateConversation}
             onSetActiveConversation={pastoralCare.setActiveConversationId}
+            onAddLeader={pastoralCare.addLeader}
+            onUpdateLeader={pastoralCare.updateLeader}
+            onRemoveLeader={pastoralCare.removeLeader}
+            onUpdatePersona={pastoralCare.updatePersona}
+            onAcknowledgeCrisisAlert={pastoralCare.acknowledgeCrisisAlert}
+            onDismissCrisisAlert={pastoralCare.dismissCrisisAlert}
             onBack={() => setView('dashboard')}
             churchName={churchName}
           />

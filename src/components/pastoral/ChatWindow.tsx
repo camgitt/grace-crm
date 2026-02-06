@@ -10,6 +10,7 @@ import {
   Phone,
   Flag,
   CheckCircle,
+  AlertTriangle,
 } from 'lucide-react';
 import type { PastoralConversation, PastoralMessage, LeaderProfile, MessageSender } from '../../types';
 
@@ -57,16 +58,27 @@ function MessageBubble({ message, isOwn }: { message: PastoralMessage; isOwn: bo
             {message.senderName}
           </span>
           <span className="text-[10px] text-gray-400 dark:text-gray-500">{time}</span>
+          {message.flagged && (
+            <span className="text-[10px] text-red-500 flex items-center gap-0.5">
+              <AlertTriangle size={10} />
+            </span>
+          )}
         </div>
         <div className={`inline-block px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed ${config.color} ${
           isOwn ? 'rounded-tr-md' : 'rounded-tl-md'
-        }`}>
+        } ${message.flagged ? 'ring-2 ring-red-300 dark:ring-red-500/30' : ''}`}>
           {message.content}
         </div>
         {message.aiConfidence !== undefined && message.aiConfidence < 0.7 && (
           <p className="text-[10px] text-amber-500 mt-1 flex items-center gap-1">
             <Flag size={10} />
             Low confidence — may need human review
+          </p>
+        )}
+        {message.flagReason && (
+          <p className="text-[10px] text-red-500 mt-1 flex items-center gap-1">
+            <AlertTriangle size={10} />
+            {message.flagReason}
           </p>
         )}
       </div>
@@ -129,8 +141,26 @@ export function ChatWindow({
     crisis: 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400',
   };
 
+  const isCrisisConversation = conversation.priority === 'crisis' || conversation.status === 'escalated';
+
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] max-h-[700px] bg-white dark:bg-dark-900 rounded-xl border border-gray-200 dark:border-gray-700/50 overflow-hidden">
+    <div className={`flex flex-col h-[calc(100vh-8rem)] max-h-[700px] bg-white dark:bg-dark-900 rounded-xl border overflow-hidden ${
+      isCrisisConversation
+        ? 'border-red-300 dark:border-red-500/30'
+        : 'border-gray-200 dark:border-gray-700/50'
+    }`}>
+      {/* Crisis escalation banner */}
+      {isCrisisConversation && (
+        <div className="px-4 py-2 bg-red-50 dark:bg-red-500/10 border-b border-red-200 dark:border-red-500/20 flex items-center gap-2">
+          <AlertTriangle size={14} className="text-red-600 dark:text-red-400 flex-shrink-0" />
+          <p className="text-xs font-medium text-red-700 dark:text-red-400">
+            {conversation.status === 'escalated'
+              ? 'This conversation has been escalated to a human leader'
+              : 'Crisis-level conversation — care team has been notified'}
+          </p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700/50 bg-white/80 dark:bg-dark-800/80 backdrop-blur-sm">
         <div className="flex items-center gap-3">
