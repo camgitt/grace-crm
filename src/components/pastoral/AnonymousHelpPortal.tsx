@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import {
   Heart,
-  ArrowLeft,
   Lock,
   EyeOff,
   MessageSquare,
@@ -9,8 +8,7 @@ import {
 import type { HelpCategory, View } from '../../types';
 import { HelpIntakeForm } from './HelpIntakeForm';
 import { CharacterChat } from './CharacterChat';
-import { usePastoralCareData, type ConversationWithMessages } from '../../hooks/usePastoralCareData';
-import { generatePersonaResponse } from '../../lib/services/personaChat';
+import { usePastoralCareData } from '../../hooks/usePastoralCareData';
 
 interface AnonymousHelpPortalProps {
   setView: (view: View) => void;

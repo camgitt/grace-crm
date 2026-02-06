@@ -7,10 +7,8 @@ import {
   CheckCircle2,
   Users,
   ArrowLeft,
-  Eye,
   Filter,
   AlertCircle,
-  Phone,
   XCircle,
   ChevronDown,
 } from 'lucide-react';
@@ -68,7 +66,6 @@ export function CareStaffDashboard({ setView, churchId }: CareStaffDashboardProp
     updateConversationPriority,
     resolveCrisisEvent,
     leaderTakeover,
-    leaderSendMessage,
     scheduleFollowUp,
   } = usePastoralCareData(churchId);
 
