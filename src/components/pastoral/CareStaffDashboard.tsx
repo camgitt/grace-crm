@@ -101,14 +101,14 @@ export function CareStaffDashboard({ setView, churchId }: CareStaffDashboardProp
     return leaders.find(l => l.id === leaderId)?.displayName || 'Unknown';
   };
 
-  const handleStatusChange = async (convId: string, newStatus: FilterStatus) => {
+  const handleStatusChange = async (convId: string, newStatus: string) => {
     if (newStatus === 'all') return;
-    await updateConversationStatus(convId, newStatus);
+    await updateConversationStatus(convId, newStatus as 'active' | 'waiting' | 'escalated' | 'resolved' | 'archived');
   };
 
-  const handlePriorityChange = async (convId: string, newPriority: FilterPriority) => {
+  const handlePriorityChange = async (convId: string, newPriority: string) => {
     if (newPriority === 'all') return;
-    await updateConversationPriority(convId, newPriority);
+    await updateConversationPriority(convId, newPriority as 'low' | 'medium' | 'high' | 'crisis');
   };
 
   return (

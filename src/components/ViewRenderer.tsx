@@ -523,10 +523,13 @@ export function ViewRenderer(props: ViewRendererProps) {
         );
 
       case 'pastoral-care':
-      case 'help-intake':
-      case 'conversations':
-      case 'care-chat':
         return <PastoralCare setView={setView} churchId={churchId} />;
+      case 'help-intake':
+        return <PastoralCare setView={setView} churchId={churchId} initialSubView="intake" />;
+      case 'conversations':
+        return <PastoralCare setView={setView} churchId={churchId} initialSubView="conversations" />;
+      case 'care-chat':
+        return <PastoralCare setView={setView} churchId={churchId} initialSubView="chat" />;
 
       case 'care-dashboard':
         return <CareStaffDashboard setView={setView} churchId={churchId} />;

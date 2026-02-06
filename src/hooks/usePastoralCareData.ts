@@ -131,25 +131,36 @@ export function usePastoralCareData(churchId?: string) {
       }
 
       try {
-        const [leadersRes, personasRes, convsRes, msgsRes, crisisRes] = await Promise.all([
+        // Load leaders, personas, conversations, and crisis events first
+        const [leadersRes, personasRes, convsRes, crisisRes] = await Promise.all([
           supabase.from('pastoral_leaders').select('*').eq('church_id', effectiveChurchId).order('display_name'),
           supabase.from('pastoral_personas').select('*').eq('church_id', effectiveChurchId),
           supabase.from('pastoral_conversations').select('*').eq('church_id', effectiveChurchId).order('updated_at', { ascending: false }),
-          supabase.from('pastoral_messages').select('*').order('created_at'),
           supabase.from('pastoral_crisis_events').select('*').eq('church_id', effectiveChurchId).order('created_at', { ascending: false }),
         ]);
 
         if (leadersRes.error) throw leadersRes.error;
         if (personasRes.error) throw personasRes.error;
         if (convsRes.error) throw convsRes.error;
-        if (msgsRes.error) throw msgsRes.error;
         if (crisisRes.error) throw crisisRes.error;
 
         const dbLeaders = (leadersRes.data || []) as PastoralLeader[];
         const dbPersonas = (personasRes.data || []) as PastoralPersona[];
         const dbConvs = (convsRes.data || []) as PastoralConversation[];
-        const dbMsgs = (msgsRes.data || []) as PastoralMessage[];
         const dbCrisis = (crisisRes.data || []) as PastoralCrisisEvent[];
+
+        // Load messages filtered by conversation IDs (avoid loading all messages globally)
+        const convIds = dbConvs.map(c => c.id);
+        let dbMsgs: PastoralMessage[] = [];
+        if (convIds.length > 0) {
+          const msgsRes = await supabase
+            .from('pastoral_messages')
+            .select('*')
+            .in('conversation_id', convIds)
+            .order('created_at');
+          if (msgsRes.error) throw msgsRes.error;
+          dbMsgs = (msgsRes.data || []) as PastoralMessage[];
+        }
 
         // Join messages to conversations
         const convsWithMsgs: ConversationWithMessages[] = dbConvs.map(conv => ({
@@ -162,12 +173,18 @@ export function usePastoralCareData(churchId?: string) {
         setConversations(convsWithMsgs);
         setCrisisEvents(dbCrisis);
 
-        // If no leaders exist yet, seed with sample data
+        // If no leaders exist yet, seed with sample data and persist to Supabase
         if (dbLeaders.length === 0) {
           const sampleDbLeaders = sampleLeaderProfiles.map(l => leaderToDb(l, effectiveChurchId));
           const sampleDbPersonas = samplePersonas.map(p => personaToDb(p, effectiveChurchId));
           setLeaders(sampleDbLeaders);
           setPersonas(sampleDbPersonas);
+
+          // Persist seed data to Supabase so it's available on next load
+          if (supabase) {
+            await supabase.from('pastoral_leaders').insert(sampleDbLeaders).select();
+            await supabase.from('pastoral_personas').insert(sampleDbPersonas).select();
+          }
         }
       } catch (err) {
         console.error('Error loading pastoral care data:', err);

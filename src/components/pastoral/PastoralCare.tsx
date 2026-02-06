@@ -22,10 +22,11 @@ type PastoralSubView = 'leaders' | 'intake' | 'chat' | 'conversations';
 interface PastoralCareProps {
   setView?: (view: View) => void;
   churchId?: string;
+  initialSubView?: PastoralSubView;
 }
 
-export function PastoralCare({ setView, churchId }: PastoralCareProps) {
-  const [subView, setSubView] = useState<PastoralSubView>('leaders');
+export function PastoralCare({ setView, churchId, initialSubView }: PastoralCareProps) {
+  const [subView, setSubView] = useState<PastoralSubView>(initialSubView || 'leaders');
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
 
   const {

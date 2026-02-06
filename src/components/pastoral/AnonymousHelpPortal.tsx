@@ -133,7 +133,7 @@ export function AnonymousHelpPortal({ setView, churchId }: AnonymousHelpPortalPr
   if (step === 'intake') {
     return (
       <HelpIntakeForm
-        onSubmit={(category, description) => handleIntakeSubmit(category, description)}
+        onSubmit={(category, description, _isAnonymous) => handleIntakeSubmit(category, description)}
         onBack={() => setStep('welcome')}
       />
     );
