@@ -11,13 +11,16 @@ import {
   ArrowRight,
   BarChart3,
   Shield,
+  Settings,
 } from 'lucide-react';
 import type { LeaderProfile, HelpRequest, PastoralConversation, HelpCategory } from '../../types';
 import { HelpIntakeForm } from './HelpIntakeForm';
 import { CounselorCard } from './CounselorCard';
 import { ChatWindow } from './ChatWindow';
+import { LeaderProfileCard } from './LeaderProfileCard';
+import { LeaderSettingsForm } from './LeaderSettingsForm';
 
-type DashboardTab = 'overview' | 'conversations' | 'leaders' | 'new-request';
+type DashboardTab = 'overview' | 'conversations' | 'leaders' | 'settings' | 'new-request';
 
 interface PastoralCareDashboardProps {
   leaders: LeaderProfile[];
@@ -31,6 +34,8 @@ interface PastoralCareDashboardProps {
   onResolveConversation: (conversationId: string) => void;
   onEscalateConversation: (conversationId: string) => void;
   onSetActiveConversation: (id: string | null) => void;
+  onUpdateLeader?: (leaderId: string, data: Partial<LeaderProfile>) => void;
+  onAddLeader?: (data: Partial<LeaderProfile>) => void;
   onBack?: () => void;
   churchName?: string;
 }
@@ -74,10 +79,14 @@ export function PastoralCareDashboard({
   onResolveConversation,
   onEscalateConversation,
   onSetActiveConversation,
+  onUpdateLeader,
+  onAddLeader,
   onBack,
   churchName,
 }: PastoralCareDashboardProps) {
   const [tab, setTab] = useState<DashboardTab>('overview');
+  const [editingLeaderId, setEditingLeaderId] = useState<string | null>(null);
+  const [isAddingLeader, setIsAddingLeader] = useState(false);
 
   // If there's an active conversation, show the chat
   if (activeConversationId && activeConversation) {
@@ -148,16 +157,17 @@ export function PastoralCareDashboard({
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 dark:bg-dark-800 p-1 rounded-xl w-fit">
-        {(['overview', 'conversations', 'leaders'] as DashboardTab[]).map(t => (
+        {(['overview', 'conversations', 'leaders', 'settings'] as DashboardTab[]).map(t => (
           <button
             key={t}
-            onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors capitalize ${
+            onClick={() => { setTab(t); setEditingLeaderId(null); setIsAddingLeader(false); }}
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors capitalize flex items-center gap-1.5 ${
               tab === t
                 ? 'bg-white dark:bg-dark-700 text-gray-900 dark:text-white shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
             }`}
           >
+            {t === 'settings' && <Settings size={14} />}
             {t}
           </button>
         ))}
@@ -378,6 +388,71 @@ export function PastoralCareDashboard({
               />
             );
           })}
+        </div>
+      )}
+
+      {tab === 'settings' && (
+        <div className="space-y-6">
+          {/* Settings: editing a leader */}
+          {editingLeaderId && (() => {
+            const leader = leaders.find(l => l.id === editingLeaderId);
+            if (!leader) return null;
+            return (
+              <LeaderSettingsForm
+                leader={leader}
+                onSave={(data) => {
+                  onUpdateLeader?.(editingLeaderId, data);
+                  setEditingLeaderId(null);
+                }}
+                onCancel={() => setEditingLeaderId(null)}
+              />
+            );
+          })()}
+
+          {/* Settings: adding new leader */}
+          {isAddingLeader && !editingLeaderId && (
+            <LeaderSettingsForm
+              onSave={(data) => {
+                onAddLeader?.(data);
+                setIsAddingLeader(false);
+              }}
+              onCancel={() => setIsAddingLeader(false)}
+            />
+          )}
+
+          {/* Settings: leader list with profile cards */}
+          {!editingLeaderId && !isAddingLeader && (
+            <>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Leader AI Settings</h2>
+                  <p className="text-xs text-gray-500 dark:text-dark-400 mt-0.5">
+                    Configure each leader's AI counselor persona, expertise, and personality traits
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsAddingLeader(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-xl transition-colors"
+                >
+                  <Plus size={16} />
+                  Add Leader
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {leaders.filter(l => l.isActive).map(leader => (
+                  <LeaderProfileCard
+                    key={leader.id}
+                    leader={leader}
+                    onStartSession={() => {
+                      setTab('new-request');
+                    }}
+                    onEdit={(leaderId) => setEditingLeaderId(leaderId)}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

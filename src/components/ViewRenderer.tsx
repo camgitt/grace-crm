@@ -32,7 +32,7 @@ const ConnectCard = lazy(() => import('./ConnectCard').then(m => ({ default: m.C
 const MemberDirectory = lazy(() => import('./MemberDirectory').then(m => ({ default: m.MemberDirectory })));
 const ChildCheckIn = lazy(() => import('./ChildCheckIn').then(m => ({ default: m.ChildCheckIn })));
 const FormBuilder = lazy(() => import('./FormBuilder').then(m => ({ default: m.FormBuilder })));
-const MemberPortalView = lazy(() => import('./member/MemberPortal').then(m => ({ default: m.MemberPortal })));
+const MemberPortalPreview = lazy(() => import('./member/MemberPortalPreview').then(m => ({ default: m.MemberPortalPreview })));
 const SundayPrep = lazy(() => import('./SundayPrep').then(m => ({ default: m.SundayPrep })));
 const Families = lazy(() => import('./Families').then(m => ({ default: m.Families })));
 const SkillsDatabase = lazy(() => import('./SkillsDatabase').then(m => ({ default: m.SkillsDatabase })));
@@ -152,6 +152,8 @@ interface ViewRendererProps {
     resolveConversation: (conversationId: string) => void;
     escalateConversation: (conversationId: string) => void;
     setActiveConversationId: (id: string | null) => void;
+    updateLeader: (leaderId: string, data: Partial<LeaderProfile>) => void;
+    addLeader: (data: Partial<LeaderProfile>) => void;
   };
 }
 
@@ -453,7 +455,7 @@ export function ViewRenderer(props: ViewRendererProps) {
       case 'member-events':
       case 'member-checkin':
         return (
-          <MemberPortalView
+          <MemberPortalPreview
             people={people}
             events={events}
             giving={giving}
@@ -547,6 +549,8 @@ export function ViewRenderer(props: ViewRendererProps) {
             onResolveConversation={pastoralCare.resolveConversation}
             onEscalateConversation={pastoralCare.escalateConversation}
             onSetActiveConversation={pastoralCare.setActiveConversationId}
+            onUpdateLeader={pastoralCare.updateLeader}
+            onAddLeader={pastoralCare.addLeader}
             onBack={() => setView('dashboard')}
             churchName={churchName}
           />

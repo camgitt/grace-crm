@@ -14,10 +14,18 @@ const INITIAL_LEADERS: LeaderProfile[] = [
     id: 'leader-1',
     personId: 'person-1',
     displayName: 'Pastor Mike Davis',
-    title: 'Senior Pastor — Marriage & Family',
+    title: 'Psycho-Spiritual Counselor',
     bio: 'Over 20 years of pastoral experience specializing in marriage counseling and family restoration. Certified by the American Association of Christian Counselors.',
     photo: undefined,
     expertiseAreas: ['marriage', 'parenting', 'general'],
+    credentials: ['Certified Biblical Counselor', 'M.Div — Fuller Seminary', 'AACC Member'],
+    personalityTraits: ['Warm', 'Patient', 'Empathetic', 'Direct'],
+    spiritualFocusAreas: ['Prayer Ministry', 'Marriage Enrichment', 'Family Restoration'],
+    language: 'English',
+    isVerified: true,
+    yearsOfPractice: 20,
+    suitableFor: ['Adults', 'Couples', 'Families'],
+    anchorVerse: 'Bear one another\'s burdens, and so fulfill the law of Christ. — Galatians 6:2',
     isAvailable: true,
     isActive: true,
     createdAt: '2025-01-01T00:00:00Z',
@@ -30,6 +38,14 @@ const INITIAL_LEADERS: LeaderProfile[] = [
     bio: 'Specializing in grief counseling and crisis intervention. Former hospice chaplain with a heart for those walking through the darkest valleys.',
     photo: undefined,
     expertiseAreas: ['grief', 'crisis', 'anxiety-depression'],
+    credentials: ['Licensed Professional Counselor', 'Former Hospice Chaplain'],
+    personalityTraits: ['Gentle', 'Comforting', 'Nurturing', 'Patient'],
+    spiritualFocusAreas: ['Grief Support', 'Crisis Intervention', 'Contemplative Prayer'],
+    language: 'English',
+    isVerified: true,
+    yearsOfPractice: 12,
+    suitableFor: ['Adults', 'Seniors', 'Families'],
+    anchorVerse: 'The Lord is close to the brokenhearted and saves those who are crushed in spirit. — Psalm 34:18',
     isAvailable: true,
     isActive: true,
     createdAt: '2025-01-01T00:00:00Z',
@@ -42,6 +58,13 @@ const INITIAL_LEADERS: LeaderProfile[] = [
     bio: '15 years in recovery ministry. Leads our Celebrate Recovery program and mentors those overcoming addiction with compassion and accountability.',
     photo: undefined,
     expertiseAreas: ['addiction', 'financial', 'general'],
+    credentials: ['Certified Recovery Coach', 'Celebrate Recovery Leader'],
+    personalityTraits: ['Coaching', 'Direct', 'Encouraging', 'Warm'],
+    spiritualFocusAreas: ['Recovery Ministry', 'Accountability Groups', 'Financial Stewardship'],
+    language: 'English',
+    isVerified: true,
+    yearsOfPractice: 15,
+    suitableFor: ['Adults', 'Young Adults'],
     isAvailable: false,
     isActive: true,
     createdAt: '2025-01-01T00:00:00Z',
@@ -54,6 +77,12 @@ const INITIAL_LEADERS: LeaderProfile[] = [
     bio: "Passionate about helping young people navigate faith, doubt, and life's big questions. Masters in Theology with a focus on apologetics.",
     photo: undefined,
     expertiseAreas: ['faith-questions', 'anxiety-depression', 'parenting'],
+    credentials: ['M.Th — Apologetics', 'Youth Ministry Certification'],
+    personalityTraits: ['Curious', 'Empathetic', 'Scholarly', 'Humorous'],
+    spiritualFocusAreas: ['Apologetics', 'Bible Study', 'Youth Discipleship'],
+    language: 'English',
+    isVerified: true,
+    suitableFor: ['Youth', 'Young Adults', 'Students'],
     isAvailable: true,
     isActive: true,
     createdAt: '2025-01-01T00:00:00Z',
@@ -131,7 +160,7 @@ function getPriority(category: HelpCategory): ConversationPriority {
 }
 
 export function usePastoralCare() {
-  const [leaders] = useState<LeaderProfile[]>(INITIAL_LEADERS);
+  const [leaders, setLeaders] = useState<LeaderProfile[]>(INITIAL_LEADERS);
   const [helpRequests, setHelpRequests] = useState<HelpRequest[]>([]);
   const [conversations, setConversations] = useState<PastoralConversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
@@ -263,6 +292,36 @@ export function usePastoralCare() {
     ));
   }, []);
 
+  const updateLeader = useCallback((leaderId: string, data: Partial<LeaderProfile>) => {
+    setLeaders(prev => prev.map(l =>
+      l.id === leaderId ? { ...l, ...data } : l
+    ));
+  }, []);
+
+  const addLeader = useCallback((data: Partial<LeaderProfile>) => {
+    const newLeader: LeaderProfile = {
+      id: `leader-${Date.now()}`,
+      personId: undefined,
+      displayName: data.displayName || 'New Leader',
+      title: data.title || 'Pastoral Counselor',
+      bio: data.bio || '',
+      photo: data.photo,
+      expertiseAreas: data.expertiseAreas || ['general'],
+      credentials: data.credentials || [],
+      personalityTraits: data.personalityTraits || ['Warm', 'Patient'],
+      spiritualFocusAreas: data.spiritualFocusAreas || [],
+      language: data.language || 'English',
+      isVerified: false,
+      isAvailable: data.isAvailable ?? true,
+      isActive: true,
+      yearsOfPractice: data.yearsOfPractice,
+      suitableFor: data.suitableFor || ['Adults'],
+      anchorVerse: data.anchorVerse,
+      createdAt: new Date().toISOString(),
+    };
+    setLeaders(prev => [...prev, newLeader]);
+  }, []);
+
   const activeConversation = conversations.find(c => c.id === activeConversationId);
   const activeLeader = activeConversation?.leaderId
     ? leaders.find(l => l.id === activeConversation.leaderId)
@@ -280,5 +339,7 @@ export function usePastoralCare() {
     sendMessage,
     resolveConversation,
     escalateConversation,
+    updateLeader,
+    addLeader,
   };
 }

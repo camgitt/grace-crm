@@ -16,6 +16,7 @@ interface MemberPortalProps {
   attendance: Attendance[];
   rsvps: { eventId: string; personId: string; status: 'yes' | 'no' | 'maybe'; guestCount: number }[];
   churchName?: string;
+  skipAuth?: boolean;
   onBack?: () => void;
   onRSVP?: (eventId: string, personId: string, status: 'yes' | 'no' | 'maybe', guestCount?: number) => void;
   onCheckIn?: (personId: string, eventType: Attendance['eventType'], eventName?: string) => void;
@@ -36,6 +37,7 @@ function MemberPortalContent({
   attendance,
   rsvps,
   churchName = 'Grace Church',
+  skipAuth,
   onBack,
   onRSVP,
   onCheckIn
@@ -44,8 +46,8 @@ function MemberPortalContent({
   const [activeTab, setActiveTab] = useState<MemberPortalTab>('directory');
   const [showProfile, setShowProfile] = useState(false);
 
-  // Show loading state
-  if (isLoading) {
+  // Show loading state (skip if in admin preview mode)
+  if (!skipAuth && isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-dark-900 flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full" />
@@ -53,8 +55,8 @@ function MemberPortalContent({
     );
   }
 
-  // Show login if not authenticated
-  if (!isAuthenticated) {
+  // Show login if not authenticated (skip if in admin preview mode)
+  if (!skipAuth && !isAuthenticated) {
     return <MemberLogin churchName={churchName} onBack={onBack} />;
   }
 

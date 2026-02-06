@@ -388,8 +388,16 @@ export interface LeaderProfile {
   bio: string;
   photo?: string;
   expertiseAreas: HelpCategory[];
+  credentials: string[];
+  personalityTraits: string[];
+  spiritualFocusAreas: string[];
+  language: string;
+  isVerified: boolean;
   isAvailable: boolean;
   isActive: boolean;
+  yearsOfPractice?: number;
+  suitableFor: string[];
+  anchorVerse?: string;
   createdAt: string;
 }
 
@@ -397,6 +405,8 @@ export interface AIPersona {
   id: string;
   leaderId: string;
   name: string;
+  language: string;
+  personalityDescription: string;
   systemPrompt: string;
   tone: {
     warmth: number;
