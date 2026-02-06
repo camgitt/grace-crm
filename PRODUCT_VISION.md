@@ -215,40 +215,40 @@ leader online
 
 - [x] Product vision document (this file)
 - [x] Dashboard component plan
-- [ ] Database schema design for pastoral care tables
-- [ ] UI/UX wireframes for intake flow and chat interface
-- [ ] API route planning
+- [x] Database schema design for pastoral care tables
+- [x] UI/UX wireframes for intake flow and chat interface
+- [x] API route planning
 - [ ] Security & privacy review (HIPAA-adjacent considerations)
 
 ### Phase 1: Foundation (2-3 weeks)
 
 **Goal:** Basic help intake and leader management
 
-- [ ] Database tables: help_requests, help_categories, leader_profiles, conversations
-- [ ] Help intake form component (category selection, optional details)
-- [ ] Leader profile CRUD (create, read, update, delete)
-- [ ] Staff dashboard view for help requests
-- [ ] Basic routing: help request → assigned leader
+- [x] Database tables: help_requests, help_categories, leader_profiles, conversations
+- [x] Help intake form component (category selection, optional details)
+- [x] Leader profile CRUD (create, read, update, delete)
+- [x] Staff dashboard view for help requests
+- [x] Basic routing: help request → assigned leader
 - [ ] Notification: leader receives email/SMS when assigned
 
 ### Phase 2: AI Chat with Personas (3-4 weeks)
 
 **Goal:** Working AI conversations using leader context
 
-- [ ] AI persona configuration (tone, style, boundaries, knowledge)
-- [ ] Chat interface component (real-time, persistent)
-- [ ] Conversation storage and retrieval
-- [ ] Context injection: leader's profile + knowledge base → AI prompt
-- [ ] Crisis detection system (keyword matching + AI classification)
-- [ ] Safety protocol responses (hotline numbers, disclaimers)
-- [ ] Basic escalation flow ("talk to a real person")
+- [x] AI persona configuration (tone, style, boundaries, knowledge)
+- [x] Chat interface component (real-time, persistent)
+- [x] Conversation storage and retrieval
+- [x] Context injection: leader's profile + knowledge base → AI prompt
+- [x] Crisis detection system (keyword matching + AI classification)
+- [x] Safety protocol responses (hotline numbers, disclaimers)
+- [x] Basic escalation flow ("talk to a real person")
 
 ### Phase 3: Live Experience (2-3 weeks)
 
 **Goal:** Real-time human-AI collaboration
 
 - [ ] Real-time conversation updates (WebSocket or polling)
-- [ ] Leader dashboard: active conversations view
+- [x] Leader dashboard: active conversations view
 - [ ] Live takeover: leader joins AI conversation
 - [ ] Seamless handoff UI (user sees transition)
 - [ ] Appointment scheduling from chat
@@ -258,7 +258,7 @@ leader online
 
 **Goal:** Anonymous access, analytics, refinement
 
-- [ ] Anonymous mode: no-login access with anonymous IDs
+- [x] Anonymous mode: no-login access with anonymous IDs
 - [ ] Analytics dashboard: volumes, categories, outcomes, response times
 - [ ] Conversation rating and feedback
 - [ ] AI persona refinement tools (leader reviews and corrects)
