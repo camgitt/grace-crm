@@ -507,6 +507,488 @@ INSERT INTO giving_statements (id, church_id, person_id, year, total_amount, by_
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================
+-- PASTORAL CARE: LEADER PROFILES
+-- ============================================
+INSERT INTO leader_profiles (id, church_id, person_id, display_name, title, bio, photo_url, expertise_areas, is_available, is_active) VALUES
+  -- Pastor John Smith (admin user, also a care leader)
+  ('55550001-5555-5555-5555-555555550001', '11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000004',
+   'Pastor Robert Chen', 'Senior Pastor — Marriage & Family',
+   'Over 20 years of pastoral experience specializing in marriage counseling and family restoration. Certified by the American Association of Christian Counselors.',
+   NULL, ARRAY['marriage', 'parenting', 'general'], true, true),
+
+  ('55550001-5555-5555-5555-555555550002', '11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000029',
+   'Pastor Grace Williams', 'Care Pastor — Grief & Crisis',
+   'Specializing in grief counseling and crisis intervention. Former hospice chaplain with a heart for those walking through the darkest valleys.',
+   NULL, ARRAY['grief', 'crisis', 'anxiety-depression'], true, true),
+
+  ('55550001-5555-5555-5555-555555550003', '11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000008',
+   'Deacon Michael Brown', 'Recovery Ministry Lead',
+   '15 years in recovery ministry. Leads the Celebrate Recovery program and mentors those overcoming addiction with compassion and accountability.',
+   NULL, ARRAY['addiction', 'financial', 'general'], false, true),
+
+  ('55550001-5555-5555-5555-555555550004', '11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000011',
+   'Pastor Rachel Kim', 'Youth & Young Adults Pastor',
+   'Passionate about helping young people navigate faith, doubt, and life''s big questions. Masters in Theology with a focus on apologetics.',
+   NULL, ARRAY['faith-questions', 'anxiety-depression', 'parenting'], true, true),
+
+  ('55550001-5555-5555-5555-555555550005', '11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000032',
+   'Elder William Harris', 'Teaching Elder — Discipleship',
+   'Retired professor with decades of mentoring experience. Leads adult Sunday school and one-on-one discipleship.',
+   NULL, ARRAY['faith-questions', 'general'], true, true)
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================
+-- PASTORAL CARE: AI PERSONAS
+-- ============================================
+INSERT INTO ai_personas (id, church_id, leader_id, name, system_prompt, tone, boundaries, escalation_rules, is_active) VALUES
+  ('55550002-5555-5555-5555-555555550001', '11111111-1111-1111-1111-111111111111', '55550001-5555-5555-5555-555555550001',
+   'Pastor Robert''s AI Assistant',
+   'You are a compassionate pastoral care assistant representing Pastor Robert Chen. He specializes in marriage and family counseling with over 20 years of experience. Always be warm, encouraging, and direct when needed. Emphasize the importance of communication and mutual respect. Refer to scripture when appropriate but focus on practical wisdom.',
+   '{"warmth": 8, "formality": 4, "directness": 6, "faithLevel": 7}'::jsonb,
+   ARRAY['Legal advice', 'Medical diagnosis', 'Medication recommendations', 'Separation/divorce legal process'],
+   '[{"trigger": "keyword", "condition": "divorce attorney|custody battle", "action": "flag", "notifyLeaderId": null}]'::jsonb,
+   true),
+
+  ('55550002-5555-5555-5555-555555550002', '11111111-1111-1111-1111-111111111111', '55550001-5555-5555-5555-555555550002',
+   'Pastor Grace''s AI Assistant',
+   'You are a gentle, empathetic pastoral care assistant representing Pastor Grace Williams. She specializes in grief counseling and crisis support. Be extremely warm, patient, and never rush someone through their pain. Validate all emotions. When crisis indicators appear, immediately provide safety resources.',
+   '{"warmth": 9, "formality": 3, "directness": 4, "faithLevel": 6}'::jsonb,
+   ARRAY['Suicide risk assessment', 'Psychiatric evaluation', 'Legal counsel', 'Medical advice'],
+   '[{"trigger": "keyword", "condition": "suicide|kill myself|end it", "action": "crisis-protocol"}, {"trigger": "sentiment", "condition": "0.2", "action": "notify"}]'::jsonb,
+   true),
+
+  ('55550002-5555-5555-5555-555555550003', '11111111-1111-1111-1111-111111111111', '55550001-5555-5555-5555-555555550003',
+   'Deacon Michael''s AI Assistant',
+   'You are a supportive pastoral care assistant representing Deacon Michael Brown. He specializes in addiction recovery and financial stewardship. Be honest, direct, and compassionate. Share about the Celebrate Recovery program. Emphasize accountability and hope.',
+   '{"warmth": 7, "formality": 5, "directness": 7, "faithLevel": 8}'::jsonb,
+   ARRAY['Medical detox advice', 'Specific financial planning', 'Prescription recommendations', 'Legal financial advice'],
+   '[{"trigger": "keyword", "condition": "relapsed|using again|overdose", "action": "escalate"}]'::jsonb,
+   true),
+
+  ('55550002-5555-5555-5555-555555550004', '11111111-1111-1111-1111-111111111111', '55550001-5555-5555-5555-555555550004',
+   'Pastor Rachel''s AI Assistant',
+   'You are a warm, approachable pastoral care assistant representing Pastor Rachel Kim. She works with youth and young adults, specializing in faith questions and apologetics. Be relatable, non-judgmental, and intellectually honest. Make space for doubt and questions. Use modern, accessible language.',
+   '{"warmth": 8, "formality": 3, "directness": 5, "faithLevel": 5}'::jsonb,
+   ARRAY['Academic counseling', 'Medical advice', 'Career counseling'],
+   '[]'::jsonb,
+   true),
+
+  ('55550002-5555-5555-5555-555555550005', '11111111-1111-1111-1111-111111111111', '55550001-5555-5555-5555-555555550005',
+   'Elder William''s AI Assistant',
+   'You are a thoughtful pastoral care assistant representing Elder William Harris. He is a retired professor with a gift for deep theological discussion and practical discipleship. Be patient, wise, and encouraging. Reference both scripture and practical life experience.',
+   '{"warmth": 6, "formality": 6, "directness": 5, "faithLevel": 8}'::jsonb,
+   ARRAY['Professional counseling', 'Medical advice'],
+   '[]'::jsonb,
+   true)
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================
+-- PASTORAL CARE: CRISIS PROTOCOLS
+-- ============================================
+INSERT INTO crisis_protocols (id, church_id, name, trigger_keywords, trigger_sentiment_threshold, immediate_response, resources, notify_staff, notify_leader, escalate_immediately, is_active) VALUES
+  ('55550003-5555-5555-5555-555555550001', '11111111-1111-1111-1111-111111111111',
+   'Suicide / Self-Harm Protocol',
+   ARRAY['suicide', 'suicidal', 'kill myself', 'end my life', 'self-harm', 'cutting', 'want to die', 'overdose', 'no reason to live'],
+   0.15,
+   'I want you to know that reaching out right now is incredibly brave. Your life matters, and you are not alone. If you are in immediate danger, please call 911 or the 988 Suicide & Crisis Lifeline right now.',
+   '[{"name": "988 Suicide & Crisis Lifeline", "phone": "988", "url": "https://988lifeline.org", "description": "24/7 free and confidential support"}, {"name": "Crisis Text Line", "phone": null, "url": "https://crisistextline.org", "description": "Text HOME to 741741"}]'::jsonb,
+   true, true, true, true),
+
+  ('55550003-5555-5555-5555-555555550002', '11111111-1111-1111-1111-111111111111',
+   'Domestic Violence Protocol',
+   ARRAY['domestic violence', 'he hits me', 'she hits me', 'being abused', 'afraid of my spouse', 'threatened me', 'hurting me'],
+   0.20,
+   'Your safety is our top priority. If you are in immediate danger, please call 911. You deserve to be safe, and there are people who can help right now.',
+   '[{"name": "National Domestic Violence Hotline", "phone": "1-800-799-7233", "url": "https://thehotline.org", "description": "24/7 confidential support and safety planning"}, {"name": "Crisis Text Line", "phone": null, "url": null, "description": "Text START to 88788"}]'::jsonb,
+   true, true, true, true),
+
+  ('55550003-5555-5555-5555-555555550003', '11111111-1111-1111-1111-111111111111',
+   'Substance Abuse Crisis Protocol',
+   ARRAY['overdose', 'relapsed', 'using again', 'can''t stop drinking', 'withdrawal', 'detox'],
+   0.25,
+   'Thank you for being honest about what''s happening. Recovery is a journey, and a setback doesn''t erase your progress. Let me connect you with someone who can help right now.',
+   '[{"name": "SAMHSA National Helpline", "phone": "1-800-662-4357", "url": "https://samhsa.gov/find-help", "description": "24/7 free treatment referral and information"}, {"name": "Celebrate Recovery (Grace Community)", "phone": "(555) 123-4567", "url": null, "description": "Meets every Tuesday 7pm in Fellowship Hall"}]'::jsonb,
+   true, true, true, true),
+
+  ('55550003-5555-5555-5555-555555550004', '11111111-1111-1111-1111-111111111111',
+   'Child Abuse / Neglect Protocol',
+   ARRAY['child abuse', 'hurting my child', 'molested', 'touching my child', 'child neglect'],
+   0.15,
+   'Thank you for speaking up. Protecting children is everyone''s responsibility, and we take this very seriously. We want to help you get the right support immediately.',
+   '[{"name": "Childhelp National Child Abuse Hotline", "phone": "1-800-422-4453", "url": "https://childhelp.org", "description": "24/7 crisis intervention and referrals"}, {"name": "Local CPS", "phone": "911", "url": null, "description": "For immediate child safety concerns, call 911"}]'::jsonb,
+   true, true, true, true)
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================
+-- PASTORAL CARE: HELP REQUESTS (varied statuses)
+-- ============================================
+INSERT INTO help_requests (id, church_id, category, description, is_anonymous, anonymous_id, person_id, assigned_leader_id, assigned_persona_id, conversation_id, status, priority, source, created_at, resolved_at) VALUES
+  -- Active: Marriage struggle (identified member)
+  ('55550004-5555-5555-5555-555555550001', '11111111-1111-1111-1111-111111111111',
+   'marriage', 'My wife and I have been fighting constantly about finances and parenting. We can''t seem to agree on anything anymore and I''m worried we''re drifting apart.',
+   false, NULL, '00000000-0000-0000-0000-000000000016',
+   '55550001-5555-5555-5555-555555550001', '55550002-5555-5555-5555-555555550001',
+   '55550005-5555-5555-5555-555555550001',
+   'active', 'medium', 'web', '2026-02-03 14:30:00', NULL),
+
+  -- Active: Anxiety/depression (anonymous)
+  ('55550004-5555-5555-5555-555555550002', '11111111-1111-1111-1111-111111111111',
+   'anxiety-depression', 'I''ve been having panic attacks almost every day. I can''t focus at work and I''m scared to leave my house some mornings. I don''t know who to talk to.',
+   true, 'Seeker-AB7K', NULL,
+   '55550001-5555-5555-5555-555555550004', '55550002-5555-5555-5555-555555550004',
+   '55550005-5555-5555-5555-555555550002',
+   'active', 'high', 'web', '2026-02-04 09:15:00', NULL),
+
+  -- Escalated: Crisis — suicidal ideation (anonymous)
+  ('55550004-5555-5555-5555-555555550003', '11111111-1111-1111-1111-111111111111',
+   'crisis', 'I don''t know why I''m even writing this. I feel like nobody would notice if I was gone. I can''t take it anymore.',
+   true, 'Friend-XQ9M', NULL,
+   '55550001-5555-5555-5555-555555550002', '55550002-5555-5555-5555-555555550002',
+   '55550005-5555-5555-5555-555555550003',
+   'active', 'crisis', 'web', '2026-02-05 22:45:00', NULL),
+
+  -- Active: Addiction recovery
+  ('55550004-5555-5555-5555-555555550004', '11111111-1111-1111-1111-111111111111',
+   'addiction', 'I''ve been sober for 8 months but lately the cravings are getting really bad. I almost relapsed last weekend. I need someone to talk to.',
+   true, 'Helper-TN4W', NULL,
+   '55550001-5555-5555-5555-555555550003', '55550002-5555-5555-5555-555555550003',
+   '55550005-5555-5555-5555-555555550004',
+   'active', 'high', 'web', '2026-02-04 20:10:00', NULL),
+
+  -- Active: Faith questions (identified young adult)
+  ('55550004-5555-5555-5555-555555550005', '11111111-1111-1111-1111-111111111111',
+   'faith-questions', 'I grew up in church but lately I''ve been having serious doubts. Is it normal to question everything you were taught? I feel guilty even asking.',
+   false, NULL, '00000000-0000-0000-0000-000000000015',
+   '55550001-5555-5555-5555-555555550004', '55550002-5555-5555-5555-555555550004',
+   '55550005-5555-5555-5555-555555550005',
+   'active', 'medium', 'web', '2026-02-05 11:20:00', NULL),
+
+  -- Active: Grief (recent loss)
+  ('55550004-5555-5555-5555-555555550006', '11111111-1111-1111-1111-111111111111',
+   'grief', 'My mother passed away two weeks ago. I thought I was doing okay but I just broke down at work today. I can''t stop crying and I don''t know how to function.',
+   false, NULL, '00000000-0000-0000-0000-000000000018',
+   '55550001-5555-5555-5555-555555550002', '55550002-5555-5555-5555-555555550002',
+   '55550005-5555-5555-5555-555555550006',
+   'active', 'high', 'web', '2026-02-05 15:40:00', NULL),
+
+  -- Resolved: Financial help
+  ('55550004-5555-5555-5555-555555550007', '11111111-1111-1111-1111-111111111111',
+   'financial', 'I lost my job last month and I''m about to miss rent. I have two kids and I don''t know what to do. Is there any help available?',
+   false, NULL, '00000000-0000-0000-0000-000000000007',
+   '55550001-5555-5555-5555-555555550003', '55550002-5555-5555-5555-555555550003',
+   '55550005-5555-5555-5555-555555550007',
+   'resolved', 'high', 'web', '2026-01-28 10:00:00', '2026-02-01 16:30:00'),
+
+  -- Resolved: Parenting
+  ('55550004-5555-5555-5555-555555550008', '11111111-1111-1111-1111-111111111111',
+   'parenting', 'My teenager has been completely shutting me out. She won''t talk to me, stays in her room, and her grades are dropping. I''m scared and I don''t know how to reach her.',
+   false, NULL, '00000000-0000-0000-0000-000000000029',
+   '55550001-5555-5555-5555-555555550001', '55550002-5555-5555-5555-555555550001',
+   '55550005-5555-5555-5555-555555550008',
+   'resolved', 'medium', 'web', '2026-01-25 13:15:00', '2026-01-30 11:00:00'),
+
+  -- Waiting: General (pending leader assignment)
+  ('55550004-5555-5555-5555-555555550009', '11111111-1111-1111-1111-111111111111',
+   'general', 'I just started attending and I''m not really sure what I believe. I''d like to talk to someone about what your church is about and where I might fit in.',
+   false, NULL, '00000000-0000-0000-0000-000000000034',
+   '55550001-5555-5555-5555-555555550005', '55550002-5555-5555-5555-555555550005',
+   '55550005-5555-5555-5555-555555550009',
+   'active', 'low', 'web', '2026-02-06 08:30:00', NULL),
+
+  -- Active: Anonymous domestic concern
+  ('55550004-5555-5555-5555-555555550010', '11111111-1111-1111-1111-111111111111',
+   'crisis', 'My husband has been getting more and more angry. He hasn''t hurt me yet but I''m scared. I don''t know if I''m overreacting.',
+   true, 'Guest-MR2P', NULL,
+   '55550001-5555-5555-5555-555555550002', '55550002-5555-5555-5555-555555550002',
+   '55550005-5555-5555-5555-555555550010',
+   'active', 'crisis', 'web', '2026-02-06 01:15:00', NULL)
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================
+-- PASTORAL CARE: CONVERSATIONS
+-- ============================================
+INSERT INTO pastoral_conversations (id, church_id, help_request_id, persona_id, leader_id, status, priority, category, is_anonymous, anonymous_id, person_id, metadata, created_at, updated_at, resolved_at) VALUES
+  -- Conv 1: Marriage counseling (active, multi-message)
+  ('55550005-5555-5555-5555-555555550001', '11111111-1111-1111-1111-111111111111',
+   '55550004-5555-5555-5555-555555550001',
+   '55550002-5555-5555-5555-555555550001', '55550001-5555-5555-5555-555555550001',
+   'active', 'medium', 'marriage', false, NULL, '00000000-0000-0000-0000-000000000016',
+   '{"totalMessages": 6, "aiMessages": 3, "userMessages": 3}'::jsonb,
+   '2026-02-03 14:30:00', '2026-02-04 10:15:00', NULL),
+
+  -- Conv 2: Anxiety (active, anonymous)
+  ('55550005-5555-5555-5555-555555550002', '11111111-1111-1111-1111-111111111111',
+   '55550004-5555-5555-5555-555555550002',
+   '55550002-5555-5555-5555-555555550004', '55550001-5555-5555-5555-555555550004',
+   'active', 'high', 'anxiety-depression', true, 'Seeker-AB7K', NULL,
+   '{"totalMessages": 4, "aiMessages": 2, "userMessages": 2}'::jsonb,
+   '2026-02-04 09:15:00', '2026-02-04 09:45:00', NULL),
+
+  -- Conv 3: Crisis — suicidal (escalated)
+  ('55550005-5555-5555-5555-555555550003', '11111111-1111-1111-1111-111111111111',
+   '55550004-5555-5555-5555-555555550003',
+   '55550002-5555-5555-5555-555555550002', '55550001-5555-5555-5555-555555550002',
+   'escalated', 'crisis', 'crisis', true, 'Friend-XQ9M', NULL,
+   '{"totalMessages": 5, "aiMessages": 2, "userMessages": 2, "leaderMessages": 1, "crisisDetected": true, "escalated": true, "escalatedAt": "2026-02-05T22:48:00Z"}'::jsonb,
+   '2026-02-05 22:45:00', '2026-02-05 23:10:00', NULL),
+
+  -- Conv 4: Addiction recovery (active)
+  ('55550005-5555-5555-5555-555555550004', '11111111-1111-1111-1111-111111111111',
+   '55550004-5555-5555-5555-555555550004',
+   '55550002-5555-5555-5555-555555550003', '55550001-5555-5555-5555-555555550003',
+   'active', 'high', 'addiction', true, 'Helper-TN4W', NULL,
+   '{"totalMessages": 4, "aiMessages": 2, "userMessages": 2}'::jsonb,
+   '2026-02-04 20:10:00', '2026-02-04 21:30:00', NULL),
+
+  -- Conv 5: Faith questions (active)
+  ('55550005-5555-5555-5555-555555550005', '11111111-1111-1111-1111-111111111111',
+   '55550004-5555-5555-5555-555555550005',
+   '55550002-5555-5555-5555-555555550004', '55550001-5555-5555-5555-555555550004',
+   'active', 'medium', 'faith-questions', false, NULL, '00000000-0000-0000-0000-000000000015',
+   '{"totalMessages": 6, "aiMessages": 3, "userMessages": 3}'::jsonb,
+   '2026-02-05 11:20:00', '2026-02-05 12:45:00', NULL),
+
+  -- Conv 6: Grief (active)
+  ('55550005-5555-5555-5555-555555550006', '11111111-1111-1111-1111-111111111111',
+   '55550004-5555-5555-5555-555555550006',
+   '55550002-5555-5555-5555-555555550002', '55550001-5555-5555-5555-555555550002',
+   'active', 'high', 'grief', false, NULL, '00000000-0000-0000-0000-000000000018',
+   '{"totalMessages": 4, "aiMessages": 2, "userMessages": 2}'::jsonb,
+   '2026-02-05 15:40:00', '2026-02-05 16:20:00', NULL),
+
+  -- Conv 7: Financial (resolved)
+  ('55550005-5555-5555-5555-555555550007', '11111111-1111-1111-1111-111111111111',
+   '55550004-5555-5555-5555-555555550007',
+   '55550002-5555-5555-5555-555555550003', '55550001-5555-5555-5555-555555550003',
+   'resolved', 'high', 'financial', false, NULL, '00000000-0000-0000-0000-000000000007',
+   '{"totalMessages": 8, "aiMessages": 3, "userMessages": 3, "leaderMessages": 2, "rating": 5, "ratingComment": "Deacon Brown was amazing. The benevolence fund helped us get through the month."}'::jsonb,
+   '2026-01-28 10:00:00', '2026-02-01 16:30:00', '2026-02-01 16:30:00'),
+
+  -- Conv 8: Parenting (resolved)
+  ('55550005-5555-5555-5555-555555550008', '11111111-1111-1111-1111-111111111111',
+   '55550004-5555-5555-5555-555555550008',
+   '55550002-5555-5555-5555-555555550001', '55550001-5555-5555-5555-555555550001',
+   'resolved', 'medium', 'parenting', false, NULL, '00000000-0000-0000-0000-000000000029',
+   '{"totalMessages": 10, "aiMessages": 4, "userMessages": 4, "leaderMessages": 2, "rating": 4, "ratingComment": "Really helpful advice. My daughter and I are starting to reconnect."}'::jsonb,
+   '2026-01-25 13:15:00', '2026-01-30 11:00:00', '2026-01-30 11:00:00'),
+
+  -- Conv 9: General newcomer (active)
+  ('55550005-5555-5555-5555-555555550009', '11111111-1111-1111-1111-111111111111',
+   '55550004-5555-5555-5555-555555550009',
+   '55550002-5555-5555-5555-555555550005', '55550001-5555-5555-5555-555555550005',
+   'active', 'low', 'general', false, NULL, '00000000-0000-0000-0000-000000000034',
+   '{"totalMessages": 2, "aiMessages": 1, "userMessages": 1}'::jsonb,
+   '2026-02-06 08:30:00', '2026-02-06 08:35:00', NULL),
+
+  -- Conv 10: Domestic concern (escalated crisis)
+  ('55550005-5555-5555-5555-555555550010', '11111111-1111-1111-1111-111111111111',
+   '55550004-5555-5555-5555-555555550010',
+   '55550002-5555-5555-5555-555555550002', '55550001-5555-5555-5555-555555550002',
+   'escalated', 'crisis', 'crisis', true, 'Guest-MR2P', NULL,
+   '{"totalMessages": 4, "aiMessages": 2, "userMessages": 2, "crisisDetected": true, "escalated": true, "escalatedAt": "2026-02-06T01:20:00Z"}'::jsonb,
+   '2026-02-06 01:15:00', '2026-02-06 01:25:00', NULL)
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================
+-- PASTORAL CARE: MESSAGES
+-- ============================================
+
+-- Conv 1: Marriage counseling (Brian Cooper)
+INSERT INTO pastoral_messages (id, church_id, conversation_id, sender, sender_name, content, ai_confidence, flagged, flag_reason, created_at) VALUES
+  ('55550006-5555-5555-5555-555555550001', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550001', 'user', 'Brian Cooper',
+   'My wife and I have been fighting constantly about finances and parenting. We can''t seem to agree on anything anymore and I''m worried we''re drifting apart.',
+   NULL, false, NULL, '2026-02-03 14:30:00'),
+  ('55550006-5555-5555-5555-555555550002', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550001', 'ai', 'AI (Pastor Robert''s Assistant)',
+   'I''m glad you reached out, Brian. Marriage is one of the most meaningful relationships in our lives, and it''s completely normal to need support — especially when navigating finances and parenting together. Can you tell me a bit more about what the disagreements usually look like?',
+   0.92, false, NULL, '2026-02-03 14:31:30'),
+  ('55550006-5555-5555-5555-555555550003', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550001', 'user', 'Brian Cooper',
+   'It usually starts small — like she wants to spend money on activities for the kids and I think we need to save more. But then it escalates and we end up bringing up old stuff from years ago.',
+   NULL, false, NULL, '2026-02-03 14:45:00'),
+  ('55550006-5555-5555-5555-555555550004', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550001', 'ai', 'AI (Pastor Robert''s Assistant)',
+   'That''s a really common pattern, Brian. When present disagreements pull in past hurts, it usually means there are unresolved feelings underneath. The good news is that you both clearly care — you just express it differently. Have you two ever tried sitting down with a budget together, or does it feel too charged right now?',
+   0.89, false, NULL, '2026-02-03 14:46:30'),
+  ('55550006-5555-5555-5555-555555550005', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550001', 'user', 'Brian Cooper',
+   'We tried once but it turned into another fight. I think we need outside help at this point.',
+   NULL, false, NULL, '2026-02-04 10:10:00'),
+  ('55550006-5555-5555-5555-555555550006', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550001', 'ai', 'AI (Pastor Robert''s Assistant)',
+   'Recognizing that takes wisdom, Brian. Pastor Robert has over 20 years of experience in marriage counseling and has helped many couples work through exactly this. Would you like me to set up a time for you and your wife to meet with him? It can be just the two of you, or we can start with you individually if that feels more comfortable.',
+   0.94, false, NULL, '2026-02-04 10:11:30'),
+
+-- Conv 2: Anxiety (anonymous Seeker-AB7K)
+  ('55550006-5555-5555-5555-555555550011', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550002', 'user', 'Seeker-AB7K',
+   'I''ve been having panic attacks almost every day. I can''t focus at work and I''m scared to leave my house some mornings. I don''t know who to talk to.',
+   NULL, false, NULL, '2026-02-04 09:15:00'),
+  ('55550006-5555-5555-5555-555555550012', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550002', 'ai', 'AI (Pastor Rachel''s Assistant)',
+   'Thank you for reaching out. It takes real strength to acknowledge what you''re going through. Panic attacks can be terrifying, and I want you to know that what you''re experiencing is a real health issue that deserves compassion and support — not judgment. You matter, and your mental health matters. Can you tell me more about when these started?',
+   0.91, false, NULL, '2026-02-04 09:16:30'),
+  ('55550006-5555-5555-5555-555555550013', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550002', 'user', 'Seeker-AB7K',
+   'About 3 months ago after I went through a really bad breakup. I feel like my whole world fell apart and now my body won''t stop being on high alert.',
+   NULL, false, NULL, '2026-02-04 09:30:00'),
+  ('55550006-5555-5555-5555-555555550014', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550002', 'ai', 'AI (Pastor Rachel''s Assistant)',
+   'That makes a lot of sense. Major life changes like a breakup can trigger our body''s stress response in powerful ways. What you''re describing sounds like your nervous system is stuck in "fight or flight" mode. This is very treatable. We believe in supporting the whole person — spirit, mind, and body. Would you be open to connecting with one of our counseling partners? Pastor Rachel also has experience walking alongside people through seasons like this.',
+   0.88, false, NULL, '2026-02-04 09:31:30'),
+
+-- Conv 3: Crisis — suicidal (Friend-XQ9M) - ESCALATED
+  ('55550006-5555-5555-5555-555555550021', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550003', 'user', 'Friend-XQ9M',
+   'I don''t know why I''m even writing this. I feel like nobody would notice if I was gone. I can''t take it anymore.',
+   NULL, true, 'Crisis detected: can''t take it anymore, nobody would notice', '2026-02-05 22:45:00'),
+  ('55550006-5555-5555-5555-555555550022', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550003', 'ai', 'AI (Pastor Grace''s Assistant)',
+   'I want you to know that you reaching out right now shows incredible courage, and your safety is our absolute top priority. If you or someone you know is in immediate danger, please call 911.\n\n988 Suicide & Crisis Lifeline: Call or text 988\nCrisis Text Line: Text HOME to 741741\n\nI''m alerting our care team right now so a trained leader can connect with you as quickly as possible. You are not alone.',
+   0.98, false, NULL, '2026-02-05 22:46:00'),
+  ('55550006-5555-5555-5555-555555550023', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550003', 'user', 'Friend-XQ9M',
+   'I just... everything feels so heavy. My family doesn''t understand. I lost my best friend last year and I never recovered from it.',
+   NULL, false, NULL, '2026-02-05 22:52:00'),
+  ('55550006-5555-5555-5555-555555550024', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550003', 'ai', 'AI (Pastor Grace''s Assistant)',
+   'I hear you, and that pain is so real. Losing a best friend is one of the most devastating things anyone can go through, and grief has no timeline. The fact that you''re reaching out means something inside you is fighting — and that fight matters. Pastor Grace is being notified right now, and she specializes in walking alongside people through exactly this kind of darkness. Will you stay with us?',
+   0.95, false, NULL, '2026-02-05 22:53:00'),
+  ('55550006-5555-5555-5555-555555550025', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550003', 'leader', 'Pastor Grace Williams',
+   'Hi, this is Pastor Grace. I''m here now and I''m not going anywhere. I read what you shared, and I want you to know — I notice you. Your pain is real, and you deserve support. Can we talk about what you''re feeling right now? I''m listening.',
+   NULL, false, NULL, '2026-02-05 23:05:00'),
+
+-- Conv 4: Addiction recovery (Helper-TN4W)
+  ('55550006-5555-5555-5555-555555550031', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550004', 'user', 'Helper-TN4W',
+   'I''ve been sober for 8 months but lately the cravings are getting really bad. I almost relapsed last weekend. I need someone to talk to.',
+   NULL, false, NULL, '2026-02-04 20:10:00'),
+  ('55550006-5555-5555-5555-555555550032', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550004', 'ai', 'AI (Deacon Michael''s Assistant)',
+   'Thank you for reaching out — that takes real courage. 8 months is an incredible achievement, and the fact that you''re here instead of giving in shows just how strong you are. Cravings can intensify during stressful times, and that''s a normal part of recovery. You''re not alone in this. Can you tell me what''s been triggering the cravings?',
+   0.90, false, NULL, '2026-02-04 20:11:30'),
+  ('55550006-5555-5555-5555-555555550033', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550004', 'user', 'Helper-TN4W',
+   'Work stress mostly. My boss has been piling on and I used to drink to cope. Friday nights are the hardest — that was always my trigger time.',
+   NULL, false, NULL, '2026-02-04 20:25:00'),
+  ('55550006-5555-5555-5555-555555550034', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550004', 'ai', 'AI (Deacon Michael''s Assistant)',
+   'I appreciate you being so honest about your triggers — knowing them is half the battle. Deacon Michael leads our Celebrate Recovery program and has walked this road himself. He understands Friday nights and workplace pressure. The group meets every Tuesday at 7pm. Would you like me to connect you with him directly? He also does one-on-one accountability check-ins.',
+   0.93, false, NULL, '2026-02-04 20:26:30'),
+
+-- Conv 5: Faith questions (Ashley Robinson)
+  ('55550006-5555-5555-5555-555555550041', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550005', 'user', 'Ashley Robinson',
+   'I grew up in church but lately I''ve been having serious doubts. Is it normal to question everything you were taught? I feel guilty even asking.',
+   NULL, false, NULL, '2026-02-05 11:20:00'),
+  ('55550006-5555-5555-5555-555555550042', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550005', 'ai', 'AI (Pastor Rachel''s Assistant)',
+   'Those are great questions, Ashley! First — please don''t feel guilty. Doubt and curiosity are actually healthy parts of a growing faith. Some of the greatest theologians and thinkers in history wrestled with the same questions. It means you care deeply about truth. What specifically has been on your mind?',
+   0.94, false, NULL, '2026-02-05 11:21:30'),
+  ('55550006-5555-5555-5555-555555550043', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550005', 'user', 'Ashley Robinson',
+   'I guess the big one is — how do we know any of this is real? I''m studying science in grad school and it feels like everything I''m learning contradicts what I was taught growing up. And the problem of suffering — why does God allow so much pain?',
+   NULL, false, NULL, '2026-02-05 11:35:00'),
+  ('55550006-5555-5555-5555-555555550044', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550005', 'ai', 'AI (Pastor Rachel''s Assistant)',
+   'Both of those are some of the biggest questions in human history — so you''re in good company! Many scientists are also people of faith, and the two don''t have to be in conflict. As for suffering, that''s perhaps the hardest question of all, and anyone who gives you a simple answer isn''t taking it seriously enough. Pastor Rachel has a masters in apologetics and loves creating space for honest wrestling with exactly these questions. Would you like to set up a conversation with her?',
+   0.91, false, NULL, '2026-02-05 11:36:30'),
+  ('55550006-5555-5555-5555-555555550045', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550005', 'user', 'Ashley Robinson',
+   'That would be really nice actually. I was afraid I''d be judged for asking these things at a church.',
+   NULL, false, NULL, '2026-02-05 12:40:00'),
+  ('55550006-5555-5555-5555-555555550046', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550005', 'ai', 'AI (Pastor Rachel''s Assistant)',
+   'Not here — questions are always welcome. In fact, Pastor Rachel often says that a faith worth having is a faith that can handle questions. I''ll let her know you''d like to connect. She usually meets at the coffee shop on campus or via video call — whatever works for you. You''re on a really good path, Ashley.',
+   0.96, false, NULL, '2026-02-05 12:41:30'),
+
+-- Conv 6: Grief (Daniel Lee)
+  ('55550006-5555-5555-5555-555555550051', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550006', 'user', 'Daniel Lee',
+   'My mother passed away two weeks ago. I thought I was doing okay but I just broke down at work today. I can''t stop crying and I don''t know how to function.',
+   NULL, false, NULL, '2026-02-05 15:40:00'),
+  ('55550006-5555-5555-5555-555555550052', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550006', 'ai', 'AI (Pastor Grace''s Assistant)',
+   'Daniel, I''m so sorry for the loss of your mother. There are no words that can take away that pain, and I won''t try to minimize what you''re feeling. Breaking down is not a sign of weakness — it''s a sign that you loved deeply. Grief has its own timeline, and it often hits hardest when we least expect it. I''m here to listen whenever you''re ready.',
+   0.93, false, NULL, '2026-02-05 15:41:30'),
+  ('55550006-5555-5555-5555-555555550053', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550006', 'user', 'Daniel Lee',
+   'Everyone keeps telling me she''s in a better place and I know that but it doesn''t help. I just want to hear her voice one more time. My dad is a mess too and I feel like I have to be strong for everyone.',
+   NULL, false, NULL, '2026-02-05 16:05:00'),
+  ('55550006-5555-5555-5555-555555550054', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550006', 'ai', 'AI (Pastor Grace''s Assistant)',
+   'You don''t have to be strong for everyone, Daniel. That''s such a heavy burden on top of your own grief. It''s okay to let others see your pain — in fact, it often gives them permission to grieve honestly too. Pastor Grace was a hospice chaplain before coming to Grace Community, and she has a gift for being present without pushing. She''d love to walk alongside both you and your father during this time. Would you be open to meeting with her?',
+   0.90, false, NULL, '2026-02-05 16:06:30'),
+
+-- Conv 9: General newcomer (Jason Reed)
+  ('55550006-5555-5555-5555-555555550081', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550009', 'user', 'Jason Reed',
+   'I just started attending and I''m not really sure what I believe. I''d like to talk to someone about what your church is about and where I might fit in.',
+   NULL, false, NULL, '2026-02-06 08:30:00'),
+  ('55550006-5555-5555-5555-555555550082', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550009', 'ai', 'AI (Elder William''s Assistant)',
+   'Welcome, Jason! I''m glad you reached out. There''s no pressure to have everything figured out — in fact, most of the best conversations start exactly where you are. Elder William loves walking with people who are exploring faith. What drew you to visit Grace Community?',
+   0.95, false, NULL, '2026-02-06 08:31:30'),
+
+-- Conv 10: Domestic concern (Guest-MR2P) - ESCALATED
+  ('55550006-5555-5555-5555-555555550091', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550010', 'user', 'Guest-MR2P',
+   'My husband has been getting more and more angry. He hasn''t hurt me yet but I''m scared. I don''t know if I''m overreacting.',
+   NULL, true, 'Crisis detected: scared, angry spouse', '2026-02-06 01:15:00'),
+  ('55550006-5555-5555-5555-555555550092', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550010', 'ai', 'AI (Pastor Grace''s Assistant)',
+   'You are NOT overreacting. Your feelings are valid, and the fact that you''re scared is important. Safety is always the priority. If you are ever in immediate danger, please call 911.\n\nNational Domestic Violence Hotline: 1-800-799-7233\nCrisis Text Line: Text START to 88788\n\nI want you to know that our care team takes this very seriously. Pastor Grace is being notified and can speak with you confidentially. You don''t have to go through this alone.',
+   0.97, false, NULL, '2026-02-06 01:16:00'),
+  ('55550006-5555-5555-5555-555555550093', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550010', 'user', 'Guest-MR2P',
+   'Thank you. I don''t think I''m in danger right now but it''s been getting worse over the past few months. He throws things and yells but he hasn''t touched me. I just don''t know what to do.',
+   NULL, false, NULL, '2026-02-06 01:22:00'),
+  ('55550006-5555-5555-5555-555555550094', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550010', 'ai', 'AI (Pastor Grace''s Assistant)',
+   'What you''re describing — throwing things, escalating anger — are warning signs that should be taken seriously. You are wise to pay attention to how you feel. It''s not your fault, and you deserve to feel safe in your own home. Pastor Grace has experience walking alongside people in situations like this. She can help you think through your options, create a safety plan, and connect you with local resources. She''s being contacted now. In the meantime, the DV hotline (1-800-799-7233) has trained counselors available 24/7 if you need to talk to someone right away.',
+   0.96, false, NULL, '2026-02-06 01:23:00')
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================
+-- PASTORAL CARE: CRISIS ALERTS
+-- ============================================
+INSERT INTO crisis_alerts (id, church_id, conversation_id, protocol_id, trigger_type, trigger_detail, severity, status, acknowledged_by, acknowledged_at, resolved_by, resolved_at, notes, created_at) VALUES
+  -- Crisis alert for suicidal conversation (Friend-XQ9M) — acknowledged by Pastor Grace
+  ('55550007-5555-5555-5555-555555550001', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550003',
+   '55550003-5555-5555-5555-555555550001',
+   'keyword', 'can''t take it anymore, nobody would notice',
+   'critical', 'acknowledged',
+   'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '2026-02-05 22:48:00',
+   NULL, NULL,
+   'Pastor Grace responded within 20 minutes. Active conversation ongoing.',
+   '2026-02-05 22:46:00'),
+
+  -- Crisis alert for domestic concern (Guest-MR2P) — active
+  ('55550007-5555-5555-5555-555555550002', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550010',
+   '55550003-5555-5555-5555-555555550002',
+   'keyword', 'scared, angry spouse, throws things',
+   'high', 'active',
+   NULL, NULL, NULL, NULL,
+   NULL,
+   '2026-02-06 01:16:00'),
+
+  -- Resolved: false positive from financial stress conversation
+  ('55550007-5555-5555-5555-555555550003', '11111111-1111-1111-1111-111111111111',
+   '55550005-5555-5555-5555-555555550007',
+   NULL,
+   'keyword', 'can''t pay rent, don''t know what to do',
+   'medium', 'false-positive',
+   'cccccccc-cccc-cccc-cccc-cccccccccccc', '2026-01-28 10:15:00',
+   'cccccccc-cccc-cccc-cccc-cccccccccccc', '2026-01-28 10:20:00',
+   'Financial stress, not a safety crisis. Routed to benevolence fund.',
+   '2026-01-28 10:05:00')
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================
 -- END OF SEED DATA
 -- ============================================
 -- Run this file with: psql -f seed.sql
