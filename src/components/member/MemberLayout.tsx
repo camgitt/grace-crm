@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Users, DollarSign, Calendar, QrCode, ArrowLeft, Home } from 'lucide-react';
+import { Users, DollarSign, Calendar, QrCode, ArrowLeft } from 'lucide-react';
 import type { MemberPortalTab } from '../../types';
 
 interface MemberLayoutProps {
@@ -8,13 +8,13 @@ interface MemberLayoutProps {
   onTabChange: (tab: MemberPortalTab) => void;
   onBack?: () => void;
   churchName?: string;
+  headerRight?: ReactNode;
 }
 
 const tabs: { id: MemberPortalTab; label: string; icon: typeof Users }[] = [
-  { id: 'home', label: 'Home', icon: Home },
   { id: 'directory', label: 'Directory', icon: Users },
-  { id: 'events', label: 'Events', icon: Calendar },
   { id: 'giving', label: 'Give', icon: DollarSign },
+  { id: 'events', label: 'Events', icon: Calendar },
   { id: 'checkin', label: 'Check In', icon: QrCode },
 ];
 
@@ -23,7 +23,8 @@ export function MemberLayout({
   activeTab,
   onTabChange,
   onBack,
-  churchName = 'Grace Church'
+  churchName = 'Grace Church',
+  headerRight
 }: MemberLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark-900 flex flex-col">
@@ -48,6 +49,7 @@ export function MemberLayout({
             <p className="text-xs text-gray-500 dark:text-dark-400">Member Portal</p>
           </div>
         </div>
+        {headerRight}
       </header>
 
       {/* Main Content */}

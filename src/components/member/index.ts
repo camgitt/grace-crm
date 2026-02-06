@@ -4,3 +4,5 @@ export { MemberDirectoryPage } from './MemberDirectoryPage';
 export { MemberGivingPage } from './MemberGivingPage';
 export { MemberEventsPage } from './MemberEventsPage';
 export { MemberCheckInPage } from './MemberCheckInPage';
+export { MemberLogin } from './MemberLogin';
+export { MemberAuthProvider, useMemberAuth } from './MemberAuthContext';

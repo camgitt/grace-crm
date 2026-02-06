@@ -32,7 +32,7 @@ const ConnectCard = lazy(() => import('./ConnectCard').then(m => ({ default: m.C
 const MemberDirectory = lazy(() => import('./MemberDirectory').then(m => ({ default: m.MemberDirectory })));
 const ChildCheckIn = lazy(() => import('./ChildCheckIn').then(m => ({ default: m.ChildCheckIn })));
 const FormBuilder = lazy(() => import('./FormBuilder').then(m => ({ default: m.FormBuilder })));
-const MemberPortalPreview = lazy(() => import('./member/MemberPortalPreview').then(m => ({ default: m.MemberPortalPreview })));
+const MemberPortalView = lazy(() => import('./member/MemberPortal').then(m => ({ default: m.MemberPortal })));
 const SundayPrep = lazy(() => import('./SundayPrep').then(m => ({ default: m.SundayPrep })));
 const Families = lazy(() => import('./Families').then(m => ({ default: m.Families })));
 const SkillsDatabase = lazy(() => import('./SkillsDatabase').then(m => ({ default: m.SkillsDatabase })));
@@ -453,14 +453,13 @@ export function ViewRenderer(props: ViewRendererProps) {
       case 'member-events':
       case 'member-checkin':
         return (
-          <MemberPortalPreview
+          <MemberPortalView
             people={people}
             events={events}
             giving={giving}
             attendance={attendanceRecords}
             rsvps={rsvps}
             churchName={churchName}
-            churchProfile={settings?.profile}
             onBack={() => setView('dashboard')}
             onRSVP={handlers.rsvp}
             onCheckIn={handlers.checkIn}
