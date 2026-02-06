@@ -133,7 +133,7 @@ export interface CalendarEvent {
   isPrivate?: boolean;
 }
 
-export type View = 'dashboard' | 'feed' | 'people' | 'person' | 'tasks' | 'calendar' | 'groups' | 'prayer' | 'giving' | 'settings' | 'pipeline' | 'attendance' | 'volunteers' | 'tags' | 'reports' | 'birthdays' | 'online-giving' | 'batch-entry' | 'pledges' | 'campaigns' | 'statements' | 'charity-baskets' | 'donation-tracker' | 'member-stats' | 'agents' | 'connect-card' | 'directory' | 'child-checkin' | 'forms' | 'member-portal' | 'member-directory' | 'member-giving' | 'member-events' | 'member-checkin' | 'sunday-prep' | 'families' | 'skills' | 'email-templates' | 'event-registration' | 'reminders' | 'planning-center-import' | 'qr-checkin' | 'follow-up-automation' | 'pastoral-care' | 'help-intake' | 'conversations' | 'care-chat' | 'care-dashboard' | 'anonymous-help';
+export type View = 'dashboard' | 'feed' | 'people' | 'person' | 'tasks' | 'calendar' | 'groups' | 'prayer' | 'giving' | 'settings' | 'pipeline' | 'attendance' | 'volunteers' | 'tags' | 'reports' | 'birthdays' | 'online-giving' | 'batch-entry' | 'pledges' | 'campaigns' | 'statements' | 'charity-baskets' | 'donation-tracker' | 'member-stats' | 'agents' | 'connect-card' | 'directory' | 'child-checkin' | 'forms' | 'member-portal' | 'member-directory' | 'member-giving' | 'member-events' | 'member-checkin' | 'sunday-prep' | 'families' | 'skills' | 'email-templates' | 'event-registration' | 'reminders' | 'planning-center-import' | 'qr-checkin' | 'follow-up-automation' | 'pastoral-care' | 'help-intake' | 'conversations' | 'care-chat' | 'care-dashboard' | 'anonymous-help' | 'care-analytics' | 'knowledge-base' | 'persona-refinement';
 
 // Family/Household type for grouping
 export interface Family {
@@ -467,4 +467,58 @@ export interface CrisisProtocol {
   keywords: string[];
   immediateResponse: string;
   resources: { name: string; phone?: string; description: string }[];
+}
+
+// ============================================
+// PHASE 4: RATINGS, KNOWLEDGE BASE, REFINEMENT
+// ============================================
+
+export interface ConversationRating {
+  id: string;
+  conversationId: string;
+  rating: number; // 1-5
+  feedback?: string;
+  wouldRecommend?: boolean;
+  createdAt: string;
+}
+
+export interface KnowledgeBaseEntry {
+  id: string;
+  leaderId?: string;
+  title: string;
+  content: string;
+  category: string;
+  tags: string[];
+  sourceType: 'text' | 'document' | 'url' | 'sermon';
+  sourceUrl?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PersonaCorrection {
+  id: string;
+  personaId: string;
+  messageId: string;
+  conversationId: string;
+  originalResponse: string;
+  correctedResponse: string;
+  correctionNote?: string;
+  status: 'pending' | 'applied' | 'dismissed';
+  reviewedBy?: string;
+  createdAt: string;
+}
+
+export interface CareAnalytics {
+  totalConversations: number;
+  activeConversations: number;
+  resolvedConversations: number;
+  crisisEvents: number;
+  averageRating: number;
+  ratingCount: number;
+  categoryBreakdown: { category: string; count: number }[];
+  priorityBreakdown: { priority: string; count: number }[];
+  dailyVolume: { date: string; count: number }[];
+  averageResponseTime: number;
+  leaderWorkload: { leaderId: string; leaderName: string; activeCount: number; resolvedCount: number }[];
 }

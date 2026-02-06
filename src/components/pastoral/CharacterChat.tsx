@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import type { AIPersona, LeaderProfile, CareConversation, CareMessage } from '../../types';
 import { generatePersonaResponse } from '../../lib/services/personaChat';
+import { RatingWidget } from './ConversationRating';
 
 interface CharacterChatProps {
   conversation: CareConversation;
@@ -21,6 +22,7 @@ interface CharacterChatProps {
   onSendMessage: (conversationId: string, content: string, aiResponse: string, crisisDetected: boolean) => void;
   onBack: () => void;
   onRequestConnect: (leaderId: string) => void;
+  onSubmitRating?: (conversationId: string, rating: number, feedback: string, wouldRecommend: boolean) => void;
 }
 
 function getInitials(name: string): string {
@@ -34,6 +36,7 @@ export function CharacterChat({
   onSendMessage,
   onBack,
   onRequestConnect,
+  onSubmitRating,
 }: CharacterChatProps) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -218,6 +221,16 @@ export function CharacterChat({
               <strong>Need immediate help?</strong> Call or text <strong>988</strong> (Suicide & Crisis Lifeline) or text HOME to <strong>741741</strong>
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Rating Widget — show for resolved conversations */}
+      {conversation.status === 'resolved' && onSubmitRating && (
+        <div className="px-4 py-3 border-t border-gray-200/60 dark:border-white/5">
+          <RatingWidget
+            conversationId={conversation.id}
+            onSubmitRating={onSubmitRating}
+          />
         </div>
       )}
 

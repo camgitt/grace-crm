@@ -12,6 +12,9 @@ import type {
   PastoralConversationStatus,
   PastoralConversationPriority,
   PastoralCrisisSeverity,
+  PastoralKnowledgeBaseEntry,
+  PastoralPersonaCorrection,
+  PastoralConversationRating,
 } from '../lib/database.types';
 import { sampleLeaderProfiles, samplePersonas, matchLeaderToCategory } from '../data/pastoralCareData';
 import type { LeaderProfile, AIPersona } from '../types';
@@ -807,6 +810,374 @@ export function usePastoralCareData(churchId?: string) {
     };
   }, [leaders, addMessage]);
 
+  // ==========================================
+  // PHASE 4 — CONVERSATION RATINGS
+  // ==========================================
+  const [ratings, setRatings] = useState<PastoralConversationRating[]>([]);
+
+  const submitRating = useCallback(async (
+    conversationId: string,
+    rating: number,
+    feedback: string = '',
+    wouldRecommend: boolean = true
+  ) => {
+    const now = new Date().toISOString();
+
+    if (isDemo || !supabase) {
+      const newRating: PastoralConversationRating = {
+        id: `rating-${Date.now()}`,
+        church_id: DEMO_CHURCH_ID,
+        conversation_id: conversationId,
+        rating,
+        feedback: feedback || null,
+        would_recommend: wouldRecommend,
+        created_at: now,
+      };
+      setRatings(prev => [...prev, newRating]);
+      // Also update conversation's inline rating
+      setConversations(prev => prev.map(c =>
+        c.id === conversationId ? { ...c, rating, feedback: feedback || null } : c
+      ));
+      return newRating;
+    }
+
+    const { data, error: err } = await supabase
+      .from('pastoral_conversation_ratings')
+      .insert({
+        church_id: effectiveChurchId,
+        conversation_id: conversationId,
+        rating,
+        feedback: feedback || null,
+        would_recommend: wouldRecommend,
+      })
+      .select()
+      .single();
+
+    if (err) throw err;
+    const dbRating = data as PastoralConversationRating;
+    setRatings(prev => [...prev, dbRating]);
+
+    // Update conversation inline
+    await supabase
+      .from('pastoral_conversations')
+      .update({ rating, feedback: feedback || null })
+      .eq('id', conversationId);
+
+    setConversations(prev => prev.map(c =>
+      c.id === conversationId ? { ...c, rating, feedback: feedback || null } : c
+    ));
+
+    return dbRating;
+  }, [effectiveChurchId, isDemo]);
+
+  // ==========================================
+  // PHASE 4 — KNOWLEDGE BASE CRUD
+  // ==========================================
+  const [knowledgeBase, setKnowledgeBase] = useState<PastoralKnowledgeBaseEntry[]>([]);
+
+  const loadKnowledgeBase = useCallback(async () => {
+    if (isDemo || !supabase) return;
+    const { data } = await supabase
+      .from('pastoral_knowledge_base')
+      .select('*')
+      .eq('church_id', effectiveChurchId)
+      .order('updated_at', { ascending: false });
+    if (data) setKnowledgeBase(data as PastoralKnowledgeBaseEntry[]);
+  }, [effectiveChurchId, isDemo]);
+
+  const addKnowledgeEntry = useCallback(async (entry: {
+    title: string;
+    content: string;
+    category?: string;
+    tags?: string[];
+    sourceType?: string;
+    sourceUrl?: string;
+    leaderId?: string | null;
+  }) => {
+    const now = new Date().toISOString();
+
+    if (isDemo || !supabase) {
+      const newEntry: PastoralKnowledgeBaseEntry = {
+        id: `kb-${Date.now()}`,
+        church_id: DEMO_CHURCH_ID,
+        leader_id: entry.leaderId || null,
+        title: entry.title,
+        content: entry.content,
+        category: entry.category || 'general',
+        tags: entry.tags || [],
+        source_type: (entry.sourceType || 'text') as PastoralKnowledgeBaseEntry['source_type'],
+        source_url: entry.sourceUrl || null,
+        is_active: true,
+        created_at: now,
+        updated_at: now,
+      };
+      setKnowledgeBase(prev => [newEntry, ...prev]);
+      return newEntry;
+    }
+
+    const { data, error: err } = await supabase
+      .from('pastoral_knowledge_base')
+      .insert({
+        church_id: effectiveChurchId,
+        leader_id: entry.leaderId || null,
+        title: entry.title,
+        content: entry.content,
+        category: entry.category || 'general',
+        tags: entry.tags || [],
+        source_type: entry.sourceType || 'text',
+        source_url: entry.sourceUrl || null,
+      })
+      .select()
+      .single();
+
+    if (err) throw err;
+    const dbEntry = data as PastoralKnowledgeBaseEntry;
+    setKnowledgeBase(prev => [dbEntry, ...prev]);
+    return dbEntry;
+  }, [effectiveChurchId, isDemo]);
+
+  const updateKnowledgeEntry = useCallback(async (id: string, updates: Partial<PastoralKnowledgeBaseEntry>) => {
+    if (isDemo || !supabase) {
+      setKnowledgeBase(prev => prev.map(e => e.id === id ? { ...e, ...updates, updated_at: new Date().toISOString() } : e));
+      return;
+    }
+
+    const { error: err } = await supabase
+      .from('pastoral_knowledge_base')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (err) throw err;
+    setKnowledgeBase(prev => prev.map(e => e.id === id ? { ...e, ...updates, updated_at: new Date().toISOString() } : e));
+  }, [isDemo]);
+
+  const deleteKnowledgeEntry = useCallback(async (id: string) => {
+    if (isDemo || !supabase) {
+      setKnowledgeBase(prev => prev.filter(e => e.id !== id));
+      return;
+    }
+
+    const { error: err } = await supabase
+      .from('pastoral_knowledge_base')
+      .delete()
+      .eq('id', id);
+
+    if (err) throw err;
+    setKnowledgeBase(prev => prev.filter(e => e.id !== id));
+  }, [isDemo]);
+
+  // ==========================================
+  // PHASE 4 — PERSONA CORRECTIONS
+  // ==========================================
+  const [corrections, setCorrections] = useState<PastoralPersonaCorrection[]>([]);
+
+  const submitCorrection = useCallback(async (
+    personaId: string,
+    messageId: string,
+    conversationId: string,
+    originalResponse: string,
+    correctedResponse: string,
+    correctionNote?: string
+  ) => {
+    const now = new Date().toISOString();
+
+    if (isDemo || !supabase) {
+      const newCorrection: PastoralPersonaCorrection = {
+        id: `corr-${Date.now()}`,
+        church_id: DEMO_CHURCH_ID,
+        persona_id: personaId,
+        message_id: messageId,
+        conversation_id: conversationId,
+        original_response: originalResponse,
+        corrected_response: correctedResponse,
+        correction_note: correctionNote || null,
+        status: 'pending',
+        reviewed_by: null,
+        created_at: now,
+      };
+      setCorrections(prev => [newCorrection, ...prev]);
+      return newCorrection;
+    }
+
+    const { data, error: err } = await supabase
+      .from('pastoral_persona_corrections')
+      .insert({
+        church_id: effectiveChurchId,
+        persona_id: personaId,
+        message_id: messageId,
+        conversation_id: conversationId,
+        original_response: originalResponse,
+        corrected_response: correctedResponse,
+        correction_note: correctionNote || null,
+      })
+      .select()
+      .single();
+
+    if (err) throw err;
+    const dbCorr = data as PastoralPersonaCorrection;
+    setCorrections(prev => [dbCorr, ...prev]);
+    return dbCorr;
+  }, [effectiveChurchId, isDemo]);
+
+  const updateCorrectionStatus = useCallback(async (
+    correctionId: string,
+    status: 'applied' | 'dismissed',
+    reviewedBy?: string
+  ) => {
+    if (isDemo || !supabase) {
+      setCorrections(prev => prev.map(c =>
+        c.id === correctionId ? { ...c, status, reviewed_by: reviewedBy || null } : c
+      ));
+      return;
+    }
+
+    const { error: err } = await supabase
+      .from('pastoral_persona_corrections')
+      .update({ status, reviewed_by: reviewedBy || null })
+      .eq('id', correctionId);
+
+    if (err) throw err;
+    setCorrections(prev => prev.map(c =>
+      c.id === correctionId ? { ...c, status, reviewed_by: reviewedBy || null } : c
+    ));
+  }, [isDemo]);
+
+  // ==========================================
+  // PHASE 4 — SMART ROUTING
+  // ==========================================
+  const smartRouteConversation = useCallback((
+    category: PastoralHelpCategory
+  ): { leaderId: string; personaId: string; score: number; reason: string } | null => {
+    const leaderProfiles = leaders.map(dbToLeader);
+    const aiPersonas = personas.map(dbToPersona);
+
+    // Score each leader based on expertise, availability, workload
+    const candidates = leaderProfiles
+      .filter(l => l.isActive)
+      .map(leader => {
+        let score = 0;
+        const reasons: string[] = [];
+
+        // Expertise match (0-40 points)
+        if (leader.expertiseAreas.includes(category)) {
+          score += 40;
+          reasons.push('expertise match');
+        }
+
+        // Online status (0-30 points)
+        if (leader.isOnline) {
+          score += 30;
+          reasons.push('currently online');
+        } else if (leader.lastSeenAt) {
+          const hoursSinceSeen = (Date.now() - new Date(leader.lastSeenAt).getTime()) / (1000 * 60 * 60);
+          if (hoursSinceSeen < 1) { score += 20; reasons.push('recently active'); }
+          else if (hoursSinceSeen < 4) { score += 10; reasons.push('active today'); }
+        }
+
+        // Workload (0-20 points — fewer active convos = higher score)
+        const activeConvs = conversations.filter(c =>
+          c.leader_id === leader.id && (c.status === 'active' || c.status === 'escalated')
+        ).length;
+        const workloadScore = Math.max(0, 20 - activeConvs * 5);
+        score += workloadScore;
+        if (activeConvs === 0) reasons.push('no active conversations');
+        else reasons.push(`${activeConvs} active conversations`);
+
+        // Has active persona (required)
+        const persona = aiPersonas.find(p => p.leaderId === leader.id && p.isActive);
+        if (!persona) return null;
+
+        return {
+          leaderId: leader.id,
+          personaId: persona.id,
+          score,
+          reason: reasons.join(', '),
+        };
+      })
+      .filter(Boolean) as { leaderId: string; personaId: string; score: number; reason: string }[];
+
+    if (candidates.length === 0) return null;
+
+    // Sort by score desc
+    candidates.sort((a, b) => b.score - a.score);
+    return candidates[0];
+  }, [leaders, personas, conversations]);
+
+  // ==========================================
+  // PHASE 4 — NOTIFICATION SYSTEM
+  // ==========================================
+  const sendLeaderNotification = useCallback(async (
+    leaderId: string,
+    type: 'escalation' | 'crisis' | 'new_conversation',
+    conversationId: string,
+    message: string
+  ) => {
+    const leader = leaders.find(l => l.id === leaderId);
+    if (!leader) return;
+
+    // In demo mode, just log
+    if (isDemo || !supabase) {
+      console.log(`[Notification] ${type} to ${leader.display_name}: ${message}`);
+      return { sent: true, type, leaderId };
+    }
+
+    // Check leader notification preferences
+    const { data: leaderData } = await supabase
+      .from('pastoral_leaders')
+      .select('notification_email, notification_phone, notify_on_escalation, notify_on_crisis, notify_on_new_conversation')
+      .eq('id', leaderId)
+      .single();
+
+    if (!leaderData) return { sent: false, reason: 'leader not found' };
+
+    const shouldNotify =
+      (type === 'escalation' && leaderData.notify_on_escalation) ||
+      (type === 'crisis' && leaderData.notify_on_crisis) ||
+      (type === 'new_conversation' && leaderData.notify_on_new_conversation);
+
+    if (!shouldNotify) return { sent: false, reason: 'notifications disabled for this type' };
+
+    // Send email notification via existing email API
+    if (leaderData.notification_email) {
+      try {
+        await fetch('/api/email/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: leaderData.notification_email,
+            subject: type === 'crisis'
+              ? '🚨 Crisis Alert — Pastoral Care'
+              : type === 'escalation'
+                ? 'Conversation Escalated — Pastoral Care'
+                : 'New Conversation — Pastoral Care',
+            body: message,
+            metadata: { conversationId, type },
+          }),
+        });
+      } catch (err) {
+        console.error('Failed to send email notification:', err);
+      }
+    }
+
+    // Send SMS notification via existing SMS API
+    if (leaderData.notification_phone) {
+      try {
+        await fetch('/api/sms/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: leaderData.notification_phone,
+            message: `[Grace CRM] ${message}`,
+          }),
+        });
+      } catch (err) {
+        console.error('Failed to send SMS notification:', err);
+      }
+    }
+
+    return { sent: true, type, leaderId };
+  }, [leaders, isDemo]);
+
   return {
     // State
     isLoading,
@@ -819,6 +1190,9 @@ export function usePastoralCareData(churchId?: string) {
     conversations,
     crisisEvents,
     stats,
+    ratings,
+    knowledgeBase,
+    corrections,
 
     // Frontend type getters
     getLeaderProfiles,
@@ -843,6 +1217,25 @@ export function usePastoralCareData(churchId?: string) {
     leaderSendMessage,
     scheduleFollowUp,
     scheduleAppointment,
+
+    // Phase 4 — Ratings
+    submitRating,
+
+    // Phase 4 — Knowledge Base
+    loadKnowledgeBase,
+    addKnowledgeEntry,
+    updateKnowledgeEntry,
+    deleteKnowledgeEntry,
+
+    // Phase 4 — Persona Corrections
+    submitCorrection,
+    updateCorrectionStatus,
+
+    // Phase 4 — Smart Routing
+    smartRouteConversation,
+
+    // Phase 4 — Notifications
+    sendLeaderNotification,
   };
 }
 

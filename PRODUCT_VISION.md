@@ -229,7 +229,7 @@ leader online
 - [x] Leader profile CRUD (create, read, update, delete)
 - [x] Staff dashboard view for help requests
 - [x] Basic routing: help request → assigned leader
-- [ ] Notification: leader receives email/SMS when assigned
+- [x] Notification: leader receives email/SMS when assigned
 
 ### Phase 2: AI Chat with Personas (3-4 weeks)
 
@@ -259,12 +259,12 @@ leader online
 **Goal:** Anonymous access, analytics, refinement
 
 - [x] Anonymous mode: no-login access with anonymous IDs
-- [ ] Analytics dashboard: volumes, categories, outcomes, response times
-- [ ] Conversation rating and feedback
-- [ ] AI persona refinement tools (leader reviews and corrects)
-- [ ] Knowledge base management (upload, organize, search)
-- [ ] Multi-leader routing based on availability
-- [ ] Mobile-optimized experience
+- [x] Analytics dashboard: volumes, categories, outcomes, response times
+- [x] Conversation rating and feedback
+- [x] AI persona refinement tools (leader reviews and corrects)
+- [x] Knowledge base management (upload, organize, search)
+- [x] Multi-leader routing based on availability
+- [x] Mobile-optimized experience
 
 ### Phase 5: Advanced Features (Ongoing)
 
@@ -396,4 +396,4 @@ No church software currently offers AI-powered pastoral care. Existing solutions
 
 *Document created: February 2026*
 *Last updated: February 2026*
-*Status: Phase 0 — Planning & Design*
+*Status: Phase 4 Complete — Polish & Scale*

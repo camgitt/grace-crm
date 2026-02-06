@@ -44,6 +44,9 @@ const FollowUpAutomation = lazy(() => import('./FollowUpAutomation').then(m => (
 const PastoralCare = lazy(() => import('./pastoral/PastoralCare').then(m => ({ default: m.PastoralCare })));
 const CareStaffDashboard = lazy(() => import('./pastoral/CareStaffDashboard').then(m => ({ default: m.CareStaffDashboard })));
 const AnonymousHelpPortal = lazy(() => import('./pastoral/AnonymousHelpPortal').then(m => ({ default: m.AnonymousHelpPortal })));
+const CareAnalyticsDashboard = lazy(() => import('./pastoral/CareAnalyticsDashboard').then(m => ({ default: m.CareAnalyticsDashboard })));
+const KnowledgeBaseManager = lazy(() => import('./pastoral/KnowledgeBaseManager').then(m => ({ default: m.KnowledgeBaseManager })));
+const PersonaRefinement = lazy(() => import('./pastoral/PersonaRefinement').then(m => ({ default: m.PersonaRefinement })));
 
 // Loading fallback component
 function ViewLoader() {
@@ -536,6 +539,15 @@ export function ViewRenderer(props: ViewRendererProps) {
 
       case 'anonymous-help':
         return <AnonymousHelpPortal setView={setView} churchId={churchId} />;
+
+      case 'care-analytics':
+        return <CareAnalyticsDashboard setView={setView} churchId={churchId} />;
+
+      case 'knowledge-base':
+        return <KnowledgeBaseManager setView={setView} churchId={churchId} />;
+
+      case 'persona-refinement':
+        return <PersonaRefinement setView={setView} churchId={churchId} />;
 
       default:
         return null;

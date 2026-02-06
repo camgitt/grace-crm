@@ -130,6 +130,26 @@ export function CareStaffDashboard({ setView, churchId }: CareStaffDashboardProp
             Monitor and manage all pastoral care conversations
           </p>
         </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setView('care-analytics' as View)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-dark-300 bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-700 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors"
+          >
+            Analytics
+          </button>
+          <button
+            onClick={() => setView('knowledge-base' as View)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-dark-300 bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-700 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors"
+          >
+            Knowledge Base
+          </button>
+          <button
+            onClick={() => setView('persona-refinement' as View)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-dark-300 bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-700 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors"
+          >
+            Refine Personas
+          </button>
+        </div>
       </div>
 
       {/* Crisis Alert Banner */}

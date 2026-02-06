@@ -39,6 +39,7 @@ export function PastoralCare({ setView, churchId, initialSubView }: PastoralCare
     requestLiveConnect,
     logCrisisEvent,
     updateConversationPriority,
+    submitRating,
   } = usePastoralCareData(churchId);
 
   const leaders = getLeaderProfiles();
@@ -124,6 +125,10 @@ export function PastoralCare({ setView, churchId, initialSubView }: PastoralCare
     }
   }, [activeConversationId, requestLiveConnect]);
 
+  const handleSubmitRating = useCallback(async (conversationId: string, rating: number, feedback: string, wouldRecommend: boolean) => {
+    await submitRating(conversationId, rating, feedback, wouldRecommend);
+  }, [submitRating]);
+
   // Navigate to staff dashboard
   const handleOpenStaffDashboard = useCallback(() => {
     if (setView) {
@@ -150,6 +155,7 @@ export function PastoralCare({ setView, churchId, initialSubView }: PastoralCare
         onSendMessage={handleSendMessage}
         onBack={() => setSubView('leaders')}
         onRequestConnect={handleRequestConnect}
+        onSubmitRating={handleSubmitRating}
       />
     );
   }
@@ -224,19 +230,19 @@ export function PastoralCare({ setView, churchId, initialSubView }: PastoralCare
 
   // Default: Leader list + dashboard
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-dark-100 flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-dark-100 flex items-center gap-2">
             <Heart className="text-violet-600 dark:text-violet-400" size={24} />
             Pastoral Care
           </h1>
-          <p className="text-gray-500 dark:text-dark-400 mt-1">
+          <p className="text-gray-500 dark:text-dark-400 mt-1 text-sm">
             AI-powered care team — available 24/7
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={handleOpenStaffDashboard}
             className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 dark:text-dark-300 bg-white dark:bg-dark-850 border border-gray-200 dark:border-dark-700 rounded-xl hover:bg-gray-50 dark:hover:bg-dark-800 transition-colors"
@@ -292,8 +298,8 @@ export function PastoralCare({ setView, churchId, initialSubView }: PastoralCare
       </div>
 
       {/* Ask for Help CTA */}
-      <div className="mb-8 p-6 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-500/10 dark:to-purple-500/10 rounded-2xl border border-violet-100 dark:border-violet-500/10">
-        <div className="flex items-center justify-between">
+      <div className="mb-8 p-4 sm:p-6 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-500/10 dark:to-purple-500/10 rounded-2xl border border-violet-100 dark:border-violet-500/10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold text-violet-900 dark:text-violet-200 flex items-center gap-2">
               <HelpCircle size={20} />
@@ -305,7 +311,7 @@ export function PastoralCare({ setView, churchId, initialSubView }: PastoralCare
           </div>
           <button
             onClick={() => setSubView('intake')}
-            className="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-medium text-sm transition-colors shadow-sm hover:shadow-md flex-shrink-0"
+            className="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-medium text-sm transition-colors shadow-sm hover:shadow-md flex-shrink-0 w-full sm:w-auto"
           >
             Ask for Help
           </button>

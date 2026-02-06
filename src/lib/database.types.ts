@@ -287,8 +287,101 @@ export interface PastoralConversation {
   is_anonymous: boolean;
   anonymous_id: string | null;
   person_id: string | null;
+  rating: number | null;
+  feedback: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface PastoralLeaderWithNotifications extends PastoralLeader {
+  notification_email: string | null;
+  notification_phone: string | null;
+  notify_on_escalation: boolean;
+  notify_on_crisis: boolean;
+  notify_on_new_conversation: boolean;
+}
+
+export interface PastoralConversationRating {
+  id: string;
+  church_id: string;
+  conversation_id: string;
+  rating: number;
+  feedback: string | null;
+  would_recommend: boolean | null;
+  created_at: string;
+}
+
+export interface PastoralKnowledgeBaseEntry {
+  id: string;
+  church_id: string;
+  leader_id: string | null;
+  title: string;
+  content: string;
+  category: string;
+  tags: string[];
+  source_type: 'text' | 'document' | 'url' | 'sermon';
+  source_url: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PastoralPersonaCorrection {
+  id: string;
+  church_id: string;
+  persona_id: string;
+  message_id: string;
+  conversation_id: string;
+  original_response: string;
+  corrected_response: string;
+  correction_note: string | null;
+  status: 'pending' | 'applied' | 'dismissed';
+  reviewed_by: string | null;
+  created_at: string;
+}
+
+export interface PastoralRoutingLog {
+  id: string;
+  church_id: string;
+  conversation_id: string;
+  category: string;
+  selected_leader_id: string | null;
+  routing_reason: string | null;
+  score: number | null;
+  candidates: unknown[];
+  created_at: string;
+}
+
+export interface PastoralKnowledgeBaseInsert {
+  church_id: string;
+  title: string;
+  content: string;
+  leader_id?: string | null;
+  category?: string;
+  tags?: string[];
+  source_type?: string;
+  source_url?: string | null;
+  is_active?: boolean;
+}
+
+export interface PastoralPersonaCorrectionInsert {
+  church_id: string;
+  persona_id: string;
+  message_id: string;
+  conversation_id: string;
+  original_response: string;
+  corrected_response: string;
+  correction_note?: string | null;
+  status?: string;
+  reviewed_by?: string | null;
+}
+
+export interface PastoralConversationRatingInsert {
+  church_id: string;
+  conversation_id: string;
+  rating: number;
+  feedback?: string | null;
+  would_recommend?: boolean | null;
 }
 
 export interface PastoralMessage {
@@ -459,6 +552,26 @@ export interface Database {
         Row: PastoralAnonymousSession;
         Insert: Partial<PastoralAnonymousSession> & { church_id: string; anonymous_id: string; session_token: string };
         Update: Partial<PastoralAnonymousSession>;
+      };
+      pastoral_conversation_ratings: {
+        Row: PastoralConversationRating;
+        Insert: PastoralConversationRatingInsert;
+        Update: Partial<PastoralConversationRating>;
+      };
+      pastoral_knowledge_base: {
+        Row: PastoralKnowledgeBaseEntry;
+        Insert: PastoralKnowledgeBaseInsert;
+        Update: Partial<PastoralKnowledgeBaseEntry>;
+      };
+      pastoral_persona_corrections: {
+        Row: PastoralPersonaCorrection;
+        Insert: PastoralPersonaCorrectionInsert;
+        Update: Partial<PastoralPersonaCorrection>;
+      };
+      pastoral_routing_log: {
+        Row: PastoralRoutingLog;
+        Insert: Partial<PastoralRoutingLog> & { church_id: string; conversation_id: string; category: string };
+        Update: Partial<PastoralRoutingLog>;
       };
     };
   };
