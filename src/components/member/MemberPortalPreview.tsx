@@ -141,8 +141,8 @@ export function MemberPortalPreview({
                   {/* Notch */}
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-gray-900 rounded-b-2xl z-50" />
 
-                  {/* Screen Content - transform creates containing block for fixed elements */}
-                  <div className="h-full overflow-y-auto overflow-x-hidden" style={{ transform: 'translateZ(0)' }}>
+                  {/* Screen Content */}
+                  <div className="h-full overflow-y-auto overflow-x-hidden">
                     <MemberPortal
                       people={people}
                       events={events}
@@ -154,6 +154,7 @@ export function MemberPortalPreview({
                       onRSVP={onRSVP}
                       onCheckIn={onCheckIn}
                       pastoralCare={pastoralCare}
+                      embedded
                     />
                   </div>
                 </div>

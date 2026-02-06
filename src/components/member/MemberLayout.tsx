@@ -8,6 +8,7 @@ interface MemberLayoutProps {
   onTabChange: (tab: MemberPortalTab) => void;
   onBack?: () => void;
   churchName?: string;
+  embedded?: boolean;
 }
 
 const tabs: { id: MemberPortalTab; label: string; icon: typeof Users }[] = [
@@ -23,12 +24,13 @@ export function MemberLayout({
   activeTab,
   onTabChange,
   onBack,
-  churchName = 'Grace Church'
+  churchName = 'Grace Church',
+  embedded = false,
 }: MemberLayoutProps) {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-dark-900 flex flex-col">
+    <div className={`${embedded ? 'h-full relative' : 'min-h-screen'} bg-gray-50 dark:bg-dark-900 flex flex-col`}>
       {/* Header */}
-      <header className="bg-white dark:bg-dark-850 border-b border-gray-100 dark:border-dark-700 px-4 py-3 flex items-center gap-3 sticky top-0 z-40">
+      <header className={`bg-white dark:bg-dark-850 border-b border-gray-100 dark:border-dark-700 px-4 py-3 flex items-center gap-3 sticky top-0 z-40 ${embedded ? 'pt-9' : ''}`}>
         {onBack && (
           <button
             onClick={onBack}
@@ -56,7 +58,7 @@ export function MemberLayout({
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-dark-850 border-t border-gray-200 dark:border-dark-700 px-2 pb-safe z-50">
+      <nav className={`${embedded ? 'absolute' : 'fixed'} bottom-0 left-0 right-0 bg-white dark:bg-dark-850 border-t border-gray-200 dark:border-dark-700 px-2 pb-safe z-50`}>
         <div className="flex items-center justify-around max-w-lg mx-auto">
           {tabs.map(({ id, label, icon: Icon }) => {
             const isActive = activeTab === id;

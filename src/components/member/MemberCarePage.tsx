@@ -56,7 +56,7 @@ function MemberChatView({ conversation, leaders, onSendMessage, onBack }: {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-10rem)]">
+    <div className="flex flex-col h-full min-h-0">
       {/* Chat header */}
       <div className="px-4 py-3 border-b border-gray-100 dark:border-dark-700 bg-white dark:bg-dark-800 flex items-center gap-3">
         <button onClick={onBack} className="p-1 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg">

@@ -28,6 +28,7 @@ interface MemberPortalProps {
     sendMessage: (conversationId: string, content: string) => void;
     resolveConversation: (conversationId: string) => void;
   };
+  embedded?: boolean;
 }
 
 export function MemberPortal({
@@ -43,6 +44,7 @@ export function MemberPortal({
   onRSVP,
   onCheckIn,
   pastoralCare,
+  embedded = false,
 }: MemberPortalProps) {
   const [activeTab, setActiveTab] = useState<MemberPortalTab>('home');
 
@@ -120,6 +122,7 @@ export function MemberPortal({
       onTabChange={setActiveTab}
       onBack={onBack}
       churchName={churchName}
+      embedded={embedded}
     >
       {renderContent()}
     </MemberLayout>
