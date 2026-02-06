@@ -5,7 +5,8 @@ import { MemberDirectoryPage } from './MemberDirectoryPage';
 import { MemberGivingPage } from './MemberGivingPage';
 import { MemberEventsPage } from './MemberEventsPage';
 import { MemberCheckInPage } from './MemberCheckInPage';
-import type { MemberPortalTab, Person, CalendarEvent, Giving, Attendance } from '../../types';
+import { MemberCarePage } from './MemberCarePage';
+import type { MemberPortalTab, Person, CalendarEvent, Giving, Attendance, LeaderProfile, PastoralConversation, HelpCategory } from '../../types';
 import type { ChurchProfile } from '../../hooks/useChurchSettings';
 
 interface MemberPortalProps {
@@ -20,6 +21,13 @@ interface MemberPortalProps {
   onBack?: () => void;
   onRSVP?: (eventId: string, personId: string, status: 'yes' | 'no' | 'maybe', guestCount?: number) => void;
   onCheckIn?: (personId: string, eventType: Attendance['eventType'], eventName?: string) => void;
+  pastoralCare?: {
+    leaders: LeaderProfile[];
+    conversations: PastoralConversation[];
+    createHelpRequest: (request: { category: HelpCategory; description?: string; isAnonymous: boolean }) => void;
+    sendMessage: (conversationId: string, content: string) => void;
+    resolveConversation: (conversationId: string) => void;
+  };
 }
 
 export function MemberPortal({
@@ -33,7 +41,8 @@ export function MemberPortal({
   churchProfile,
   onBack,
   onRSVP,
-  onCheckIn
+  onCheckIn,
+  pastoralCare,
 }: MemberPortalProps) {
   const [activeTab, setActiveTab] = useState<MemberPortalTab>('home');
 
@@ -79,6 +88,17 @@ export function MemberPortal({
             personId={currentMember?.id}
             personName={currentMember ? `${currentMember.firstName}` : undefined}
             onCheckIn={onCheckIn}
+          />
+        );
+
+      case 'care':
+        return (
+          <MemberCarePage
+            leaders={pastoralCare?.leaders ?? []}
+            conversations={pastoralCare?.conversations ?? []}
+            churchName={churchName}
+            onCreateHelpRequest={pastoralCare?.createHelpRequest ?? (() => {})}
+            onSendMessage={pastoralCare?.sendMessage ?? (() => {})}
           />
         );
 

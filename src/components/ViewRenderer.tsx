@@ -464,6 +464,13 @@ export function ViewRenderer(props: ViewRendererProps) {
             onBack={() => setView('dashboard')}
             onRSVP={handlers.rsvp}
             onCheckIn={handlers.checkIn}
+            pastoralCare={{
+              leaders: pastoralCare.leaders,
+              conversations: pastoralCare.conversations,
+              createHelpRequest: pastoralCare.createHelpRequest,
+              sendMessage: pastoralCare.sendMessage,
+              resolveConversation: pastoralCare.resolveConversation,
+            }}
           />
         );
 

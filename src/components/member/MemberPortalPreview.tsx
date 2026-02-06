@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { QrCode, Smartphone, Monitor, ExternalLink, Copy, Check, ArrowLeft, Link2 } from 'lucide-react';
 import { MemberPortal } from './MemberPortal';
-import type { Person, CalendarEvent, Giving, Attendance } from '../../types';
+import type { Person, CalendarEvent, Giving, Attendance, LeaderProfile, PastoralConversation, HelpCategory } from '../../types';
 import type { ChurchProfile } from '../../hooks/useChurchSettings';
 
 interface MemberPortalPreviewProps {
@@ -15,6 +15,13 @@ interface MemberPortalPreviewProps {
   onBack: () => void;
   onRSVP?: (eventId: string, personId: string, status: 'yes' | 'no' | 'maybe', guestCount?: number) => void;
   onCheckIn?: (personId: string, eventType: Attendance['eventType'], eventName?: string) => void;
+  pastoralCare?: {
+    leaders: LeaderProfile[];
+    conversations: PastoralConversation[];
+    createHelpRequest: (request: { category: HelpCategory; description?: string; isAnonymous: boolean }) => void;
+    sendMessage: (conversationId: string, content: string) => void;
+    resolveConversation: (conversationId: string) => void;
+  };
 }
 
 export function MemberPortalPreview({
@@ -27,7 +34,8 @@ export function MemberPortalPreview({
   churchProfile,
   onBack,
   onRSVP,
-  onCheckIn
+  onCheckIn,
+  pastoralCare,
 }: MemberPortalPreviewProps) {
   const [viewMode, setViewMode] = useState<'phone' | 'full'>('phone');
   const [copied, setCopied] = useState(false);
@@ -74,6 +82,7 @@ export function MemberPortalPreview({
           onBack={onBack}
           onRSVP={onRSVP}
           onCheckIn={onCheckIn}
+          pastoralCare={pastoralCare}
         />
       </div>
     );
@@ -144,6 +153,7 @@ export function MemberPortalPreview({
                       churchProfile={churchProfile}
                       onRSVP={onRSVP}
                       onCheckIn={onCheckIn}
+                      pastoralCare={pastoralCare}
                     />
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Users, DollarSign, Calendar, QrCode, Clock, MapPin, Phone, Mail, Globe, ChevronRight } from 'lucide-react';
+import { Users, DollarSign, Calendar, Clock, MapPin, Phone, Mail, Globe, ChevronRight, Heart } from 'lucide-react';
 import type { CalendarEvent, MemberPortalTab } from '../../types';
 import type { ChurchProfile } from '../../hooks/useChurchSettings';
 
@@ -22,6 +22,13 @@ export function MemberHomePage({ churchName, churchProfile, events, onNavigate }
 
   const quickActions = [
     {
+      id: 'care' as MemberPortalTab,
+      label: 'Get Help',
+      description: 'Talk to someone',
+      icon: Heart,
+      color: 'from-violet-500 to-purple-600'
+    },
+    {
       id: 'directory' as MemberPortalTab,
       label: 'Directory',
       description: 'Find & connect',
@@ -31,7 +38,7 @@ export function MemberHomePage({ churchName, churchProfile, events, onNavigate }
     {
       id: 'events' as MemberPortalTab,
       label: 'Events',
-      description: 'See what\'s happening',
+      description: "See what's happening",
       icon: Calendar,
       color: 'from-emerald-500 to-teal-600'
     },
@@ -41,13 +48,6 @@ export function MemberHomePage({ churchName, churchProfile, events, onNavigate }
       description: 'Support our mission',
       icon: DollarSign,
       color: 'from-amber-500 to-orange-600'
-    },
-    {
-      id: 'checkin' as MemberPortalTab,
-      label: 'Check In',
-      description: 'Sunday attendance',
-      icon: QrCode,
-      color: 'from-purple-500 to-violet-600'
     },
   ];
 
