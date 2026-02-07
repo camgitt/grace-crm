@@ -19,7 +19,6 @@ interface LeaderProfileCardProps {
     personalityDescription: string;
     systemPrompt: string;
   };
-  onStartSession?: (leaderId: string) => void;
   onEdit?: (leaderId: string) => void;
 }
 
@@ -35,7 +34,7 @@ const CATEGORY_LABELS: Record<HelpCategory, string> = {
   'general': 'General Pastoral Care',
 };
 
-export function LeaderProfileCard({ leader, persona, onStartSession, onEdit }: LeaderProfileCardProps) {
+export function LeaderProfileCard({ leader, persona, onEdit }: LeaderProfileCardProps) {
   const [activeTab, setActiveTab] = useState<'expertise' | 'spiritual'>('expertise');
   const [showFullPrompt, setShowFullPrompt] = useState(false);
 
@@ -301,20 +300,6 @@ export function LeaderProfileCard({ leader, persona, onStartSession, onEdit }: L
         )}
       </div>
 
-      {/* CTA Card */}
-      <div className="mx-6 mb-6 bg-gradient-to-br from-violet-600 to-purple-700 rounded-2xl p-5 text-center">
-        <Sparkles className="w-8 h-8 text-violet-200 mx-auto mb-2" />
-        <h4 className="text-white font-semibold mb-1">Ready to begin your spiritual journey?</h4>
-        <p className="text-violet-200 text-xs mb-3">
-          Connect with {leader.displayName.split(' ')[0]} for personalized guidance, deep insights, and compassionate support on your path.
-        </p>
-        <button
-          onClick={() => onStartSession?.(leader.id)}
-          className="px-6 py-2.5 bg-white text-violet-700 font-semibold text-sm rounded-xl hover:bg-violet-50 transition-colors"
-        >
-          Start Your Session
-        </button>
-      </div>
     </div>
   );
 }

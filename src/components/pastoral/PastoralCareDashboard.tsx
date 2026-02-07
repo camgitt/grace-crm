@@ -444,9 +444,6 @@ export function PastoralCareDashboard({
                   <LeaderProfileCard
                     key={leader.id}
                     leader={leader}
-                    onStartSession={() => {
-                      setTab('new-request');
-                    }}
                     onEdit={(leaderId) => setEditingLeaderId(leaderId)}
                   />
                 ))}
