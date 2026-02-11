@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from 'react';
-import { MessageCircle, Mail, X, Star, Clock, Globe, ChevronRight, HandHeart } from 'lucide-react';
+import { MessageCircle, Mail, X, Star, Clock, Globe, ChevronRight, Heart } from 'lucide-react';
 import type { LeaderProfile } from '../../types';
 import { DEMO_LEADERS } from './demoLeaders';
 
@@ -41,7 +41,7 @@ export function PastoralStories({
           {/* "Say Hi" CTA — like the "Your Story" bubble */}
           <div className="flex flex-col items-center gap-1.5 flex-shrink-0 w-[62px]">
             <div className="w-[56px] h-[56px] rounded-full bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 flex items-center justify-center border-2 border-dashed border-amber-300 dark:border-amber-500/30">
-              <HandHeart size={22} className="text-amber-600 dark:text-amber-400" />
+              <Heart size={22} className="text-amber-600 dark:text-amber-400" />
             </div>
             <span className="text-[10px] font-medium text-amber-700 dark:text-amber-400 leading-tight text-center truncate w-full">
               Say Hi
