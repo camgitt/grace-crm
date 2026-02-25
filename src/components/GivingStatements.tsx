@@ -125,7 +125,7 @@ function StatementPreview({
             <h3 className="font-semibold text-gray-900 dark:text-dark-100 mb-4">
               Contribution Summary
             </h3>
-            <div className="border border-gray-200 dark:border-dark-700 rounded-xl overflow-hidden">
+            <div className="border border-gray-200 dark:border-dark-700 rounded-xl overflow-hidden overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-dark-800">
                   <tr>
@@ -168,7 +168,7 @@ function StatementPreview({
             <h3 className="font-semibold text-gray-900 dark:text-dark-100 mb-4">
               Contribution Detail
             </h3>
-            <div className="border border-gray-200 dark:border-dark-700 rounded-xl overflow-hidden">
+            <div className="border border-gray-200 dark:border-dark-700 rounded-xl overflow-hidden overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-dark-800">
                   <tr>
@@ -466,7 +466,8 @@ export function GivingStatements({
             </p>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px]">
             <thead className="bg-gray-50 dark:bg-dark-800 border-b border-gray-200 dark:border-dark-700">
               <tr>
                 <th className="px-4 py-3 text-left">
@@ -591,6 +592,7 @@ export function GivingStatements({
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

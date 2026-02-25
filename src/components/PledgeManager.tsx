@@ -398,6 +398,7 @@ export function PledgeManager({
                 </p>
               </div>
             ) : (
+              <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-dark-800 border-b border-gray-200 dark:border-dark-700">
                   <tr>
@@ -519,6 +520,7 @@ export function PledgeManager({
                   })}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </div>

@@ -445,8 +445,8 @@ export function MemberDonationStats({
       </div>
 
       {/* Members List */}
-      <div className="bg-white dark:bg-dark-850 rounded-2xl border border-gray-200 dark:border-dark-700 overflow-hidden">
-        <table className="w-full">
+      <div className="bg-white dark:bg-dark-850 rounded-2xl border border-gray-200 dark:border-dark-700 overflow-hidden overflow-x-auto">
+        <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50 dark:bg-dark-800">
             <tr>
               <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 dark:text-dark-400 uppercase">

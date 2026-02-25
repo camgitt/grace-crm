@@ -202,7 +202,7 @@ export function Layout({ currentView, setView, children, onOpenSearch, isDemo = 
   const breadcrumbs = getBreadcrumbs();
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-gray-100/50 dark:from-dark-950 dark:via-dark-900 dark:to-dark-950">
+    <div className="flex h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-gray-100/50 dark:from-dark-950 dark:via-dark-900 dark:to-dark-950 safe-area-left safe-area-right">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -213,7 +213,7 @@ export function Layout({ currentView, setView, children, onOpenSearch, isDemo = 
 
       {/* Sidebar - Glass effect */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 bg-white/80 dark:bg-dark-900/80 backdrop-blur-xl flex flex-col transform transition-all duration-200 ease-out border-r border-gray-200/50 dark:border-white/5 ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 bg-white/80 dark:bg-dark-900/80 backdrop-blur-xl flex flex-col transform transition-all duration-200 ease-out border-r border-gray-200/50 dark:border-white/5 safe-area-top safe-area-bottom ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         } ${sidebarCollapsed ? 'lg:w-16' : 'w-60'}`}
       >
@@ -230,7 +230,7 @@ export function Layout({ currentView, setView, children, onOpenSearch, isDemo = 
           {/* Mobile close button */}
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden ml-auto p-1.5 hover:bg-gray-100 dark:hover:bg-dark-800 rounded-lg"
+            className="lg:hidden ml-auto p-2 hover:bg-gray-100 dark:hover:bg-dark-800 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
             <X size={18} className="text-gray-500" />
           </button>
@@ -393,7 +393,7 @@ export function Layout({ currentView, setView, children, onOpenSearch, isDemo = 
           {/* Mobile menu button */}
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden p-2 -ml-2 mr-2 hover:bg-gray-100 dark:hover:bg-dark-800 rounded-lg"
+            className="lg:hidden p-2.5 -ml-2 mr-1 hover:bg-gray-100 dark:hover:bg-dark-800 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
             <Menu size={20} className="text-gray-600 dark:text-dark-400" />
           </button>
@@ -407,7 +407,7 @@ export function Layout({ currentView, setView, children, onOpenSearch, isDemo = 
                 )}
                 <button
                   onClick={() => setView(crumb.view)}
-                  className={`px-1.5 py-0.5 rounded transition-colors ${
+                  className={`px-2 py-1.5 rounded transition-colors min-h-[44px] flex items-center ${
                     index === breadcrumbs.length - 1
                       ? 'font-medium text-gray-900 dark:text-dark-100'
                       : 'text-gray-500 dark:text-dark-400 hover:text-gray-700 dark:hover:text-dark-300'
@@ -423,14 +423,14 @@ export function Layout({ currentView, setView, children, onOpenSearch, isDemo = 
           {onOpenSearch && (
             <button
               onClick={onOpenSearch}
-              className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-dark-800 rounded-lg"
+              className="lg:hidden p-2.5 hover:bg-gray-100 dark:hover:bg-dark-800 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               <Search size={20} className="text-gray-500 dark:text-dark-400" />
             </button>
           )}
         </header>
 
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto overscroll-contain safe-area-bottom">
           {children}
         </main>
       </div>

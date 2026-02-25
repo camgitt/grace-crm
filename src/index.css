@@ -443,3 +443,47 @@ html.high-contrast [class*="opacity-"] {
     scroll-behavior: auto !important;
   }
 }
+
+/* Safe area support for iOS notch/home indicator */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Mobile table scroll wrapper */
+.table-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+/* Prevent body scroll when modal is open */
+body.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+/* Mobile-friendly modal base */
+@layer components {
+  .modal-mobile {
+    @apply fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4;
+  }
+
+  .modal-mobile > .modal-content {
+    @apply w-full sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] rounded-t-2xl sm:rounded-2xl overflow-y-auto;
+  }
+}

@@ -69,9 +69,9 @@ export function QuickNote({ people, onSave, onClose }: QuickNoteProps) {
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 pt-[10vh]">
+    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-start justify-center z-50 p-0 sm:p-4 sm:pt-[10vh]">
       <div
-        className="bg-white dark:bg-dark-850 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+        className="bg-white dark:bg-dark-850 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden max-h-[95vh] sm:max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

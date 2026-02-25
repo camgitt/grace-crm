@@ -51,7 +51,7 @@ export function QuickActions({ onAddPerson, onAddTask, onAddPrayer, onAddNote, o
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-6 right-6 z-50" style={{ bottom: 'max(1.5rem, env(safe-area-inset-bottom, 0px))' }}>
       {/* Action buttons */}
       <div className={`flex flex-col-reverse gap-3 mb-3 transition-all duration-300 ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
         {actions.map((action, index) => (

@@ -264,8 +264,8 @@ If you can't help directly, suggest what you CAN do: draft messages, find people
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 pt-16 px-4" onClick={onClose}>
-      <div className="bg-white dark:bg-dark-850 rounded-2xl w-full max-w-xl shadow-2xl flex flex-col max-h-[70vh]" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 pt-4 sm:pt-16 px-2 sm:px-4" onClick={onClose}>
+      <div className="bg-white dark:bg-dark-850 rounded-2xl w-full max-w-xl shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[70vh]" onClick={(e) => e.stopPropagation()}>
         {/* Mode Tabs */}
         <div className="flex border-b border-gray-200 dark:border-dark-700">
           <button
